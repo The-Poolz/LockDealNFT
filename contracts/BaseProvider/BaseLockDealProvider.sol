@@ -1,9 +1,10 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../../LockDealNFT/contracts/ICustomItemInterface.sol";
-import "../../LockDealNFT/contracts/LockDealNFT.sol";
+import "../LockDealNFT/ICustomItemInterface.sol";
+import "../LockDealNFT/LockDealNFT.sol";
 
-contract BaseLockDealProvider is ICustomItemInterface {
+abstract contract BaseLockDealProvider is ICustomItemInterface {
     struct Deal {
         address tokenAddress;
         uint256 amount;
@@ -22,14 +23,15 @@ contract BaseLockDealProvider is ICustomItemInterface {
         address tokenAddress,
         uint256 amount,
         uint256 startTime
-    ) public {
+    ) external virtual override {
+        //uint256 newItemId = nftContract.totalSupply();
         nftContract.mint(to);
-
         uint256 newItemId = nftContract.totalSupply();
         itemIdToDeal[newItemId] = Deal(tokenAddress, amount, startTime);
+        //_mint(to, tokenAddress, amount, startTime);
     }
 
-    function withdraw(uint256 itemId) external {
+    function withdraw(uint256 itemId) external virtual override {
         Deal storage deal = itemIdToDeal[itemId];
 
         require(
@@ -46,7 +48,11 @@ contract BaseLockDealProvider is ICustomItemInterface {
         // For example, if it's an ERC20 token, use the ERC20 contract's transfer function
     }
 
-    function split(address to,uint256 itemId, uint256 splitAmount) external {
+    function split(
+        address to,
+        uint256 itemId,
+        uint256 splitAmount
+    ) external virtual override {
         require(splitAmount > 0, "Split amount should be greater than 0");
 
         Deal storage deal = itemIdToDeal[itemId];
@@ -62,7 +68,18 @@ contract BaseLockDealProvider is ICustomItemInterface {
 
         deal.amount -= splitAmount;
 
-        mint(to,deal.tokenAddress,splitAmount,deal.startTime);
+        _mint(to, deal.tokenAddress, splitAmount, deal.startTime);
+    }
+
+    function _mint(
+        address to,
+        address tokenAddress,
+        uint256 amount,
+        uint256 startTime
+    ) internal {
+        nftContract.mint(to);
+        uint256 newItemId = nftContract.totalSupply();
+        itemIdToDeal[newItemId] = Deal(tokenAddress, amount, startTime);
     }
 
     function isRefundable(uint256 itemId) public view returns (bool) {

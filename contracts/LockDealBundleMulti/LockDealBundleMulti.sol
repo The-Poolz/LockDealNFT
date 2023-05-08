@@ -1,8 +1,8 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./BaseLockDealProvider.sol";
-import "./TimedLockDealProvider.sol";
-import "../LockDealNFT/contracts/LockDealNFTWithInterface.sol";
+import "../TimedLockDealProvider/TimedLockDealProvider.sol";
+import "../LockDealNFT/ICustomItemInterface.sol";
 
 contract LockDealBundleMulti {
     LockDealNFTWithInterface public lockDealNFT;

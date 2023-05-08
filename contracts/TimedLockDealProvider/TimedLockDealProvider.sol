@@ -1,6 +1,7 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./BaseLockDealProvider.sol";
+import "../BaseProvider/BaseLockDealProvider.sol";
 
 contract TimedLockDealProvider is BaseLockDealProvider {
     struct TimedDeal {
