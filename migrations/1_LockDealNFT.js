@@ -1,5 +1,5 @@
-const LockDealNFT = artifacts.require("LockDealNFT")
+const lockDealNFT = artifacts.require("LockDealNFT")
 
 module.exports = function (deployer) {
-    deployer.deploy(LockDealNFT)
+    deployer.deploy(lockDealNFT)
 }

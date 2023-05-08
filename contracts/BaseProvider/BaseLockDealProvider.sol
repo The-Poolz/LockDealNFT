@@ -11,7 +11,7 @@ abstract contract BaseLockDealProvider is ICustomItemInterface {
         uint256 startTime;
     }
 
-    LockDealNFT private nftContract;
+    LockDealNFT internal nftContract;
     mapping(uint256 => Deal) public itemIdToDeal;
 
     constructor(address _nftContract) {
@@ -24,11 +24,7 @@ abstract contract BaseLockDealProvider is ICustomItemInterface {
         uint256 amount,
         uint256 startTime
     ) external virtual override {
-        //uint256 newItemId = nftContract.totalSupply();
-        nftContract.mint(to);
-        uint256 newItemId = nftContract.totalSupply();
-        itemIdToDeal[newItemId] = Deal(tokenAddress, amount, startTime);
-        //_mint(to, tokenAddress, amount, startTime);
+        _mint(to, tokenAddress, amount, startTime);
     }
 
     function withdraw(uint256 itemId) external virtual override {
@@ -80,9 +76,5 @@ abstract contract BaseLockDealProvider is ICustomItemInterface {
         nftContract.mint(to);
         uint256 newItemId = nftContract.totalSupply();
         itemIdToDeal[newItemId] = Deal(tokenAddress, amount, startTime);
-    }
-
-    function isRefundable(uint256 itemId) public view returns (bool) {
-        return false;
     }
 }

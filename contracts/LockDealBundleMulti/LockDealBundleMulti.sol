@@ -5,7 +5,7 @@ import "../TimedLockDealProvider/TimedLockDealProvider.sol";
 import "../LockDealNFT/ICustomItemInterface.sol";
 
 contract LockDealBundleMulti {
-    LockDealNFTWithInterface public lockDealNFT;
+    ICustomItemInterface public lockDealNFT;
 
     struct LockDeal {
         address provider;
@@ -20,7 +20,7 @@ contract LockDealBundleMulti {
     }
 
     constructor(address _lockDealNFT) {
-        lockDealNFT = LockDealNFTWithInterface(_lockDealNFT);
+        lockDealNFT = ICustomItemInterface(_lockDealNFT);
     }
 
     function mintBundle(

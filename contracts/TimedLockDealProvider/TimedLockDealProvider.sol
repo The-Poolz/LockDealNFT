@@ -25,7 +25,7 @@ contract TimedLockDealProvider is BaseLockDealProvider {
             "Finish time should be greater than start time"
         );
 
-        super.mint(to, tokenAddress, amount, startTime);
+        _mint(to, tokenAddress, amount, startTime);
 
         uint256 newItemId = nftContract.totalSupply();
         itemIdToTimedDeal[newItemId] = TimedDeal(finishTime, 0);
