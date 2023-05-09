@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "../TimedLockDealProvider/TimedLockDealProvider.sol";
-import "../LockDealNFT/ICustomItemInterface.sol";
+import "../interface/ICustomItemInterface.sol";
 
 contract LockDealBundleMulti {
     ICustomItemInterface public lockDealNFT;

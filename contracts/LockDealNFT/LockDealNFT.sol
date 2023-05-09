@@ -23,11 +23,14 @@ contract LockDealNFT is ERC721, Ownable, ERC721Enumerable {
         itemIdToProvider[newItemId] = msg.sender;
     }
 
-    function setApprovedProvider(address provider, bool status) public onlyOwner {
+    function setApprovedProvider(
+        address provider,
+        bool status
+    ) public onlyOwner {
         approvedProviders[provider] = status;
     }
 
-    modifier onlyApprovedProvider {
+    modifier onlyApprovedProvider() {
         require(approvedProviders[msg.sender], "Provider not approved");
         _;
     }

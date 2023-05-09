@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../LockDealNFT/ICustomItemInterface.sol";
+import "../interface/ICustomItemInterface.sol";
 import "../LockDealNFT/LockDealNFT.sol";
 
-abstract contract BaseLockDealProvider is ICustomItemInterface {
+contract BaseLockDealProvider is ICustomItemInterface {
     struct Deal {
         address tokenAddress;
         uint256 amount;
