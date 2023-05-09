@@ -1,11 +1,11 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./BaseLockDealProvider.sol";
-import "./TimedLockDealProvider.sol";
-import "../LockDealNFT/contracts/LockDealNFTWithInterface.sol";
+import "../TimedLockDealProvider/TimedLockDealProvider.sol";
+import "../interface/ICustomItemInterface.sol";
 
 contract LockDealBundleMulti {
-    LockDealNFTWithInterface public lockDealNFT;
+    ICustomItemInterface public lockDealNFT;
 
     struct LockDeal {
         address provider;
@@ -20,7 +20,7 @@ contract LockDealBundleMulti {
     }
 
     constructor(address _lockDealNFT) {
-        lockDealNFT = LockDealNFTWithInterface(_lockDealNFT);
+        lockDealNFT = ICustomItemInterface(_lockDealNFT);
     }
 
     function mintBundle(

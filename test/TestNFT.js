@@ -7,7 +7,7 @@
  *  #> truffle test <path/to/this/test.js>
  * 
  * */
-var LockDealNFT = artifacts.require("..\contracts\LockDealNFT.sol");
+var LockDealNFT = artifacts.require("LockDealNFT");
 
 contract('LockDealNFT', (accounts) => {
     var creatorAddress = accounts[0];
