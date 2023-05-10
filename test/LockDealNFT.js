@@ -1,5 +1,4 @@
 const { expect } = require("chai")
-const { assert } = require("chai")
 const { ethers } = require("hardhat")
 
 describe("LockDealNFT", function (accounts) {

@@ -1,6 +1,5 @@
 require("@nomicfoundation/hardhat-toolbox")
 require("solidity-coverage")
-require("@truffle/dashboard-hardhat-plugin")
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
