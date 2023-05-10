@@ -2,10 +2,10 @@
 pragma solidity ^0.8.0;
 
 import "../TimedLockDealProvider/TimedLockDealProvider.sol";
-import "../interface/ICustomItemInterface.sol";
+import "../interface/ICustomLockedDeal.sol";
 
 contract LockDealBundleMulti {
-    ICustomItemInterface public lockDealNFT;
+    ICustomLockedDeal public lockDealNFT;
 
     struct LockDeal {
         address provider;
@@ -20,7 +20,7 @@ contract LockDealBundleMulti {
     }
 
     constructor(address _lockDealNFT) {
-        lockDealNFT = ICustomItemInterface(_lockDealNFT);
+        lockDealNFT = ICustomLockedDeal(_lockDealNFT);
     }
 
     function mintBundle(
@@ -38,10 +38,10 @@ contract LockDealBundleMulti {
                 Recipient memory recipient = recipients[j];
                 if (lockDeal.finishTime == 0) {
                     BaseLockDealProvider provider = BaseLockDealProvider(lockDeal.provider);
-                    provider.mint(recipient.to, tokenAddress, recipient.amount, lockDeal.startTime);
+                    provider.createNewPool(recipient.to, tokenAddress, recipient.amount, lockDeal.startTime);
                 } else {
                     TimedLockDealProvider provider = TimedLockDealProvider(lockDeal.provider);
-                    provider.mint(recipient.to, tokenAddress, recipient.amount, lockDeal.startTime, lockDeal.finishTime);
+                    provider.createNewPool(recipient.to, tokenAddress, recipient.amount, lockDeal.startTime, lockDeal.finishTime);
                 }
             }
         }

@@ -1,80 +1,85 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../interface/ICustomItemInterface.sol";
-import "../LockDealNFT/LockDealNFT.sol";
+import "poolz-helper-v2/contracts/ERC20Helper.sol";
+import "../interface/ICustomLockedDeal.sol";
+import "./IBaseLockEvents.sol";
+import "./BaseLockDealModifiers.sol";
 
-contract BaseLockDealProvider is ICustomItemInterface {
-    struct Deal {
-        address tokenAddress;
-        uint256 amount;
-        uint256 startTime;
-    }
-
-    LockDealNFT internal nftContract;
-    mapping(uint256 => Deal) public itemIdToDeal;
-
+contract BaseLockDealProvider is
+    ICustomLockedDeal,
+    IBaseLockEvents,
+    BaseLockDealModifiers,
+    ERC20Helper
+{
     constructor(address _nftContract) {
         nftContract = LockDealNFT(_nftContract);
     }
 
-    function mint(
+    function createNewPool(
         address to,
         address tokenAddress,
         uint256 amount,
         uint256 startTime
-    ) external virtual override {
-        _mint(to, tokenAddress, amount, startTime);
+    ) external {
+        _createNewPool(to, tokenAddress, amount, startTime);
     }
 
-    function withdraw(uint256 itemId) external virtual override {
-        Deal storage deal = itemIdToDeal[itemId];
-
-        require(
-            msg.sender == nftContract.ownerOf(itemId),
-            "Not the owner of the item"
+    function withdraw(
+        uint256 itemId
+    )
+        external
+        virtual
+        override
+        onlyOwnerOrAdmin(itemId)
+        notZeroAmount(itemIdToDeal[itemId].amount)
+        validTime(itemIdToDeal[itemId].startTime)
+        returns (uint256 withdrawnAmount)
+    {
+        withdrawnAmount = itemIdToDeal[itemId].amount;
+        itemIdToDeal[itemId].amount = 0;
+        TransferToken(
+            itemIdToDeal[itemId].tokenAddress,
+            nftContract.ownerOf(itemId),
+            withdrawnAmount
         );
-        require(
-            deal.startTime <= block.timestamp,
-            "Withdrawal time not reached"
+        emit TokenWithdrawn(
+            itemId,
+            itemIdToDeal[itemId].tokenAddress,
+            withdrawnAmount,
+            nftContract.ownerOf(itemId)
         );
-        require(deal.amount > 0, "No amount left to withdraw");
-
-        // Implement the logic for transferring tokens from this contract to msg.sender
-        // For example, if it's an ERC20 token, use the ERC20 contract's transfer function
     }
 
     function split(
         address to,
         uint256 itemId,
         uint256 splitAmount
-    ) external virtual override {
-        require(splitAmount > 0, "Split amount should be greater than 0");
-
+    )
+        external
+        virtual
+        override
+        notZeroAmount(splitAmount)
+        onlyOwnerOrAdmin(itemId)
+    {
         Deal storage deal = itemIdToDeal[itemId];
-
-        require(
-            msg.sender == nftContract.ownerOf(itemId),
-            "Not the owner of the item"
-        );
         require(
             deal.amount >= splitAmount,
             "Split amount exceeds the available amount"
         );
-
         deal.amount -= splitAmount;
-
-        _mint(to, deal.tokenAddress, splitAmount, deal.startTime);
+        _createNewPool(to, deal.tokenAddress, splitAmount, deal.startTime);
     }
 
-    function _mint(
+    function _createNewPool(
         address to,
         address tokenAddress,
         uint256 amount,
         uint256 startTime
-    ) internal {
+    ) internal returns (uint256 newItemId) {
         nftContract.mint(to);
-        uint256 newItemId = nftContract.totalSupply();
+        newItemId = nftContract.totalSupply();
         itemIdToDeal[newItemId] = Deal(tokenAddress, amount, startTime);
+        emit NewPoolCreated(newItemId, tokenAddress, startTime, amount, to);
     }
 }

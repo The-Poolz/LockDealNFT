@@ -13,7 +13,7 @@ contract TimedLockDealProvider is BaseLockDealProvider {
 
     constructor(address _nftContract) BaseLockDealProvider(_nftContract) {}
 
-    function mint(
+    function createNewPool(
         address to,
         address tokenAddress,
         uint256 amount,
@@ -25,13 +25,23 @@ contract TimedLockDealProvider is BaseLockDealProvider {
             "Finish time should be greater than start time"
         );
 
-        _mint(to, tokenAddress, amount, startTime);
+        _createNewPool(to, tokenAddress, amount, startTime);
 
         uint256 newItemId = nftContract.totalSupply();
         itemIdToTimedDeal[newItemId] = TimedDeal(finishTime, 0);
     }
 
-    function withdraw(uint256 itemId) external override {
+    function withdraw(
+        uint256 itemId
+    )
+        external
+        virtual
+        override
+        onlyOwnerOrAdmin(itemId)
+        notZeroAmount(itemIdToDeal[itemId].amount)
+        validTime(itemIdToDeal[itemId].startTime)
+        returns (uint256 withdrawnAmount)
+    {
         Deal storage deal = itemIdToDeal[itemId];
         TimedDeal storage timedDeal = itemIdToTimedDeal[itemId];
 
@@ -43,23 +53,21 @@ contract TimedLockDealProvider is BaseLockDealProvider {
             block.timestamp >= deal.startTime,
             "Withdrawal time not reached"
         );
-
-        uint256 withdrawalAmount;
         if (block.timestamp >= timedDeal.finishTime) {
-            withdrawalAmount = deal.amount;
+            withdrawnAmount = deal.amount;
         } else {
             uint256 elapsedTime = block.timestamp - deal.startTime;
             uint256 totalTime = timedDeal.finishTime - deal.startTime;
             uint256 availableAmount = (deal.amount * elapsedTime) / totalTime;
 
-            withdrawalAmount = availableAmount - timedDeal.withdrawnAmount;
+            withdrawnAmount = availableAmount - timedDeal.withdrawnAmount;
         }
 
-        require(withdrawalAmount > 0, "No amount left to withdraw");
+        require(withdrawnAmount > 0, "No amount left to withdraw");
 
         // Implement the logic for transferring tokens from this contract to msg.sender
         // For example, if it's an ERC20 token, use the ERC20 contract's transfer function
 
-        timedDeal.withdrawnAmount += withdrawalAmount;
+        timedDeal.withdrawnAmount += withdrawnAmount;
     }
 }
