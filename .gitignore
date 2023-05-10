@@ -8,6 +8,8 @@ node_modules
 # testing
 coverage
 coverage.json
+cache
+artifacts
 
 # production
 build
