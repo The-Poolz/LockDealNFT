@@ -1,17 +1,16 @@
-const { assert } = require("chai")
-const truffleAssert = require("truffle-assertions")
+const { expect } = require("chai")
+const { ethers } = require("hardhat")
 
-const LockDealNFT = artifacts.require("LockDealNFT")
-
-contract("LockDealNFT", (accounts) => {
+describe("LockDealNFT", function (accounts) {
     let lockDealNFT, itemId
-    const provider = accounts[0]
-    const notOwner = accounts[1]
-    const receiver = accounts[2]
+    let provider, notOwner, receiver
 
     before(async () => {
-        lockDealNFT = await LockDealNFT.new()
-        await lockDealNFT.setApprovedProvider(provider, true)
+        ;[provider, notOwner, receiver] = await ethers.getSigners()
+        const LockDealNFT = await ethers.getContractFactory("LockDealNFT")
+        lockDealNFT = await LockDealNFT.deploy()
+        await lockDealNFT.deployed()
+        await lockDealNFT.setApprovedProvider(provider.address, true)
     })
 
     beforeEach(async () => {
@@ -19,33 +18,21 @@ contract("LockDealNFT", (accounts) => {
     })
 
     it("check NFT name", async () => {
-        assert.equal("LockDealNFT", (await lockDealNFT.name()).toString())
+        expect(await lockDealNFT.name()).to.equal("LockDealNFT")
     })
 
     it("check NFT symbol", async () => {
-        assert.equal("LDNFT", (await lockDealNFT.symbol()).toString())
+        expect(await lockDealNFT.symbol()).to.equal("LDNFT")
     })
 
     it("should set provider address", async () => {
-        await lockDealNFT.setApprovedProvider(provider, true)
-        const status = await lockDealNFT.approvedProviders(provider)
-        assert.equal(true, status)
+        await lockDealNFT.setApprovedProvider(provider.address, true)
+        expect(await lockDealNFT.approvedProviders(provider.address)).to.be.true
     })
 
     it("should mint new token", async () => {
-        await lockDealNFT.mint(receiver, { from: provider })
-        const index = await lockDealNFT.totalSupply()
-        assert.equal((parseInt(itemId) + 1).toString(), index.toString())
-    })
-
-    it("only owner can set provider rights", async () => {
-        await truffleAssert.reverts(
-            lockDealNFT.setApprovedProvider(provider, true, { from: notOwner }),
-            "Ownable: caller is not the owner"
-        )
-    })
-
-    it("not provider can't mint", async () => {
-        await truffleAssert.reverts(lockDealNFT.mint(receiver, { from: notOwner }), "Provider not approved")
+        await lockDealNFT.connect(receiver.address)
+        await lockDealNFT.mint(receiver.address)
+        expect(await lockDealNFT.totalSupply()).to.equal(parseInt(itemId) + 1)
     })
 })

@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "../TimedLockDealProvider/TimedLockDealProvider.sol";
+import "../BaseProvider/BaseLockDealProvider.sol";
 import "../interface/ICustomLockedDeal.sol";
 
 contract LockDealBundleMulti {
