@@ -28,19 +28,22 @@ abstract contract DealProvider is
     ) external virtual;
 
     function _createNewPool(
-        address to,
-        address tokenAddress,
+        address token,
         uint256 amount,
-        uint256 startTime
+        uint256 startTime,
+        address owner
     ) internal virtual returns (uint256 newItemId) {
-        nftContract.mint(to);
+        nftContract.mint(owner);
         newItemId = nftContract.totalSupply();
-        itemIdToDeal[newItemId] = Deal(tokenAddress, amount, startTime);
+        itemIdToDeal[newItemId] = Deal(token, amount, startTime);
     }
 
-    function _withdraw(uint256 itemId, uint256 withdrawnAmount) internal {
+    function _withdraw(
+        uint256 itemId,
+        uint256 withdrawnAmount
+    ) internal virtual {
         TransferToken(
-            itemIdToDeal[itemId].tokenAddress,
+            itemIdToDeal[itemId].token,
             nftContract.ownerOf(itemId),
             withdrawnAmount
         );

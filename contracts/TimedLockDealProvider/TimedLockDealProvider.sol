@@ -2,8 +2,9 @@
 pragma solidity ^0.8.0;
 
 import "../DealProvider/DealProvider.sol";
+import "./ITimedLockEvents.sol";
 
-contract TimedLockDealProvider is DealProvider {
+contract TimedLockDealProvider is DealProvider, ITimedLockEvents {
     struct TimedDeal {
         uint256 finishTime;
         uint256 withdrawnAmount;
@@ -14,17 +15,38 @@ contract TimedLockDealProvider is DealProvider {
     constructor(address nftContract) DealProvider(nftContract) {}
 
     function createNewPool(
-        address to,
-        address tokenAddress,
+        address token,
         uint256 amount,
         uint256 startTime,
-        uint256 finishTime
-    ) external {
+        uint256 finishTime,
+        address owner
+    )
+        external
+        notZeroAddress(owner)
+        notZeroAddress(token)
+        notZeroAmount(amount)
+    {
         require(
             finishTime >= startTime,
             "Finish time should be greater than start time"
         );
-        _createNewPool(to, tokenAddress, amount, startTime, finishTime);
+        uint256 poolId = _createNewPool(
+            token,
+            amount,
+            startTime,
+            finishTime,
+            owner
+        );
+        TransferInToken(token, msg.sender, amount);
+        emit NewPoolCreated(
+            poolId,
+            token,
+            startTime,
+            finishTime,
+            amount,
+            0,
+            owner
+        );
     }
 
     function withdraw(
@@ -74,16 +96,17 @@ contract TimedLockDealProvider is DealProvider {
             "Split amount exceeds the available amount"
         );
         uint256 ratio = (splitAmount * 10 ** 18) / leftAmount;
-        uint256 newPoolDebitedAmount = (timedDeal.withdrawnAmount * ratio) / 10 ** 18;
+        uint256 newPoolDebitedAmount = (timedDeal.withdrawnAmount * ratio) /
+            10 ** 18;
         uint256 newPoolStartAmount = (deal.startAmount * ratio) / 10 ** 18;
         deal.startAmount -= newPoolStartAmount;
         timedDeal.withdrawnAmount -= newPoolDebitedAmount;
         uint256 newPoolId = _createNewPool(
-            newOwner,
-            deal.tokenAddress,
+            deal.token,
             newPoolStartAmount,
             deal.startTime,
-            timedDeal.finishTime
+            timedDeal.finishTime,
+            newOwner
         );
         emit PoolSplit(
             itemId,
@@ -96,13 +119,13 @@ contract TimedLockDealProvider is DealProvider {
     }
 
     function _createNewPool(
-        address to,
-        address tokenAddress,
+        address token,
         uint256 amount,
         uint256 startTime,
-        uint256 finishTime
+        uint256 finishTime,
+        address owner
     ) internal returns (uint256 newItemId) {
-        newItemId = _createNewPool(to, tokenAddress, amount, startTime);
+        newItemId = _createNewPool(token, amount, startTime, owner);
         poolIdToTimedDeal[newItemId] = TimedDeal(finishTime, 0);
     }
 }

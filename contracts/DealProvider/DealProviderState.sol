@@ -10,7 +10,7 @@ contract DealProviderState {
     mapping(uint256 => Deal) public itemIdToDeal;
 
     struct Deal {
-        address tokenAddress;
+        address token;
         uint256 startAmount;
         uint256 startTime;
     }

@@ -11,12 +11,19 @@ contract BaseLockDealProvider is DealProvider, IBaseLockEvents {
     constructor(address nftContract) DealProvider(nftContract) {}
 
     function createNewPool(
-        address to,
-        address tokenAddress,
+        address token,
         uint256 amount,
-        uint256 startTime
-    ) external {
-        _createNewPool(to, tokenAddress, amount, startTime);
+        uint256 startTime,
+        address owner
+    )
+        external
+        notZeroAddress(owner)
+        notZeroAddress(token)
+        notZeroAmount(amount)
+    {
+        uint256 poolId = _createNewPool(token, amount, startTime, owner);
+        TransferInToken(token, msg.sender, amount);
+        emit NewPoolCreated(poolId, token, startTime, amount, owner);
     }
 
     function withdraw(
@@ -35,7 +42,7 @@ contract BaseLockDealProvider is DealProvider, IBaseLockEvents {
         _withdraw(itemId, withdrawnAmount);
         emit TokenWithdrawn(
             itemId,
-            itemIdToDeal[itemId].tokenAddress,
+            itemIdToDeal[itemId].token,
             withdrawnAmount,
             nftContract.ownerOf(itemId)
         );
@@ -60,10 +67,10 @@ contract BaseLockDealProvider is DealProvider, IBaseLockEvents {
         );
         deal.startAmount -= splitAmount;
         uint256 newPoolId = _createNewPool(
-            newOwner,
-            deal.tokenAddress,
+            deal.token,
             splitAmount,
-            deal.startTime
+            deal.startTime,
+            newOwner
         );
         emit PoolSplit(
             itemId,

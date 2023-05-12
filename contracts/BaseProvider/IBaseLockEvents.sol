@@ -7,15 +7,15 @@ interface IBaseLockEvents {
     event TokenWithdrawn(
         uint256 poolId,
         address indexed token,
-        uint256 amount,
+        uint256 startAmount,
         address indexed owner
     );
 
     event NewPoolCreated(
-        uint256 tokenId,
+        uint256 poolId,
         address indexed token,
         uint256 startTime,
-        uint256 amount,
+        uint256 startAmount,
         address indexed owner
     );
 }

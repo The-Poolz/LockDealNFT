@@ -28,7 +28,7 @@ contract DealProviderModifiers is DealProviderState {
         require(
             msg.sender == nftContract.ownerOf(itemId) ||
                 msg.sender == nftContract.owner(),
-            "Not the owner of the item"
+            "Not the owner of the pool"
         );
     }
 
