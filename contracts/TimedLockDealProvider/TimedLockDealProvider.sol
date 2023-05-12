@@ -1,40 +1,67 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../BaseProvider/BaseLockDealProvider.sol";
+import "../DealProvider/DealProvider.sol";
+import "./ITimedLockEvents.sol";
 
-contract TimedLockDealProvider is BaseLockDealProvider {
+contract TimedLockDealProvider is DealProvider, ITimedLockEvents {
     struct TimedDeal {
         uint256 finishTime;
         uint256 withdrawnAmount;
     }
 
-    mapping(uint256 => TimedDeal) public itemIdToTimedDeal;
+    mapping(uint256 => TimedDeal) public poolIdToTimedDeal;
 
-    constructor(address _nftContract) BaseLockDealProvider(_nftContract) {}
+    constructor(address nftContract) DealProvider(nftContract) {}
 
-    function mint(
-        address to,
-        address tokenAddress,
+    function createNewPool(
+        address token,
         uint256 amount,
         uint256 startTime,
-        uint256 finishTime
-    ) external {
+        uint256 finishTime,
+        address owner
+    )
+        external
+        notZeroAddress(owner)
+        notZeroAddress(token)
+        notZeroAmount(amount)
+    {
         require(
-            finishTime > startTime,
+            finishTime >= startTime,
             "Finish time should be greater than start time"
         );
-
-        _mint(to, tokenAddress, amount, startTime);
-
-        uint256 newItemId = nftContract.totalSupply();
-        itemIdToTimedDeal[newItemId] = TimedDeal(finishTime, 0);
+        uint256 poolId = _createNewPool(
+            token,
+            amount,
+            startTime,
+            finishTime,
+            owner
+        );
+        TransferInToken(token, msg.sender, amount);
+        emit NewPoolCreated(
+            poolId,
+            token,
+            startTime,
+            finishTime,
+            amount,
+            0,
+            owner
+        );
     }
 
-    function withdraw(uint256 itemId) external override {
+    function withdraw(
+        uint256 itemId
+    )
+        external
+        virtual
+        override
+        onlyOwnerOrAdmin(itemId)
+        notZeroAmount(itemIdToDeal[itemId].startAmount)
+        validTime(itemIdToDeal[itemId].startTime)
+        returns (uint256 withdrawnAmount)
+    {
         Deal storage deal = itemIdToDeal[itemId];
-        TimedDeal storage timedDeal = itemIdToTimedDeal[itemId];
-
+        TimedDeal storage timedDeal = poolIdToTimedDeal[itemId];
         require(
             msg.sender == nftContract.ownerOf(itemId),
             "Not the owner of the item"
@@ -43,23 +70,62 @@ contract TimedLockDealProvider is BaseLockDealProvider {
             block.timestamp >= deal.startTime,
             "Withdrawal time not reached"
         );
-
-        uint256 withdrawalAmount;
         if (block.timestamp >= timedDeal.finishTime) {
-            withdrawalAmount = deal.amount;
+            withdrawnAmount = deal.startAmount;
         } else {
             uint256 elapsedTime = block.timestamp - deal.startTime;
             uint256 totalTime = timedDeal.finishTime - deal.startTime;
-            uint256 availableAmount = (deal.amount * elapsedTime) / totalTime;
-
-            withdrawalAmount = availableAmount - timedDeal.withdrawnAmount;
+            uint256 availableAmount = (deal.startAmount * elapsedTime) /
+                totalTime;
+            withdrawnAmount = availableAmount - timedDeal.withdrawnAmount;
         }
+        require(withdrawnAmount > 0, "No amount left to withdraw");
+        timedDeal.withdrawnAmount += withdrawnAmount;
+    }
 
-        require(withdrawalAmount > 0, "No amount left to withdraw");
+    function split(
+        uint256 itemId,
+        uint256 splitAmount,
+        address newOwner
+    ) external virtual override {
+        Deal storage deal = itemIdToDeal[itemId];
+        TimedDeal storage timedDeal = poolIdToTimedDeal[itemId];
+        uint256 leftAmount = deal.startAmount - timedDeal.withdrawnAmount;
+        require(
+            leftAmount >= splitAmount,
+            "Split amount exceeds the available amount"
+        );
+        uint256 ratio = (splitAmount * 10 ** 18) / leftAmount;
+        uint256 newPoolDebitedAmount = (timedDeal.withdrawnAmount * ratio) /
+            10 ** 18;
+        uint256 newPoolStartAmount = (deal.startAmount * ratio) / 10 ** 18;
+        deal.startAmount -= newPoolStartAmount;
+        timedDeal.withdrawnAmount -= newPoolDebitedAmount;
+        uint256 newPoolId = _createNewPool(
+            deal.token,
+            newPoolStartAmount,
+            deal.startTime,
+            timedDeal.finishTime,
+            newOwner
+        );
+        emit PoolSplit(
+            itemId,
+            newPoolId,
+            deal.startAmount,
+            splitAmount,
+            nftContract.ownerOf(itemId),
+            newOwner
+        );
+    }
 
-        // Implement the logic for transferring tokens from this contract to msg.sender
-        // For example, if it's an ERC20 token, use the ERC20 contract's transfer function
-
-        timedDeal.withdrawnAmount += withdrawalAmount;
+    function _createNewPool(
+        address token,
+        uint256 amount,
+        uint256 startTime,
+        uint256 finishTime,
+        address owner
+    ) internal returns (uint256 newItemId) {
+        newItemId = _createNewPool(token, amount, startTime, owner);
+        poolIdToTimedDeal[newItemId] = TimedDeal(finishTime, 0);
     }
 }

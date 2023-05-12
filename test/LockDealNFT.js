@@ -35,4 +35,14 @@ describe("LockDealNFT", function (accounts) {
         await lockDealNFT.mint(receiver.address)
         expect(await lockDealNFT.totalSupply()).to.equal(parseInt(itemId) + 1)
     })
+
+    it("only provider can mint", async () => {
+        await expect(lockDealNFT.connect(notOwner).mint(receiver.address)).to.be.revertedWith("Provider not approved")
+    })
+
+    it("only owner can set approved provider", async () => {
+        await expect(lockDealNFT.connect(notOwner).setApprovedProvider(provider.address, true)).to.be.revertedWith(
+            "Ownable: caller is not the owner"
+        )
+    })
 })
