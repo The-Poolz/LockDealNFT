@@ -19,7 +19,7 @@ contract LockDealNFT is Ownable, ERC721Enumerable {
 
         uint256 newItemId = _tokenIdCounter.current();
         _safeMint(to, newItemId);
-        itemIdToProvider[newItemId] = to;
+        itemIdToProvider[newItemId] = msg.sender;
     }
 
     function setApprovedProvider(
