@@ -24,6 +24,11 @@ contract DealProviderModifiers is DealProviderState {
         _;
     }
 
+    modifier ValidParams(uint256[] memory params, uint256 length) {
+        require(params.length == length, "Invalid params length");
+        _;
+    }
+
     function _onlyOwnerOrAdmin(uint256 itemId) private view {
         require(
             msg.sender == nftContract.ownerOf(itemId) ||

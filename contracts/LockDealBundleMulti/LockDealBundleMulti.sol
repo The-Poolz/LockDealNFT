@@ -28,22 +28,6 @@ contract LockDealBundleMulti {
         LockDeal[] memory lockDeals,
         Recipient[] memory recipients
     ) external {
-        for (uint256 i = 0; i < lockDeals.length; i++) {
-            LockDeal memory lockDeal = lockDeals[i];
-            if (lockDeal.provider == address(0)) {
-                continue;
-            }
-
-            for (uint256 j = 0; j < recipients.length; j++) {
-                Recipient memory recipient = recipients[j];
-                if (lockDeal.finishTime == 0) {
-                    BaseLockDealProvider provider = BaseLockDealProvider(lockDeal.provider);
-                    provider.createNewPool(token, recipient.amount, lockDeal.startTime, recipient.to);
-                } else {
-                    TimedLockDealProvider provider = TimedLockDealProvider(lockDeal.provider);
-                    provider.createNewPool(token, recipient.amount, lockDeal.startTime, lockDeal.finishTime, recipient.to);
-                }
-            }
-        }
+        //removed, will be made in the future on issue #17
     }
 }

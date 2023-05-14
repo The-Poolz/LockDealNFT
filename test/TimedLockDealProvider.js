@@ -29,8 +29,8 @@ describe("Timed LockDeal Provider", function (accounts) {
         startTime = Math.floor(date.getTime() / 1000)
         date.setDate(date.getDate() + 7)
         finishTime = Math.floor(date.getTime() / 1000)
-        await timedLockProvider.createNewPool(token.address, amount, startTime, finishTime, receiver.address)
-        itemId = await lockDealNFT.totalSupply()
+        itemId = await lockDealNFT.totalSupply() // this need to be before the pool creation more info Issue #15
+        await timedLockProvider.createNewPool(receiver.address, token.address, amount, startTime, finishTime)
     })
 
     it("should check deal pool data", async () => {

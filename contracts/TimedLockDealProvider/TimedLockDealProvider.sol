@@ -15,27 +15,26 @@ contract TimedLockDealProvider is DealProvider, ITimedLockEvents {
     constructor(address nftContract) DealProvider(nftContract) {}
 
     function createNewPool(
+        address owner,
         address token,
         uint256 amount,
         uint256 startTime,
-        uint256 finishTime,
-        address owner
+        uint256 finishTime
     )
         external
         notZeroAddress(owner)
         notZeroAddress(token)
         notZeroAmount(amount)
+        returns (uint256 poolId)
     {
         require(
             finishTime >= startTime,
             "Finish time should be greater than start time"
         );
-        uint256 poolId = _createNewPool(
+        poolId = _createNewPool(
+            owner,
             token,
-            amount,
-            startTime,
-            finishTime,
-            owner
+            GetParams(amount, startTime, finishTime)
         );
         TransferInToken(token, msg.sender, amount);
         emit NewPoolCreated(
@@ -102,11 +101,9 @@ contract TimedLockDealProvider is DealProvider, ITimedLockEvents {
         deal.startAmount -= newPoolStartAmount;
         timedDeal.withdrawnAmount -= newPoolDebitedAmount;
         uint256 newPoolId = _createNewPool(
+            newOwner,
             deal.token,
-            newPoolStartAmount,
-            deal.startTime,
-            timedDeal.finishTime,
-            newOwner
+            GetParams(splitAmount, deal.startTime, timedDeal.finishTime)
         );
         emit PoolSplit(
             itemId,
@@ -118,14 +115,28 @@ contract TimedLockDealProvider is DealProvider, ITimedLockEvents {
         );
     }
 
-    function _createNewPool(
-        address token,
+    function GetParams(
         uint256 amount,
         uint256 startTime,
-        uint256 finishTime,
-        address owner
-    ) internal returns (uint256 newItemId) {
-        newItemId = _createNewPool(token, amount, startTime, owner);
-        poolIdToTimedDeal[newItemId] = TimedDeal(finishTime, 0);
+        uint256 finishTime
+    ) internal pure returns (uint256[] memory params) {
+        params = new uint256[](3);
+        params[0] = amount;
+        params[1] = startTime;
+        params[2] = finishTime;
+    }
+
+    function _createNewPool(
+        address owner,
+        address token,
+        uint256[] memory params
+    ) internal override returns (uint256 newItemId) {
+        // Assuming params[0] is amount, params[1] is startTime, params[2] is finishTime
+        newItemId = super._createNewPool(
+            owner,
+            token,
+            super.GetParams(params[0], params[1])
+        );
+        poolIdToTimedDeal[newItemId] = TimedDeal(params[2], 0);
     }
 }
