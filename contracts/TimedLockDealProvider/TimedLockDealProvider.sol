@@ -2,9 +2,8 @@
 pragma solidity ^0.8.0;
 
 import "../DealProvider/DealProvider.sol";
-import "./ITimedLockEvents.sol";
 
-contract TimedLockDealProvider is DealProvider, ITimedLockEvents {
+contract TimedLockDealProvider is DealProvider {
     struct TimedDeal {
         uint256 finishTime;
         uint256 withdrawnAmount;
@@ -38,15 +37,12 @@ contract TimedLockDealProvider is DealProvider, ITimedLockEvents {
             owner
         );
         TransferInToken(token, msg.sender, amount);
-        emit NewPoolCreated(
-            poolId,
-            token,
-            startTime,
-            finishTime,
-            amount,
-            0,
-            owner
-        );
+        uint256[] memory params = new uint256[](3);
+        params[0] = amount;
+        params[1] = startTime;
+        params[2] = finishTime;
+        emit NewPoolCreated(createBasePoolInfo(poolId, owner, token), params); //Line 41-45 will be replaced with the next line after PR #19 is merged
+        //emit NewPoolCreated(createBasePoolInfo(poolId, owner, token), GetParams(amount, startTime, finishTime)); //GetParams is in PR #19
     }
 
     function withdraw(
@@ -109,12 +105,9 @@ contract TimedLockDealProvider is DealProvider, ITimedLockEvents {
             newOwner
         );
         emit PoolSplit(
-            itemId,
-            newPoolId,
-            deal.startAmount,
-            splitAmount,
-            nftContract.ownerOf(itemId),
-            newOwner
+            createBasePoolInfo(itemId, nftContract.ownerOf(itemId), deal.token),
+            createBasePoolInfo(newPoolId, newOwner, deal.token),
+            splitAmount
         );
     }
 

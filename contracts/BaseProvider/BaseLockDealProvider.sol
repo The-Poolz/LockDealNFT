@@ -5,9 +5,8 @@ import "../DealProvider/DealProvider.sol";
 
 import "poolz-helper-v2/contracts/ERC20Helper.sol";
 import "../interface/ICustomLockedDeal.sol";
-import "./IBaseLockEvents.sol";
 
-contract BaseLockDealProvider is DealProvider, IBaseLockEvents {
+contract BaseLockDealProvider is DealProvider {
     constructor(address nftContract) DealProvider(nftContract) {}
 
     function createNewPool(
@@ -23,7 +22,11 @@ contract BaseLockDealProvider is DealProvider, IBaseLockEvents {
     {
         uint256 poolId = _createNewPool(token, amount, startTime, owner);
         TransferInToken(token, msg.sender, amount);
-        emit NewPoolCreated(poolId, token, startTime, amount, owner);
+        uint256[] memory params = new uint256[](2);
+        params[0] = amount;
+        params[1] = startTime;
+        emit NewPoolCreated(createBasePoolInfo(poolId, owner, token), params); //Line 26-29 will be replaced with the next line after PR #19 is merged
+        //emit NewPoolCreated(createBasePoolInfo(poolId, owner, token), GetParams(amount, startTime)); //GetParams is in Pr #19
     }
 
     function withdraw(
@@ -41,10 +44,13 @@ contract BaseLockDealProvider is DealProvider, IBaseLockEvents {
         itemIdToDeal[itemId].startAmount = 0;
         _withdraw(itemId, withdrawnAmount);
         emit TokenWithdrawn(
-            itemId,
-            itemIdToDeal[itemId].token,
+            createBasePoolInfo(
+                itemId,
+                nftContract.ownerOf(itemId),
+                itemIdToDeal[itemId].token
+            ),
             withdrawnAmount,
-            nftContract.ownerOf(itemId)
+            itemIdToDeal[itemId].startAmount
         );
     }
 
@@ -73,12 +79,9 @@ contract BaseLockDealProvider is DealProvider, IBaseLockEvents {
             newOwner
         );
         emit PoolSplit(
-            itemId,
-            newPoolId,
-            deal.startAmount,
-            splitAmount,
-            nftContract.ownerOf(itemId),
-            newOwner
+            createBasePoolInfo(itemId, nftContract.ownerOf(itemId), deal.token),
+            createBasePoolInfo(newPoolId, newOwner, deal.token),
+            splitAmount
         );
     }
 }

@@ -38,6 +38,18 @@ abstract contract DealProvider is
         itemIdToDeal[newItemId] = Deal(token, amount, startTime);
     }
 
+    function createBasePoolInfo(
+        uint256 poolId,
+        address owner,
+        address token
+    ) internal pure returns (IDealProvierEvents.BasePoolInfo memory) {
+        IDealProvierEvents.BasePoolInfo memory poolInfo;
+        poolInfo.PoolId = poolId;
+        poolInfo.Owner = owner;
+        poolInfo.Token = token;
+        return poolInfo;
+    }
+
     function _withdraw(
         uint256 itemId,
         uint256 withdrawnAmount
