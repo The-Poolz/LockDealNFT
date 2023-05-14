@@ -130,7 +130,7 @@ contract TimedLockDealProvider is DealProvider, ITimedLockEvents {
         address owner,
         address token,
         uint256[] memory params
-    ) internal override returns (uint256 newItemId) {
+    ) internal override ValidParams(params,3) returns (uint256 newItemId) {
         // Assuming params[0] is amount, params[1] is startTime, params[2] is finishTime
         newItemId = super._createNewPool(
             owner,
