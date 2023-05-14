@@ -31,7 +31,7 @@ abstract contract DealProvider is
         address owner,
         address token,
         uint256[] memory params
-    ) internal virtual ValidParams(params, 2) returns (uint256 newItemId) {
+    ) internal virtual validParams(params, 2) returns (uint256 newItemId) {
         newItemId = nftContract.totalSupply();
         itemIdToDeal[newItemId] = Deal(token, params[0], params[1]);
         nftContract.mint(owner);

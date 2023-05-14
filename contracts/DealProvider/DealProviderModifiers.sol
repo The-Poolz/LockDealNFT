@@ -24,7 +24,7 @@ contract DealProviderModifiers is DealProviderState {
         _;
     }
 
-    modifier ValidParams(uint256[] memory params, uint256 length) {
+    modifier validParams(uint256[] memory params, uint256 length) {
         require(params.length == length, "Invalid params length");
         _;
     }
