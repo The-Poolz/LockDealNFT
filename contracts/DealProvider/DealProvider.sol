@@ -42,12 +42,10 @@ abstract contract DealProvider is
         uint256 poolId,
         address owner,
         address token
-    ) internal pure returns (IDealProvierEvents.BasePoolInfo memory) {
-        IDealProvierEvents.BasePoolInfo memory poolInfo;
+    ) internal pure returns (IDealProvierEvents.BasePoolInfo memory poolInfo) {
         poolInfo.PoolId = poolId;
         poolInfo.Owner = owner;
         poolInfo.Token = token;
-        return poolInfo;
     }
 
     function _withdraw(
