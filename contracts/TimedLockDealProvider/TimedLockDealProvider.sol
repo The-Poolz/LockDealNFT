@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "../DealProvider/DealProvider.sol";
 import "./ITimedLockEvents.sol";
 
-contract TimedLockDealProvider is DealProvider, ITimedLockEvents {
+contract TimedLockDealProvider is DealProvider, ITimedLockEvents, IInitiator {
     struct TimedDeal {
         uint256 finishTime;
         uint256 withdrawnAmount;
@@ -15,29 +15,55 @@ contract TimedLockDealProvider is DealProvider, ITimedLockEvents {
     constructor(address nftContract) DealProvider(nftContract) {}
 
     function createNewPool(
+        address owner,
+        address token,
+        uint256 amount,
+        uint256 startTime,
+        uint256 finishTime
+    ) external {
+        require(
+            finishTime >= startTime,
+            "Finish time should be greater than start time"
+        );
+        _initiateNewPool(token, amount, startTime, finishTime, owner);
+        TransferInToken(token, owner, amount);
+    }
+
+    function initiate(
+        address owner,
+        address token,
+        uint[] memory params
+    ) external override returns (uint256 poolId) {
+        require(params.length == 3, "Incorrect number of parameters");
+        poolId = _initiateNewPool(
+            owner,
+            token,
+            params[0],
+            params[1],
+            params[2]
+        );
+    }
+
+    function _initiateNewPool(
         address token,
         uint256 amount,
         uint256 startTime,
         uint256 finishTime,
         address owner
     )
-        external
+        internal
         notZeroAddress(owner)
         notZeroAddress(token)
         notZeroAmount(amount)
+        returns (uint256 poolId)
     {
-        require(
-            finishTime >= startTime,
-            "Finish time should be greater than start time"
-        );
         uint256 poolId = _createNewPool(
+            owner,
             token,
             amount,
             startTime,
-            finishTime,
-            owner
+            finishTime          
         );
-        TransferInToken(token, msg.sender, amount);
         emit NewPoolCreated(
             poolId,
             token,

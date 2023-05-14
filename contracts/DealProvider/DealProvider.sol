@@ -28,10 +28,10 @@ abstract contract DealProvider is
     ) external virtual;
 
     function _createNewPool(
+        address owner,
         address token,
         uint256 amount,
-        uint256 startTime,
-        address owner
+        uint256 startTime       
     ) internal virtual returns (uint256 newItemId) {
         nftContract.mint(owner);
         newItemId = nftContract.totalSupply();

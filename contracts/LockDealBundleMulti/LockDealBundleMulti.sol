@@ -4,14 +4,19 @@ pragma solidity ^0.8.0;
 import "../TimedLockDealProvider/TimedLockDealProvider.sol";
 import "../BaseProvider/BaseLockDealProvider.sol";
 
-contract LockDealBundleMulti {
-    ICustomLockedDeal public lockDealNFT;
+contract LockDealBundleMulti is DealProvider, IInitiator {
+    constructor(address _lockDealNFT) {
+        DealProvider(nftContract);
+    }
+
+    mapping(uint256 => Bandle) public poolIdToBandle;
+    struct Bandle {
+        uint256 First;
+    }
 
     struct LockDeal {
         address provider;
-        uint256 amount;
-        uint256 startTime;
-        uint256 finishTime;
+        uint256[] params;
     }
 
     struct Recipient {
@@ -19,31 +24,28 @@ contract LockDealBundleMulti {
         uint256 amount;
     }
 
-    constructor(address _lockDealNFT) {
-        lockDealNFT = ICustomLockedDeal(_lockDealNFT);
-    }
-
     function mintBundle(
         address token,
-        LockDeal[] memory lockDeals,
-        Recipient[] memory recipients
+        Recipient[] memory recipients,
+        LockDeal[] memory lockDeals
     ) external {
-        for (uint256 i = 0; i < lockDeals.length; i++) {
-            LockDeal memory lockDeal = lockDeals[i];
-            if (lockDeal.provider == address(0)) {
-                continue;
+        uint256 totalAmount = 0;
+        for (uint256 i = 0; i < recipients.length; i++) {
+            Recipient memory recipient = recipients[i];
+            uint256 userTotal = 0;
+            for (uint256 j = 0; j < lockDeals.length; j++) {
+                LockDeal memory lockDeal = lockDeals[j];
+                userTotal += recipient.amount;
+                IInitiator(lockDeal.provider).initiate(
+                    address(this),
+                    token,
+                    lockDeal.params
+                );
             }
-
-            for (uint256 j = 0; j < recipients.length; j++) {
-                Recipient memory recipient = recipients[j];
-                if (lockDeal.finishTime == 0) {
-                    BaseLockDealProvider provider = BaseLockDealProvider(lockDeal.provider);
-                    provider.createNewPool(token, recipient.amount, lockDeal.startTime, recipient.to);
-                } else {
-                    TimedLockDealProvider provider = TimedLockDealProvider(lockDeal.provider);
-                    provider.createNewPool(token, recipient.amount, lockDeal.startTime, lockDeal.finishTime, recipient.to);
-                }
-            }
+            uint256 newItem = _createNewPool(recipient.to, token, userTotal);
+            poolIdToBandle[newItem] = Bandle(newItem);
+            totalAmount += userTotal;
         }
+        // TODO: Transfer the total amount tokens
     }
 }
