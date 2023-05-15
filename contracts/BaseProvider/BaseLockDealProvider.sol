@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import "../DealProvider/DealProvider.sol";
-
 import "poolz-helper-v2/contracts/ERC20Helper.sol";
 import "../interface/ICustomLockedDeal.sol";
 import "./IBaseLockEvents.sol";
@@ -11,17 +10,18 @@ contract BaseLockDealProvider is DealProvider, IBaseLockEvents {
     constructor(address nftContract) DealProvider(nftContract) {}
 
     function createNewPool(
+        address owner,
         address token,
         uint256 amount,
-        uint256 startTime,
-        address owner
+        uint256 startTime      
     )
         external
         notZeroAddress(owner)
         notZeroAddress(token)
         notZeroAmount(amount)
+        returns (uint256 poolId)
     {
-        uint256 poolId = _createNewPool(token, amount, startTime, owner);
+        poolId = _createNewPool(owner,token,GetParams(amount,startTime));
         TransferInToken(token, msg.sender, amount);
         emit NewPoolCreated(poolId, token, startTime, amount, owner);
     }
@@ -67,10 +67,9 @@ contract BaseLockDealProvider is DealProvider, IBaseLockEvents {
         );
         deal.startAmount -= splitAmount;
         uint256 newPoolId = _createNewPool(
+            newOwner,
             deal.token,
-            splitAmount,
-            deal.startTime,
-            newOwner
+            GetParams(splitAmount, deal.startTime) 
         );
         emit PoolSplit(
             itemId,
