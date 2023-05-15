@@ -1,4 +1,5 @@
 const { expect } = require("chai")
+const { log } = require("console")
 const { constants } = require("ethers")
 const { ethers } = require("hardhat")
 
@@ -27,8 +28,8 @@ describe("Base Lock Deal Provider", function (accounts) {
         let date = new Date()
         date.setDate(date.getDate() + 1)
         startTime = Math.floor(date.getTime() / 1000)
-        await baseLockProvider.createNewPool(token.address, amount, startTime, receiver.address)
         itemId = await lockDealNFT.totalSupply()
+        await baseLockProvider.createNewPool(receiver.address, token.address, amount, startTime)
     })
 
     it("should check pool data", async () => {
@@ -39,7 +40,7 @@ describe("Base Lock Deal Provider", function (accounts) {
     })
 
     it("should check pool creation events", async () => {
-        const tx = await baseLockProvider.createNewPool(token.address, amount, startTime, receiver.address)
+        const tx = await baseLockProvider.createNewPool(receiver.address, token.address, amount, startTime)
         await tx.wait()
         const events = await baseLockProvider.queryFilter("NewPoolCreated((uint256,address,address),uint256[])");
         expect(events[1].args.PoolInfo.Token).to.equal(token.address);
@@ -49,25 +50,25 @@ describe("Base Lock Deal Provider", function (accounts) {
 
     it("should check contract token balance", async () => {
         const oldBal = await token.balanceOf(baseLockProvider.address)
-        await baseLockProvider.createNewPool(token.address, amount, startTime, receiver.address)
+        await baseLockProvider.createNewPool(receiver.address, token.address, amount, startTime)
         expect(await token.balanceOf(baseLockProvider.address)).to.equal(parseInt(oldBal) + amount)
     })
 
     it("should revert zero owner address", async () => {
         await expect(
-            baseLockProvider.createNewPool(constants.AddressZero, amount, startTime, receiver.address)
+            baseLockProvider.createNewPool(receiver.address, constants.AddressZero, amount, startTime)
         ).to.be.revertedWith("Zero Address is not allowed")
     })
 
     it("should revert zero token address", async () => {
         await expect(
-            baseLockProvider.createNewPool(token.address, amount, startTime, constants.AddressZero)
+            baseLockProvider.createNewPool(constants.AddressZero, token.address, amount, startTime)
         ).to.be.revertedWith("Zero Address is not allowed")
     })
 
     it("should revert zero amount", async () => {
         await expect(
-            baseLockProvider.createNewPool(token.address, "0", startTime, receiver.address)
+            baseLockProvider.createNewPool(receiver.address, token.address, "0", startTime)
         ).to.be.revertedWith("amount should be greater than 0")
     })
 
