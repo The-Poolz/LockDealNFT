@@ -36,12 +36,7 @@ contract TimedLockDealProvider is DealProvider {
             GetParams(amount, startTime, finishTime)
         );
         TransferInToken(token, msg.sender, amount);
-        uint256[] memory params = new uint256[](3);
-        params[0] = amount;
-        params[1] = startTime;
-        params[2] = finishTime;
-        emit NewPoolCreated(createBasePoolInfo(poolId, owner, token), params); //Line 41-45 will be replaced with the next line after PR #19 is merged
-        //emit NewPoolCreated(createBasePoolInfo(poolId, owner, token), GetParams(amount, startTime, finishTime)); //GetParams is in PR #19
+        emit NewPoolCreated(createBasePoolInfo(poolId, owner, token), GetParams(amount, startTime, finishTime));
     }
 
     function withdraw(

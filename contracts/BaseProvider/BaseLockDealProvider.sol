@@ -22,11 +22,7 @@ contract BaseLockDealProvider is DealProvider {
     {
         poolId = _createNewPool(owner,token,GetParams(amount,startTime));
         TransferInToken(token, msg.sender, amount);
-        uint256[] memory params = new uint256[](2);
-        params[0] = amount;
-        params[1] = startTime;
-        emit NewPoolCreated(createBasePoolInfo(poolId, owner, token), params); //Line 26-29 will be replaced with the next line after PR #19 is merged
-        //emit NewPoolCreated(createBasePoolInfo(poolId, owner, token), GetParams(amount, startTime)); //GetParams is in Pr #19
+        emit NewPoolCreated(createBasePoolInfo(poolId, owner, token), GetParams(amount, startTime));
     }
 
     function withdraw(
