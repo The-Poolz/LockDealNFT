@@ -42,10 +42,10 @@ describe("Base Lock Deal Provider", function (accounts) {
     it("should check pool creation events", async () => {
         const tx = await baseLockProvider.createNewPool(receiver.address, token.address, amount, startTime)
         await tx.wait()
-        const events = await baseLockProvider.queryFilter("NewPoolCreated")
-        expect(events[1].args.token).to.equal(token.address)
-        expect(events[1].args.startAmount).to.equal(amount)
-        expect(events[1].args.startTime).to.equal(startTime)
+        const events = await baseLockProvider.queryFilter("NewPoolCreated((uint256,address,address),uint256[])");
+        expect(events[1].args.PoolInfo.Token).to.equal(token.address);
+        expect(events[1].args.params[0]).to.equal(amount); //assuming amount is at index 0 in the params array
+        expect(events[1].args.params[1]).to.equal(startTime); //assuming startTime is at index 1 in the params array
     })
 
     it("should check contract token balance", async () => {
