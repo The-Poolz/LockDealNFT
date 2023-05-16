@@ -53,11 +53,6 @@ contract BaseLockDealProvider is BaseLockDealModifiers, ERC20Helper {
         }
     }
 
-    struct Deal {
-        address token;
-        uint256 startAmount;
-    }
-
     function split(
         uint256 poolId,
         uint256 splitAmount,
