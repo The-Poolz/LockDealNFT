@@ -1,14 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./DealProviderState.sol";
+import "./BaseLockDealState.sol";
 
-contract DealProviderModifiers is DealProviderState {
-    modifier onlyApprovedProvider(address provider) {
-        require(providers[provider], "invalid provider address");
-        _;
-    }
-
+contract BaseLockDealModifiers is BaseLockDealState {
     modifier notZeroAddress(address _address) {
         _notZeroAddress(_address);
         _;
@@ -19,8 +14,8 @@ contract DealProviderModifiers is DealProviderState {
         _;
     }
 
-    modifier validTime(uint256 startTime) {
-        _validTime(startTime);
+    modifier onlyPoolOwner(uint256 poolId) {
+        require(msg.sender == dealProvider.nftContract().ownerOf(poolId));
         _;
     }
 
@@ -35,9 +30,5 @@ contract DealProviderModifiers is DealProviderState {
 
     function _notZeroAmount(uint256 amount) private pure {
         require(amount > 0, "amount should be greater than 0");
-    }
-
-    function _validTime(uint256 time) private view {
-        require(time <= block.timestamp, "Withdrawal time not reached");
     }
 }

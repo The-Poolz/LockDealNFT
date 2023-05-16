@@ -7,11 +7,11 @@ import "../LockDealNFT/LockDealNFT.sol";
 /// @notice Contains storage variables, structures
 contract DealProviderState {
     LockDealNFT public nftContract;
-    mapping(uint256 => Deal) public itemIdToDeal;
+    mapping(uint256 => Deal) public poolIdToDeal;
+    mapping(address => bool) public providers;
 
     struct Deal {
         address token;
         uint256 startAmount;
-        uint256 startTime;
     }
 }

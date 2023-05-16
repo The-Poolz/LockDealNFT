@@ -1,18 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../DealProvider/DealProvider.sol";
 import "poolz-helper-v2/contracts/ERC20Helper.sol";
-import "../interface/ICustomLockedDeal.sol";
+import "./BaseLockDealModifiers.sol";
+import "poolz-helper-v2/contracts/ERC20Helper.sol";
 
-contract BaseLockDealProvider is DealProvider {
-    constructor(address nftContract) DealProvider(nftContract) {}
+contract BaseLockDealProvider is BaseLockDealModifiers, ERC20Helper {
+    constructor(address provider) {
+        dealProvider = DealProvider(provider);
+    }
 
     function createNewPool(
         address owner,
         address token,
         uint256 amount,
-        uint256 startTime      
+        uint256 startTime
     )
         external
         notZeroAddress(owner)
@@ -20,63 +22,69 @@ contract BaseLockDealProvider is DealProvider {
         notZeroAmount(amount)
         returns (uint256 poolId)
     {
-        poolId = _createNewPool(owner,token,GetParams(amount,startTime));
+        poolId = dealProvider.createNewPool(owner, token, amount);
+        startTimes[poolId] = startTime;
         TransferInToken(token, msg.sender, amount);
-        emit NewPoolCreated(createBasePoolInfo(poolId, owner, token), GetParams(amount, startTime));
+        // emit NewPoolCreated(
+        //     createBasePoolInfo(poolId, owner, token),
+        //     GetParams(amount, startTime)
+        // );
     }
 
     function withdraw(
-        uint256 itemId
-    )
-        external
-        virtual
-        override
-        onlyOwnerOrAdmin(itemId)
-        notZeroAmount(itemIdToDeal[itemId].startAmount)
-        validTime(itemIdToDeal[itemId].startTime)
-        returns (uint256 withdrawnAmount)
-    {
-        withdrawnAmount = itemIdToDeal[itemId].startAmount;
-        itemIdToDeal[itemId].startAmount = 0;
-        _withdraw(itemId, withdrawnAmount);
-        emit TokenWithdrawn(
-            createBasePoolInfo(
-                itemId,
-                nftContract.ownerOf(itemId),
-                itemIdToDeal[itemId].token
-            ),
-            withdrawnAmount,
-            itemIdToDeal[itemId].startAmount
-        );
+        uint256 poolId
+    ) external returns (uint256 withdrawnAmount) {
+        if (
+            startTimes[poolId] >= block.timestamp &&
+            (msg.sender == dealProvider.nftContract().ownerOf(poolId) ||
+                msg.sender == dealProvider.nftContract().owner())
+        ) {
+            (, withdrawnAmount) = dealProvider.poolIdToDeal(poolId);
+            dealProvider.withdraw(poolId, withdrawnAmount);
+            // emit TokenWithdrawn(
+            //     dealProvider.createBasePoolInfo(
+            //         poolId,
+            //         dealProvider.nftContract().ownerOf(poolId),
+            //         dealProvider.poolIdToDeal[poolId].token
+            //     ),
+            //     withdrawnAmount,
+
+            // );
+        }
+    }
+
+    struct Deal {
+        address token;
+        uint256 startAmount;
     }
 
     function split(
-        uint256 itemId,
+        uint256 poolId,
         uint256 splitAmount,
         address newOwner
     )
         external
-        virtual
-        override
         notZeroAmount(splitAmount)
         notZeroAddress(newOwner)
-        onlyOwnerOrAdmin(itemId)
+        onlyPoolOwner(poolId)
     {
-        Deal storage deal = itemIdToDeal[itemId];
+        (address token, uint256 startAmount) = dealProvider.poolIdToDeal(
+            poolId
+        );
         require(
-            deal.startAmount >= splitAmount,
+            startAmount >= splitAmount,
             "Split amount exceeds the available amount"
         );
-        deal.startAmount -= splitAmount;
-        uint256 newPoolId = _createNewPool(
+        dealProvider.split(poolId, splitAmount);
+        uint256 newPoolId = dealProvider.createNewPool(
             newOwner,
-            deal.token,
-            GetParams(splitAmount, deal.startTime) 
-        );
-        emit PoolSplit(
-            createBasePoolInfo(itemId, nftContract.ownerOf(itemId), deal.token),
-            createBasePoolInfo(newPoolId, newOwner, deal.token),
+            token,
             splitAmount
         );
+        // emit PoolSplit(
+        //     createBasePoolInfo(itemId, nftContract.ownerOf(itemId), deal.token),
+        //     createBasePoolInfo(newPoolId, newOwner, deal.token),
+        //     splitAmount
+        // );
     }
 }
