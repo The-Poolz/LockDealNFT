@@ -5,7 +5,15 @@ import "./DealProviderState.sol";
 
 contract DealProviderModifiers is DealProviderState {
     modifier onlyApprovedProvider(address provider) {
-        require(providers[provider], "invalid provider address");
+        require(providers[provider].status, "invalid provider address");
+        _;
+    }
+
+    modifier validParams(address provider, uint256 length) {
+        require(
+            providers[provider].paramsLength == length,
+            "Invalid params length"
+        );
         _;
     }
 
@@ -21,11 +29,6 @@ contract DealProviderModifiers is DealProviderState {
 
     modifier validTime(uint256 startTime) {
         _validTime(startTime);
-        _;
-    }
-
-    modifier validParams(uint256[] memory params, uint256 length) {
-        require(params.length == length, "Invalid params length");
         _;
     }
 

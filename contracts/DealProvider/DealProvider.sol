@@ -19,33 +19,14 @@ abstract contract DealProvider is
     function createNewPool(
         address owner,
         address token,
-        uint256 amount
-    ) public onlyApprovedProvider(msg.sender) returns (uint256 newPoolId) {
+        uint256[] memory params
+    ) public validParams(msg.sender, 1) returns (uint256 newPoolId) {
         newPoolId = nftContract.totalSupply();
-        poolIdToDeal[newPoolId] = Deal(token, amount);
+        poolIdToDeal[newPoolId] = Deal(token, params[0]);
         nftContract.mint(owner);
-        // emit NewPoolCreated(
-        //     createBasePoolInfo(poolId, nftContract.ownerOf(poolId), token),
-        //     params
-        // );
-    }
-
-    function split(
-        uint256 poolId,
-        uint256 splitAmount,
-        address newOwner
-    ) public onlyApprovedProvider(msg.sender) {
-        Deal storage deal = poolIdToDeal[poolId];
-        require(
-            deal.startAmount >= splitAmount,
-            "Split amount exceeds the available amount"
-        );
-        deal.startAmount -= splitAmount;
-        uint256 newPoolId = createNewPool(newOwner, deal.token, splitAmount);
-        emit PoolSplit(
-            createBasePoolInfo(poolId, nftContract.ownerOf(poolId), deal.token),
-            createBasePoolInfo(newPoolId, newOwner, deal.token),
-            splitAmount
+        emit NewPoolCreated(
+            createBasePoolInfo(newPoolId, owner, token),
+            params
         );
     }
 
@@ -56,7 +37,7 @@ abstract contract DealProvider is
     ) public returns (uint256 withdrawnAmount) {
         if (
             withdrawalAmount > 0 &&
-            providers[msg.sender] &&
+            providers[msg.sender].status &&
             withdrawalAmount <= poolIdToDeal[poolId].startAmount
         ) {
             poolIdToDeal[poolId].startAmount -= withdrawalAmount;
@@ -65,7 +46,6 @@ abstract contract DealProvider is
                 nftContract.ownerOf(poolId),
                 withdrawalAmount
             );
-            withdrawnAmount = withdrawalAmount;
             emit TokenWithdrawn(
                 createBasePoolInfo(
                     poolId,
@@ -75,8 +55,33 @@ abstract contract DealProvider is
                 withdrawalAmount,
                 poolIdToDeal[poolId].startAmount
             );
+            withdrawnAmount = withdrawalAmount;
         }
     }
+
+    function split(
+        uint256 poolId,
+        uint256 splitAmount
+    ) public onlyApprovedProvider(msg.sender) {}
+
+    // function split(
+    //     uint256 poolId,
+    //     uint256 splitAmount,
+    //     address newOwner
+    // ) public onlyApprovedProvider(msg.sender) {
+    //     Deal storage deal = poolIdToDeal[poolId];
+    //     require(
+    //         deal.startAmount >= splitAmount,
+    //         "Split amount exceeds the available amount"
+    //     );
+    //     deal.startAmount -= splitAmount;
+    //     // uint256 newPoolId = createNewPool(newOwner, deal.token, splitAmount);
+    //     // emit PoolSplit(
+    //     //     createBasePoolInfo(poolId, nftContract.ownerOf(poolId), deal.token),
+    //     //     createBasePoolInfo(newPoolId, newOwner, deal.token),
+    //     //     splitAmount
+    //     // );
+    // }
 
     function getDeal(uint256 poolId) public view returns (address, uint256) {
         return (poolIdToDeal[poolId].token, poolIdToDeal[poolId].startAmount);
@@ -92,7 +97,12 @@ abstract contract DealProvider is
         poolInfo.Token = token;
     }
 
-    function setProviderStatus(address provider, bool status) public onlyOwner {
-        providers[provider] = status;
+    function setProviderSettings(
+        address provider,
+        uint256 paramsLength,
+        bool status
+    ) external onlyOwner {
+        providers[provider].status = status;
+        providers[provider].paramsLength = paramsLength;
     }
 }
