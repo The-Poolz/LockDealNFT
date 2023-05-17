@@ -24,11 +24,7 @@ contract BaseLockDealProvider is BaseLockDealModifiers, ERC20Helper {
     {
         poolId = dealProvider.createNewPool(owner, token, amount);
         startTimes[poolId] = startTime;
-        TransferInToken(token, msg.sender, amount);
-        // emit NewPoolCreated(
-        //     createBasePoolInfo(poolId, owner, token),
-        //     GetParams(amount, startTime)
-        // );
+        //TransferInToken(token, msg.sender, amount);
     }
 
     function withdraw(
@@ -41,15 +37,6 @@ contract BaseLockDealProvider is BaseLockDealModifiers, ERC20Helper {
         ) {
             (, withdrawnAmount) = dealProvider.poolIdToDeal(poolId);
             dealProvider.withdraw(poolId, withdrawnAmount);
-            // emit TokenWithdrawn(
-            //     dealProvider.createBasePoolInfo(
-            //         poolId,
-            //         dealProvider.nftContract().ownerOf(poolId),
-            //         dealProvider.poolIdToDeal[poolId].token
-            //     ),
-            //     withdrawnAmount,
-
-            // );
         }
     }
 
@@ -63,23 +50,6 @@ contract BaseLockDealProvider is BaseLockDealModifiers, ERC20Helper {
         notZeroAddress(newOwner)
         onlyPoolOwner(poolId)
     {
-        (address token, uint256 startAmount) = dealProvider.poolIdToDeal(
-            poolId
-        );
-        require(
-            startAmount >= splitAmount,
-            "Split amount exceeds the available amount"
-        );
-        dealProvider.split(poolId, splitAmount);
-        uint256 newPoolId = dealProvider.createNewPool(
-            newOwner,
-            token,
-            splitAmount
-        );
-        // emit PoolSplit(
-        //     createBasePoolInfo(itemId, nftContract.ownerOf(itemId), deal.token),
-        //     createBasePoolInfo(newPoolId, newOwner, deal.token),
-        //     splitAmount
-        // );
+        dealProvider.split(poolId, splitAmount, newOwner);
     }
 }

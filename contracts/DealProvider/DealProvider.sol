@@ -9,24 +9,11 @@ import "./IDealProvierEvents.sol";
 abstract contract DealProvider is
     IDealProvierEvents,
     DealProviderModifiers,
-    ERC20Helper
+    ERC20Helper,
+    Ownable
 {
     constructor(address _nftContract) {
         nftContract = LockDealNFT(_nftContract);
-    }
-
-    function withdraw(
-        uint256 poolId,
-        uint256 withdrawnAmount
-    ) public onlyApprovedProvider(msg.sender) {
-        if (withdrawnAmount > 0 && providers[msg.sender]) {
-            poolIdToDeal[poolId].startAmount -= withdrawnAmount;
-            TransferToken(
-                poolIdToDeal[poolId].token,
-                nftContract.ownerOf(poolId),
-                withdrawnAmount
-            );
-        }
     }
 
     function createNewPool(
@@ -37,13 +24,58 @@ abstract contract DealProvider is
         newPoolId = nftContract.totalSupply();
         poolIdToDeal[newPoolId] = Deal(token, amount);
         nftContract.mint(owner);
+        // emit NewPoolCreated(
+        //     createBasePoolInfo(poolId, nftContract.ownerOf(poolId), token),
+        //     params
+        // );
     }
 
     function split(
         uint256 poolId,
-        uint256 splitAmount
+        uint256 splitAmount,
+        address newOwner
     ) public onlyApprovedProvider(msg.sender) {
-        poolIdToDeal[poolId].startAmount -= splitAmount;
+        Deal storage deal = poolIdToDeal[poolId];
+        require(
+            deal.startAmount >= splitAmount,
+            "Split amount exceeds the available amount"
+        );
+        deal.startAmount -= splitAmount;
+        uint256 newPoolId = createNewPool(newOwner, deal.token, splitAmount);
+        emit PoolSplit(
+            createBasePoolInfo(poolId, nftContract.ownerOf(poolId), deal.token),
+            createBasePoolInfo(newPoolId, newOwner, deal.token),
+            splitAmount
+        );
+    }
+
+    /// @dev no use of revert to make sure the loop will work
+    function withdraw(
+        uint256 poolId,
+        uint256 withdrawalAmount
+    ) public returns (uint256 withdrawnAmount) {
+        if (
+            withdrawalAmount > 0 &&
+            providers[msg.sender] &&
+            withdrawalAmount <= poolIdToDeal[poolId].startAmount
+        ) {
+            poolIdToDeal[poolId].startAmount -= withdrawalAmount;
+            TransferToken(
+                poolIdToDeal[poolId].token,
+                nftContract.ownerOf(poolId),
+                withdrawalAmount
+            );
+            withdrawnAmount = withdrawalAmount;
+            emit TokenWithdrawn(
+                createBasePoolInfo(
+                    poolId,
+                    nftContract.ownerOf(poolId),
+                    poolIdToDeal[poolId].token
+                ),
+                withdrawalAmount,
+                poolIdToDeal[poolId].startAmount
+            );
+        }
     }
 
     function getDeal(uint256 poolId) public view returns (address, uint256) {
@@ -54,9 +86,13 @@ abstract contract DealProvider is
         uint256 poolId,
         address owner,
         address token
-    ) internal pure returns (IDealProvierEvents.BasePoolInfo memory poolInfo) {
+    ) internal pure returns (BasePoolInfo memory poolInfo) {
         poolInfo.PoolId = poolId;
         poolInfo.Owner = owner;
         poolInfo.Token = token;
+    }
+
+    function setProviderStatus(address provider, bool status) public onlyOwner {
+        providers[provider] = status;
     }
 }
