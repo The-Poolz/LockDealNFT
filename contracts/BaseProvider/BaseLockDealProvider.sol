@@ -17,24 +17,17 @@ contract BaseLockDealProvider is
     function createNewPool(
         address owner,
         address token,
-        uint256 amount,
-        uint256 startTime
+        uint256[] memory params
     )
         external
         notZeroAddress(owner)
         notZeroAddress(token)
-        notZeroAmount(amount)
+        notZeroAmount(params[0])
         returns (uint256 poolId)
     {
-        params = new uint256[](2);
-        params[0] = amount;
-        poolId = dealProvider.createNewPool(owner, token, amount);
-        startTimes[poolId] = startTime;
-        TransferInToken(token, msg.sender, amount);
-        // emit NewPoolCreated(
-        //     createBasePoolInfo(poolId, owner, token),
-        //     GetParams(amount, startTime)
-        // );
+        poolId = dealProvider.createNewPool(owner, token, params);
+        startTimes[poolId] = params[1];
+        TransferInToken(token, msg.sender, params[0]);
     }
 
     /// @dev no use of revert to make sure the loop will work
@@ -62,6 +55,7 @@ contract BaseLockDealProvider is
         notZeroAddress(newOwner)
         onlyPoolOwner(poolId)
     {
+        dealProvider.split(poolId, splitAmount, newOwner);
         // Deal storage deal = poolIdToDeal[poolId];
         // require(
         //     deal.startAmount >= splitAmount,

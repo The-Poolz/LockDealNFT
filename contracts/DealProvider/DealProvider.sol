@@ -24,13 +24,17 @@ abstract contract DealProvider is
         newPoolId = nftContract.totalSupply();
         poolIdToDeal[newPoolId] = Deal(token, params[0]);
         nftContract.mint(owner);
+        emit NewPoolCreated(
+            createBasePoolInfo(newPoolId, owner, token),
+            params
+        );
     }
 
     /// @dev no use of revert to make sure the loop will work
     function withdraw(
         uint256 poolId,
         uint256 withdrawalAmount
-    ) public returns (uint256) {
+    ) public returns (uint256 withdrawnAmount) {
         if (
             withdrawalAmount > 0 &&
             providers[msg.sender].status &&
@@ -51,7 +55,7 @@ abstract contract DealProvider is
                 withdrawalAmount,
                 poolIdToDeal[poolId].startAmount
             );
-            return withdrawalAmount;
+            withdrawnAmount = withdrawalAmount;
         }
     }
 
