@@ -25,15 +25,9 @@ contract BaseLockDealProvider is
         notZeroAmount(params[0])
         returns (uint256 poolId)
     {
-<<<<<<< HEAD
-        poolId = dealProvider.createNewPool(owner, token, amount);
-        startTimes[poolId] = startTime;
-        //TransferInToken(token, msg.sender, amount);
-=======
         poolId = dealProvider.createNewPool(owner, token, params);
         startTimes[poolId] = params[1];
         TransferInToken(token, msg.sender, params[0]);
->>>>>>> get-params
     }
 
     /// @dev no use of revert to make sure the loop will work
@@ -61,9 +55,6 @@ contract BaseLockDealProvider is
         notZeroAddress(newOwner)
         onlyPoolOwner(poolId)
     {
-<<<<<<< HEAD
-        dealProvider.split(poolId, splitAmount, newOwner);
-=======
         //dealProvider.split(poolId, splitAmount, newOwner);
         //DealProvider.Deal storage deal = poolIdToDeal[poolId];
         // (address token, uint256 startAmount) = dealProvider.poolIdToDeal(
@@ -84,6 +75,5 @@ contract BaseLockDealProvider is
         //     createBasePoolInfo(newPoolId, newOwner, deal.token),
         //     splitAmount
         // );
->>>>>>> get-params
     }
 }
