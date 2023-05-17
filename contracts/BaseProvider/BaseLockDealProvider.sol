@@ -2,10 +2,14 @@
 pragma solidity ^0.8.0;
 
 import "poolz-helper-v2/contracts/ERC20Helper.sol";
+import "poolz-helper-v2/contracts/GovManager.sol";
 import "./BaseLockDealModifiers.sol";
-import "poolz-helper-v2/contracts/ERC20Helper.sol";
 
-contract BaseLockDealProvider is BaseLockDealModifiers, ERC20Helper {
+contract BaseLockDealProvider is
+    BaseLockDealModifiers,
+    ERC20Helper,
+    GovManager
+{
     constructor(address provider) {
         dealProvider = DealProvider(provider);
     }
@@ -22,6 +26,8 @@ contract BaseLockDealProvider is BaseLockDealModifiers, ERC20Helper {
         notZeroAmount(amount)
         returns (uint256 poolId)
     {
+        params = new uint256[](2);
+        params[0] = amount;
         poolId = dealProvider.createNewPool(owner, token, amount);
         startTimes[poolId] = startTime;
         TransferInToken(token, msg.sender, amount);
@@ -31,25 +37,18 @@ contract BaseLockDealProvider is BaseLockDealModifiers, ERC20Helper {
         // );
     }
 
+    /// @dev no use of revert to make sure the loop will work
     function withdraw(
         uint256 poolId
     ) external returns (uint256 withdrawnAmount) {
         if (
             startTimes[poolId] >= block.timestamp &&
             (msg.sender == dealProvider.nftContract().ownerOf(poolId) ||
-                msg.sender == dealProvider.nftContract().owner())
+                msg.sender == dealProvider.nftContract().owner() ||
+                providers[msg.sender].status)
         ) {
             (, withdrawnAmount) = dealProvider.poolIdToDeal(poolId);
-            dealProvider.withdraw(poolId, withdrawnAmount);
-            // emit TokenWithdrawn(
-            //     dealProvider.createBasePoolInfo(
-            //         poolId,
-            //         dealProvider.nftContract().ownerOf(poolId),
-            //         dealProvider.poolIdToDeal[poolId].token
-            //     ),
-            //     withdrawnAmount,
-
-            // );
+            withdrawnAmount = dealProvider.withdraw(poolId, withdrawnAmount);
         }
     }
 
@@ -63,21 +62,19 @@ contract BaseLockDealProvider is BaseLockDealModifiers, ERC20Helper {
         notZeroAddress(newOwner)
         onlyPoolOwner(poolId)
     {
-        (address token, uint256 startAmount) = dealProvider.poolIdToDeal(
-            poolId
-        );
-        require(
-            startAmount >= splitAmount,
-            "Split amount exceeds the available amount"
-        );
-        dealProvider.split(poolId, splitAmount);
-        uint256 newPoolId = dealProvider.createNewPool(
-            newOwner,
-            token,
-            splitAmount
-        );
+        // Deal storage deal = poolIdToDeal[poolId];
+        // require(
+        //     deal.startAmount >= splitAmount,
+        //     "Split amount exceeds the available amount"
+        // );
+        // deal.startAmount -= splitAmount;
+        // uint256 newPoolId = _createNewPool(
+        //     newOwner,
+        //     deal.token,
+        //     GetParams(splitAmount, deal.startTime)
+        // );
         // emit PoolSplit(
-        //     createBasePoolInfo(itemId, nftContract.ownerOf(itemId), deal.token),
+        //     createBasePoolInfo(poolId, nftContract.ownerOf(poolId), deal.token),
         //     createBasePoolInfo(newPoolId, newOwner, deal.token),
         //     splitAmount
         // );

@@ -8,10 +8,15 @@ import "../LockDealNFT/LockDealNFT.sol";
 contract DealProviderState {
     LockDealNFT public nftContract;
     mapping(uint256 => Deal) public poolIdToDeal;
-    mapping(address => bool) public providers;
+    mapping(address => Provider) public providers;
 
     struct Deal {
         address token;
         uint256 startAmount;
+    }
+
+    struct Provider {
+        bool status;
+        uint256 paramsLength;
     }
 }

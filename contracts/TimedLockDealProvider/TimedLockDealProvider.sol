@@ -32,7 +32,7 @@ contract TimedLockDealProvider {
     }
 
     function withdraw(
-        uint256 itemId
+        uint256 poolId
     )
         public
         returns (
@@ -40,6 +40,7 @@ contract TimedLockDealProvider {
             uint256 withdrawnAmount
         )
     {
+        //if ((msg.sender == dealProvider.nftContract().ownerOf(poolId))) {}
         // Deal storage deal = itemIdToDeal[itemId];
         // TimedDeal storage timedDeal = poolIdToTimedDeal[itemId];
         // require(

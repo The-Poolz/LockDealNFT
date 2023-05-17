@@ -9,4 +9,5 @@ import "../DealProvider/DealProvider.sol";
 contract BaseLockDealState {
     DealProvider public dealProvider;
     mapping(uint256 => uint256) public startTimes;
+    mapping(address => DealProvider.Provider) public providers;
 }
