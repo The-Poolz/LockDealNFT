@@ -59,6 +59,30 @@ abstract contract DealProvider is
         }
     }
 
+    function split(
+        uint256 poolId,
+        uint256 splitAmount
+    ) public onlyApprovedProvider(msg.sender) {}
+
+    // function split(
+    //     uint256 poolId,
+    //     uint256 splitAmount,
+    //     address newOwner
+    // ) public onlyApprovedProvider(msg.sender) {
+    //     Deal storage deal = poolIdToDeal[poolId];
+    //     require(
+    //         deal.startAmount >= splitAmount,
+    //         "Split amount exceeds the available amount"
+    //     );
+    //     deal.startAmount -= splitAmount;
+    //     // uint256 newPoolId = createNewPool(newOwner, deal.token, splitAmount);
+    //     // emit PoolSplit(
+    //     //     createBasePoolInfo(poolId, nftContract.ownerOf(poolId), deal.token),
+    //     //     createBasePoolInfo(newPoolId, newOwner, deal.token),
+    //     //     splitAmount
+    //     // );
+    // }
+
     function getDeal(uint256 poolId) public view returns (address, uint256) {
         return (poolIdToDeal[poolId].token, poolIdToDeal[poolId].startAmount);
     }

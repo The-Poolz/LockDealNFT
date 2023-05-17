@@ -55,10 +55,13 @@ contract BaseLockDealProvider is
         notZeroAddress(newOwner)
         onlyPoolOwner(poolId)
     {
-        dealProvider.split(poolId, splitAmount, newOwner);
-        // Deal storage deal = poolIdToDeal[poolId];
+        //dealProvider.split(poolId, splitAmount, newOwner);
+        //DealProvider.Deal storage deal = poolIdToDeal[poolId];
+        // (address token, uint256 startAmount) = dealProvider.poolIdToDeal(
+        //     poolId
+        // );
         // require(
-        //     deal.startAmount >= splitAmount,
+        //     startAmount >= splitAmount,
         //     "Split amount exceeds the available amount"
         // );
         // deal.startAmount -= splitAmount;
