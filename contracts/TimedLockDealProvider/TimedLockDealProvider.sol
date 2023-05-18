@@ -40,7 +40,7 @@ contract TimedLockDealProvider is ERC20Helper, TimedProviderState {
 
     function withdraw(uint256 poolId) public returns (uint256 withdrawnAmount) {
         //if ((msg.sender == dealProvider.nftContract().ownerOf(poolId))) {}
-        // Deal storage deal = itemIdToDeal[itemId];
+        //Deal storage deal = itemIdToDeal[itemId];
         // TimedDeal storage timedDeal = poolIdToTimedDeal[itemId];
         // require(
         //     msg.sender == nftContract.ownerOf(itemId),

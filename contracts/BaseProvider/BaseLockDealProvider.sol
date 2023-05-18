@@ -3,12 +3,13 @@ pragma solidity ^0.8.0;
 
 import "poolz-helper-v2/contracts/ERC20Helper.sol";
 import "poolz-helper-v2/contracts/GovManager.sol";
+import "../interface/ICustomLockedDeal.sol";
 import "./BaseLockDealModifiers.sol";
 
 contract BaseLockDealProvider is
     BaseLockDealModifiers,
     ERC20Helper,
-    GovManager
+    ICustomLockedDeal
 {
     constructor(address provider) {
         dealProvider = DealProvider(provider);
@@ -39,18 +40,11 @@ contract BaseLockDealProvider is
     }
 
     /// @dev no use of revert to make sure the loop will work
-    function withdraw(uint256 poolId) public returns (uint256 withdrawnAmount) {
+    function withdraw(
+        uint256 poolId
+    ) public override returns (uint256 withdrawnAmount) {
         if (startTimes[poolId] >= block.timestamp) {
-            (, withdrawnAmount) = dealProvider.poolIdToDeal(poolId);
-            withdrawnAmount = dealProvider.withdraw(poolId, withdrawnAmount);
-            if (!dealProvider.nftContract().approvedProviders(msg.sender)) {
-                (address token, ) = dealProvider.poolIdToDeal(poolId);
-                TransferToken(
-                    token,
-                    dealProvider.nftContract().ownerOf(poolId),
-                    withdrawnAmount
-                );
-            }
+            withdrawnAmount = dealProvider.withdraw(poolId);
         }
     }
 
@@ -58,7 +52,7 @@ contract BaseLockDealProvider is
         uint256 poolId,
         uint256 splitAmount,
         address newOwner
-    ) public {
+    ) public override {
         dealProvider.split(poolId, splitAmount, newOwner);
     }
 }

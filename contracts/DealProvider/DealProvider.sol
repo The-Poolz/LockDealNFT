@@ -4,8 +4,13 @@ pragma solidity ^0.8.0;
 import "../LockDealNFT/LockDealNFT.sol";
 import "poolz-helper-v2/contracts/ERC20Helper.sol";
 import "./DealProviderModifiers.sol";
+import "../interface/ICustomLockedDeal.sol";
 
-abstract contract DealProvider is DealProviderModifiers, ERC20Helper, Ownable {
+abstract contract DealProvider is
+    DealProviderModifiers,
+    ERC20Helper,
+    ICustomLockedDeal
+{
     constructor(address _nftContract) {
         nftContract = LockDealNFT(_nftContract);
     }
@@ -29,26 +34,21 @@ abstract contract DealProvider is DealProviderModifiers, ERC20Helper, Ownable {
 
     /// @dev no use of revert to make sure the loop will work
     function withdraw(
-        uint256 poolId,
-        uint256 withdrawalAmount
-    ) external returns (uint256 withdrawnAmount) {
-        if (
-            withdrawalAmount > 0 &&
-            withdrawalAmount <= poolIdToDeal[poolId].leftAmount
-        ) {
-            poolIdToDeal[poolId].leftAmount -= withdrawalAmount;
-            if (!nftContract.approvedProviders(msg.sender))
-                TransferToken(
-                    poolIdToDeal[poolId].token,
-                    nftContract.ownerOf(poolId),
-                    withdrawalAmount
-                );
+        uint256 poolId
+    ) public override returns (uint256 withdrawnAmount) {
+        if (poolIdToDeal[poolId].leftAmount >= 0) {
+            withdrawnAmount = poolIdToDeal[poolId].leftAmount;
+            poolIdToDeal[poolId].leftAmount = 0;
+            TransferToken(
+                poolIdToDeal[poolId].token,
+                nftContract.ownerOf(poolId),
+                withdrawnAmount
+            );
             emit TokenWithdrawn(
                 BasePoolInfo(poolId, nftContract.ownerOf(poolId)),
-                withdrawalAmount,
+                withdrawnAmount,
                 poolIdToDeal[poolId].leftAmount
             );
-            withdrawnAmount = withdrawalAmount;
         }
     }
 
@@ -58,6 +58,7 @@ abstract contract DealProvider is DealProviderModifiers, ERC20Helper, Ownable {
         address newOwner
     )
         public
+        override
         notZeroAmount(splitAmount)
         notZeroAddress(newOwner)
         onlyPoolOwner(poolId)
