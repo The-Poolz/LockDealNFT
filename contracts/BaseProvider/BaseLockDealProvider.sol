@@ -43,6 +43,14 @@ contract BaseLockDealProvider is
         if (startTimes[poolId] >= block.timestamp) {
             (, withdrawnAmount) = dealProvider.poolIdToDeal(poolId);
             withdrawnAmount = dealProvider.withdraw(poolId, withdrawnAmount);
+            if (!dealProvider.nftContract().approvedProviders(msg.sender)) {
+                (address token, ) = dealProvider.poolIdToDeal(poolId);
+                TransferToken(
+                    token,
+                    dealProvider.nftContract().ownerOf(poolId),
+                    withdrawnAmount
+                );
+            }
         }
     }
 

@@ -37,11 +37,12 @@ abstract contract DealProvider is DealProviderModifiers, ERC20Helper, Ownable {
             withdrawalAmount <= poolIdToDeal[poolId].leftAmount
         ) {
             poolIdToDeal[poolId].leftAmount -= withdrawalAmount;
-            TransferToken(
-                poolIdToDeal[poolId].token,
-                nftContract.ownerOf(poolId),
-                withdrawalAmount
-            );
+            if (!nftContract.approvedProviders(msg.sender))
+                TransferToken(
+                    poolIdToDeal[poolId].token,
+                    nftContract.ownerOf(poolId),
+                    withdrawalAmount
+                );
             emit TokenWithdrawn(
                 BasePoolInfo(poolId, nftContract.ownerOf(poolId)),
                 withdrawalAmount,
