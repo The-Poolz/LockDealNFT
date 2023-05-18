@@ -4,11 +4,6 @@ pragma solidity ^0.8.0;
 import "./DealProviderState.sol";
 
 contract DealProviderModifiers is DealProviderState {
-    modifier onlyOwnerOrAdmin(uint256 itemId) {
-        _onlyOwnerOrAdmin(itemId);
-        _;
-    }
-
     modifier notZeroAddress(address _address) {
         _notZeroAddress(_address);
         _;
@@ -24,17 +19,14 @@ contract DealProviderModifiers is DealProviderState {
         _;
     }
 
-    modifier validParams(uint256[] memory params, uint256 length) {
-        require(params.length == length, "Invalid params length");
+    modifier invalidSplitAmount(uint256 leftAmount, uint256 splitAmount) {
+        _invalidSplitAmount(leftAmount, splitAmount);
         _;
     }
 
-    function _onlyOwnerOrAdmin(uint256 itemId) private view {
-        require(
-            msg.sender == nftContract.ownerOf(itemId) ||
-                msg.sender == nftContract.owner(),
-            "Not the owner of the pool"
-        );
+    modifier onlyPoolOwner(uint256 poolId) {
+        _onlyPoolOwner(poolId);
+        _;
     }
 
     function _notZeroAddress(address _address) private pure {
@@ -47,5 +39,19 @@ contract DealProviderModifiers is DealProviderState {
 
     function _validTime(uint256 time) private view {
         require(time <= block.timestamp, "Withdrawal time not reached");
+    }
+
+    function _onlyPoolOwner(uint256 poolId) private view {
+        require(msg.sender == nftContract.ownerOf(poolId));
+    }
+
+    function _invalidSplitAmount(
+        uint256 leftAmount,
+        uint256 splitAmount
+    ) private pure {
+        require(
+            leftAmount >= splitAmount,
+            "Split amount exceeds the available amount"
+        );
     }
 }
