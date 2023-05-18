@@ -2,16 +2,10 @@
 pragma solidity ^0.8.0;
 
 import "../BaseProvider/BaseLockDealProvider.sol";
+import "poolz-helper-v2/contracts/ERC20Helper.sol";
+import "./TimedProviderState.sol";
 
-contract TimedLockDealProvider {
-    struct TimedDeal {
-        uint256 finishTime;
-        uint256 withdrawnAmount;
-    }
-
-    BaseLockDealProvider public dealProvider;
-    mapping(uint256 => TimedDeal) public poolIdToTimedDeal;
-
+contract TimedLockDealProvider is ERC20Helper, TimedProviderState {
     constructor(address provider) {
         dealProvider = BaseLockDealProvider(provider);
     }
@@ -28,18 +22,23 @@ contract TimedLockDealProvider {
             "Finish time should be greater than start time"
         );
         poolId = dealProvider.createNewPool(owner, token, amount, startTime);
-        poolIdToTimedDeal[poolId].finishTime = finishTime;
+        poolIdToTimedDeal[poolId] = TimedDeal(finishTime, 0);
+        if (
+            !dealProvider.dealProvider().nftContract().approvedProviders(
+                msg.sender
+            )
+        ) {
+            TransferInToken(token, msg.sender, amount);
+            emit NewPoolCreated(
+                IDealProvierEvents.BasePoolInfo(poolId, owner),
+                IDealProvierEvents.Deal(token, amount),
+                startTime,
+                finishTime
+            );
+        }
     }
 
-    function withdraw(
-        uint256 poolId
-    )
-        public
-        returns (
-            //validTime(startTimes[])
-            uint256 withdrawnAmount
-        )
-    {
+    function withdraw(uint256 poolId) public returns (uint256 withdrawnAmount) {
         //if ((msg.sender == dealProvider.nftContract().ownerOf(poolId))) {}
         // Deal storage deal = itemIdToDeal[itemId];
         // TimedDeal storage timedDeal = poolIdToTimedDeal[itemId];

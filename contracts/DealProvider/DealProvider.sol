@@ -4,14 +4,8 @@ pragma solidity ^0.8.0;
 import "../LockDealNFT/LockDealNFT.sol";
 import "poolz-helper-v2/contracts/ERC20Helper.sol";
 import "./DealProviderModifiers.sol";
-import "./IDealProvierEvents.sol";
 
-abstract contract DealProvider is
-    IDealProvierEvents,
-    DealProviderModifiers,
-    ERC20Helper,
-    Ownable
-{
+abstract contract DealProvider is DealProviderModifiers, ERC20Helper, Ownable {
     constructor(address _nftContract) {
         nftContract = LockDealNFT(_nftContract);
     }
@@ -19,41 +13,39 @@ abstract contract DealProvider is
     function createNewPool(
         address owner,
         address token,
-        uint256[] memory params
-    ) public validParams(msg.sender, 1) returns (uint256 newPoolId) {
-        newPoolId = nftContract.totalSupply();
-        poolIdToDeal[newPoolId] = Deal(token, params[0]);
+        uint256 amount
+    ) public returns (uint256 poolId) {
+        poolId = nftContract.totalSupply();
+        poolIdToDeal[poolId] = Deal(token, amount);
         nftContract.mint(owner);
-        emit NewPoolCreated(
-            createBasePoolInfo(newPoolId, owner, token),
-            params
-        );
+        if (!nftContract.approvedProviders(msg.sender)) {
+            TransferInToken(token, msg.sender, amount);
+            emit NewPoolCreated(
+                BasePoolInfo(poolId, owner),
+                Deal(token, amount)
+            );
+        }
     }
 
     /// @dev no use of revert to make sure the loop will work
     function withdraw(
         uint256 poolId,
         uint256 withdrawalAmount
-    ) public returns (uint256 withdrawnAmount) {
+    ) external returns (uint256 withdrawnAmount) {
         if (
             withdrawalAmount > 0 &&
-            providers[msg.sender].status &&
-            withdrawalAmount <= poolIdToDeal[poolId].startAmount
+            withdrawalAmount <= poolIdToDeal[poolId].leftAmount
         ) {
-            poolIdToDeal[poolId].startAmount -= withdrawalAmount;
+            poolIdToDeal[poolId].leftAmount -= withdrawalAmount;
             TransferToken(
                 poolIdToDeal[poolId].token,
                 nftContract.ownerOf(poolId),
                 withdrawalAmount
             );
             emit TokenWithdrawn(
-                createBasePoolInfo(
-                    poolId,
-                    nftContract.ownerOf(poolId),
-                    poolIdToDeal[poolId].token
-                ),
+                BasePoolInfo(poolId, nftContract.ownerOf(poolId)),
                 withdrawalAmount,
-                poolIdToDeal[poolId].startAmount
+                poolIdToDeal[poolId].leftAmount
             );
             withdrawnAmount = withdrawalAmount;
         }
@@ -61,48 +53,26 @@ abstract contract DealProvider is
 
     function split(
         uint256 poolId,
-        uint256 splitAmount
-    ) public onlyApprovedProvider(msg.sender) {}
-
-    // function split(
-    //     uint256 poolId,
-    //     uint256 splitAmount,
-    //     address newOwner
-    // ) public onlyApprovedProvider(msg.sender) {
-    //     Deal storage deal = poolIdToDeal[poolId];
-    //     require(
-    //         deal.startAmount >= splitAmount,
-    //         "Split amount exceeds the available amount"
-    //     );
-    //     deal.startAmount -= splitAmount;
-    //     // uint256 newPoolId = createNewPool(newOwner, deal.token, splitAmount);
-    //     // emit PoolSplit(
-    //     //     createBasePoolInfo(poolId, nftContract.ownerOf(poolId), deal.token),
-    //     //     createBasePoolInfo(newPoolId, newOwner, deal.token),
-    //     //     splitAmount
-    //     // );
-    // }
+        uint256 splitAmount,
+        address newOwner
+    )
+        public
+        notZeroAmount(splitAmount)
+        notZeroAddress(newOwner)
+        onlyPoolOwner(poolId)
+        invalidSplitAmount(poolIdToDeal[poolId].leftAmount, splitAmount)
+    {
+        Deal storage deal = poolIdToDeal[poolId];
+        deal.leftAmount -= splitAmount;
+        uint256 newPoolId = createNewPool(newOwner, deal.token, splitAmount);
+        emit PoolSplit(
+            BasePoolInfo(poolId, nftContract.ownerOf(poolId)),
+            BasePoolInfo(newPoolId, newOwner),
+            splitAmount
+        );
+    }
 
     function getDeal(uint256 poolId) public view returns (address, uint256) {
-        return (poolIdToDeal[poolId].token, poolIdToDeal[poolId].startAmount);
-    }
-
-    function createBasePoolInfo(
-        uint256 poolId,
-        address owner,
-        address token
-    ) internal pure returns (BasePoolInfo memory poolInfo) {
-        poolInfo.PoolId = poolId;
-        poolInfo.Owner = owner;
-        poolInfo.Token = token;
-    }
-
-    function setProviderSettings(
-        address provider,
-        uint256 paramsLength,
-        bool status
-    ) external onlyOwner {
-        providers[provider].status = status;
-        providers[provider].paramsLength = paramsLength;
+        return (poolIdToDeal[poolId].token, poolIdToDeal[poolId].leftAmount);
     }
 }

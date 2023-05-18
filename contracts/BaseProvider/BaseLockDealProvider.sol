@@ -17,35 +17,30 @@ contract BaseLockDealProvider is
     function createNewPool(
         address owner,
         address token,
-        uint256[] memory params
+        uint256 amount,
+        uint256 startTime
     )
-        external
+        public
         notZeroAddress(owner)
         notZeroAddress(token)
-        notZeroAmount(params[0])
+        notZeroAmount(amount)
         returns (uint256 poolId)
     {
-<<<<<<< HEAD
         poolId = dealProvider.createNewPool(owner, token, amount);
         startTimes[poolId] = startTime;
-        //TransferInToken(token, msg.sender, amount);
-=======
-        poolId = dealProvider.createNewPool(owner, token, params);
-        startTimes[poolId] = params[1];
-        TransferInToken(token, msg.sender, params[0]);
->>>>>>> get-params
+        if (!dealProvider.nftContract().approvedProviders(msg.sender)) {
+            TransferInToken(token, msg.sender, amount);
+            emit NewPoolCreated(
+                IDealProvierEvents.BasePoolInfo(poolId, owner),
+                IDealProvierEvents.Deal(token, amount),
+                startTime
+            );
+        }
     }
 
     /// @dev no use of revert to make sure the loop will work
-    function withdraw(
-        uint256 poolId
-    ) external returns (uint256 withdrawnAmount) {
-        if (
-            startTimes[poolId] >= block.timestamp &&
-            (msg.sender == dealProvider.nftContract().ownerOf(poolId) ||
-                msg.sender == dealProvider.nftContract().owner() ||
-                providers[msg.sender].status)
-        ) {
+    function withdraw(uint256 poolId) public returns (uint256 withdrawnAmount) {
+        if (startTimes[poolId] >= block.timestamp) {
             (, withdrawnAmount) = dealProvider.poolIdToDeal(poolId);
             withdrawnAmount = dealProvider.withdraw(poolId, withdrawnAmount);
         }
@@ -55,35 +50,7 @@ contract BaseLockDealProvider is
         uint256 poolId,
         uint256 splitAmount,
         address newOwner
-    )
-        external
-        notZeroAmount(splitAmount)
-        notZeroAddress(newOwner)
-        onlyPoolOwner(poolId)
-    {
-<<<<<<< HEAD
+    ) public {
         dealProvider.split(poolId, splitAmount, newOwner);
-=======
-        //dealProvider.split(poolId, splitAmount, newOwner);
-        //DealProvider.Deal storage deal = poolIdToDeal[poolId];
-        // (address token, uint256 startAmount) = dealProvider.poolIdToDeal(
-        //     poolId
-        // );
-        // require(
-        //     startAmount >= splitAmount,
-        //     "Split amount exceeds the available amount"
-        // );
-        // deal.startAmount -= splitAmount;
-        // uint256 newPoolId = _createNewPool(
-        //     newOwner,
-        //     deal.token,
-        //     GetParams(splitAmount, deal.startTime)
-        // );
-        // emit PoolSplit(
-        //     createBasePoolInfo(poolId, nftContract.ownerOf(poolId), deal.token),
-        //     createBasePoolInfo(newPoolId, newOwner, deal.token),
-        //     splitAmount
-        // );
->>>>>>> get-params
     }
 }
