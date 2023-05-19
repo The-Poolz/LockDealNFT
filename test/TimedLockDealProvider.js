@@ -5,12 +5,12 @@ const { ethers } = require("hardhat")
 describe("Base Lock Deal Provider", function (accounts) {
     let timedLockProvider, baseLockProvider, dealProvider, lockDealNFT
     let poolId, params
-    let owner, notOwner, receiver
+    let receiver
     let token, startTime, finishTime
     const amount = 10000
 
     before(async () => {
-        ;[owner, notOwner, receiver] = await ethers.getSigners()
+        ;[receiver] = await ethers.getSigners()
         const LockDealNFT = await ethers.getContractFactory("LockDealNFT")
         const DealProvider = await ethers.getContractFactory("DealProvider")
         const BaseLockProvider = await ethers.getContractFactory("BaseLockDealProvider")

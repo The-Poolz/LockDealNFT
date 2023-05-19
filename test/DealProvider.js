@@ -4,7 +4,7 @@ const { ethers } = require("hardhat")
 
 describe("Base Lock Deal Provider", function (accounts) {
     let dealProvider, lockDealNFT, poolId
-    let owner, notOwner, receiver
+    let notOwner, receiver
     let token, poolData, params
     const amount = 10000
 

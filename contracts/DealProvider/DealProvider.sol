@@ -37,7 +37,10 @@ contract DealProvider is DealProviderModifiers, ERC20Helper, IProvider {
     function withdraw(
         uint256 poolId
     ) public override returns (uint256 withdrawnAmount) {
-        if (poolIdToDeal[poolId].leftAmount >= 0) {
+        if (
+            poolIdToDeal[poolId].leftAmount >= 0 &&
+            nftContract.approvedProviders(msg.sender)
+        ) {
             withdrawnAmount = poolIdToDeal[poolId].leftAmount;
             poolIdToDeal[poolId].leftAmount = 0;
             TransferToken(
