@@ -21,7 +21,7 @@ contract DealProvider is DealProviderModifiers, ERC20Helper, IProvider {
         notZeroAddress(owner)
         notZeroAddress(token)
         notZeroAmount(params[0])
-        validParamsLength(params.length, minLength)
+        validParamsLength(params.length, currentParamsTargetLenght)
         returns (uint256 poolId)
     {
         poolId = nftContract.totalSupply();
@@ -84,5 +84,16 @@ contract DealProvider is DealProviderModifiers, ERC20Helper, IProvider {
             BasePoolInfo(newPoolId, newOwner, deal.token),
             splitAmount
         );
+    }
+
+    function registerPool(
+        uint256 poolId,
+        uint256[] memory params
+    )
+        public
+        onlyProvider
+        validParamsLength(params.length, currentParamsTargetLenght)
+    {
+        poolIdToDeal[poolId].leftAmount = params[0];
     }
 }

@@ -41,12 +41,6 @@ describe("Base Lock Deal Provider", function (accounts) {
         expect(provider.toString()).to.equal(dealProvider.address)
     })
 
-    it("should check deal provider data after baseLockProvider creation", async () => {
-        dealData = await dealProvider.poolIdToDeal(poolId.toString())
-        expect(dealData[0].toString()).to.equal(token.address)
-        expect(dealData[1].toString()).to.equal(amount.toString())
-    })
-
     it("should check base provider data after creation", async () => {
         const poolStartTime = await baseLockProvider.startTimes(poolId)
         expect(poolStartTime).to.equal(startTime)

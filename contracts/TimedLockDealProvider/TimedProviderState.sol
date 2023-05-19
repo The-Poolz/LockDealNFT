@@ -9,6 +9,7 @@ import "./ITimedLockDealEvents.sol";
 contract TimedProviderState is ITimedLockDealEvents {
     BaseLockDealProvider public dealProvider;
     mapping(uint256 => TimedDeal) public poolIdToTimedDeal;
+    uint256 public constant currentParamsTargetLenght = 1;
 
     function getArray(
         uint256 leftAmount,

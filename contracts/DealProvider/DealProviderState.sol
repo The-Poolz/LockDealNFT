@@ -9,7 +9,7 @@ import "./IDealProvierEvents.sol";
 contract DealProviderState is IDealProvierEvents {
     LockDealNFT public nftContract;
     mapping(uint256 => Deal) public poolIdToDeal;
-    uint256 public constant minLength = 1;
+    uint256 public constant currentParamsTargetLenght = 1;
 
     function getParams(
         uint256 leftAmount

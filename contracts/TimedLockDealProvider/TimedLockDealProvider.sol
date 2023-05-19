@@ -2,8 +2,9 @@
 pragma solidity ^0.8.0;
 
 import "./TimedProviderState.sol";
+import "./TimedLockDealModifiers.sol";
 
-contract TimedLockDealProvider is ERC20Helper, TimedProviderState {
+contract TimedLockDealProvider is ERC20Helper, TimedLockDealModifiers {
     constructor(address provider) {
         dealProvider = BaseLockDealProvider(provider);
     }
@@ -107,5 +108,23 @@ contract TimedLockDealProvider is ERC20Helper, TimedProviderState {
         //             super.GetParams(params[0], params[1])
         //         );
         //         poolIdToTimedDeal[newItemId] = TimedDeal(params[2], 0);
+    }
+
+    function registerPool(
+        uint256 poolId,
+        uint256[] memory params
+    )
+        public
+        onlyProvider
+        validParamsLength(params.length, getParametersTargetLenght())
+    {
+        poolIdToTimedDeal[poolId].finishTime = params[2];
+        dealProvider.registerPool(poolId, params);
+    }
+
+    function getParametersTargetLenght() public view returns (uint256) {
+        return
+            currentParamsTargetLenght +
+            dealProvider.currentParamsTargetLenght();
     }
 }

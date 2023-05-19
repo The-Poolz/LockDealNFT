@@ -9,6 +9,7 @@ import "./IBaseLockDealEvents.sol";
 contract BaseLockDealState is IBaseLockDealEvents {
     DealProvider public dealProvider;
     mapping(uint256 => uint256) public startTimes;
+    uint256 public constant currentParamsTargetLenght = 1;
 
     function getParams(
         uint256 leftAmount,

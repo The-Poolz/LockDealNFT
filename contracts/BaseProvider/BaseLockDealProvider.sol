@@ -39,4 +39,22 @@ contract BaseLockDealProvider is BaseLockDealModifiers, ERC20Helper, IProvider {
     ) public override {
         dealProvider.split(poolId, splitAmount, newOwner);
     }
+
+    function registerPool(
+        uint256 poolId,
+        uint256[] memory params
+    )
+        public
+        onlyProvider
+        validParamsLength(params.length, getParametersTargetLenght())
+    {
+        startTimes[poolId] = params[1];
+        dealProvider.registerPool(poolId, params);
+    }
+
+    function getParametersTargetLenght() public view returns (uint256) {
+        return
+            currentParamsTargetLenght +
+            dealProvider.currentParamsTargetLenght();
+    }
 }
