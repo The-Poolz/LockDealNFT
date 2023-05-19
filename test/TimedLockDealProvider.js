@@ -23,7 +23,7 @@ describe("Base Lock Deal Provider", function (accounts) {
         baseLockProvider = await BaseLockProvider.deploy(dealProvider.address)
         await baseLockProvider.deployed()
         timedLockProvider = await TimedLockDealProvider.deploy(baseLockProvider.address)
-        timedLockProvider.deployed()
+        await timedLockProvider.deployed()
         token = await ERC20Token.deploy("TEST Token", "TERC20")
         await token.deployed()
         await token.approve(timedLockProvider.address, constants.MaxUint256)
