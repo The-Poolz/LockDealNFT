@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./BaseLockDealState.sol";
+import "./TimedProviderState.sol";
 
-contract BaseLockDealModifiers is BaseLockDealState {
+contract TimedLockDealModifiers is TimedProviderState {
     modifier validParamsLength(uint256 paramsLength, uint256 minLength) {
         _validParamsLength(paramsLength, minLength);
         _;
@@ -23,7 +23,9 @@ contract BaseLockDealModifiers is BaseLockDealState {
 
     function _onlyProvider() private view {
         require(
-            dealProvider.nftContract().approvedProviders(msg.sender),
+            dealProvider.dealProvider().nftContract().approvedProviders(
+                msg.sender
+            ),
             "invalid provider address"
         );
     }

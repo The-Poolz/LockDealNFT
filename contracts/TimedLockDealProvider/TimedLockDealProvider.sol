@@ -1,40 +1,34 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../BaseProvider/BaseLockDealProvider.sol";
-import "poolz-helper-v2/contracts/ERC20Helper.sol";
 import "./TimedProviderState.sol";
+import "./TimedLockDealModifiers.sol";
 
-contract TimedLockDealProvider is ERC20Helper, TimedProviderState {
+contract TimedLockDealProvider is ERC20Helper, TimedLockDealModifiers {
     constructor(address provider) {
         dealProvider = BaseLockDealProvider(provider);
     }
 
+    /// params[0] = amount
+    /// params[1] = startTime
+    /// params[2] = finishTime
     function createNewPool(
         address owner,
         address token,
-        uint256 amount,
-        uint256 startTime,
-        uint256 finishTime
+        uint256[] memory params
     ) public returns (uint256 poolId) {
         require(
-            finishTime >= startTime,
+            params[2] >= params[1],
             "Finish time should be greater than start time"
         );
-        poolId = dealProvider.createNewPool(owner, token, amount, startTime);
-        poolIdToTimedDeal[poolId] = TimedDeal(finishTime, 0);
+        poolId = dealProvider.createNewPool(owner, token, params);
+        poolIdToTimedDeal[poolId] = TimedDeal(params[2], 0);
         if (
             !dealProvider.dealProvider().nftContract().approvedProviders(
                 msg.sender
             )
         ) {
-            TransferInToken(token, msg.sender, amount);
-            emit NewPoolCreated(
-                IDealProvierEvents.BasePoolInfo(poolId, owner),
-                IDealProvierEvents.Deal(token, amount),
-                startTime,
-                finishTime
-            );
+            TransferInToken(token, msg.sender, params[0]);
         }
     }
 
@@ -114,5 +108,23 @@ contract TimedLockDealProvider is ERC20Helper, TimedProviderState {
         //             super.GetParams(params[0], params[1])
         //         );
         //         poolIdToTimedDeal[newItemId] = TimedDeal(params[2], 0);
+    }
+
+    function registerPool(
+        uint256 poolId,
+        uint256[] memory params
+    )
+        public
+        onlyProvider
+        validParamsLength(params.length, getParametersTargetLenght())
+    {
+        poolIdToTimedDeal[poolId].finishTime = params[2];
+        dealProvider.registerPool(poolId, params);
+    }
+
+    function getParametersTargetLenght() public view returns (uint256) {
+        return
+            currentParamsTargetLenght +
+            dealProvider.currentParamsTargetLenght();
     }
 }

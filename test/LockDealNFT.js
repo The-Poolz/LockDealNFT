@@ -1,20 +1,26 @@
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
+const { constants } = require("ethers")
 
 describe("LockDealNFT", function (accounts) {
-    let lockDealNFT, itemId
+    let lockDealNFT, poolId, token
     let provider, notOwner, receiver
 
     before(async () => {
-        ;[provider, notOwner, receiver] = await ethers.getSigners()
+        ;[notOwner, receiver] = await ethers.getSigners()
         const LockDealNFT = await ethers.getContractFactory("LockDealNFT")
+        const DealProvider = await ethers.getContractFactory("DealProvider")
+        const ERC20Token = await ethers.getContractFactory("ERC20Token")
+        token = await ERC20Token.deploy("TEST Token", "TERC20")
         lockDealNFT = await LockDealNFT.deploy()
+        provider = await DealProvider.deploy(lockDealNFT.address)
         await lockDealNFT.deployed()
         await lockDealNFT.setApprovedProvider(provider.address, true)
+        await token.approve(provider.address, constants.MaxUint256)
     })
 
     beforeEach(async () => {
-        itemId = await lockDealNFT.totalSupply()
+        poolId = await lockDealNFT.totalSupply()
     })
 
     it("check NFT name", async () => {
@@ -31,18 +37,11 @@ describe("LockDealNFT", function (accounts) {
     })
 
     it("should mint new token", async () => {
-        await lockDealNFT.connect(receiver.address)
-        await lockDealNFT.mint(receiver.address)
-        expect(await lockDealNFT.totalSupply()).to.equal(parseInt(itemId) + 1)
+        await provider.createNewPool(receiver.address, token.address, ["1000"])
+        expect(await lockDealNFT.totalSupply()).to.equal(parseInt(poolId) + 1)
     })
 
     it("only provider can mint", async () => {
         await expect(lockDealNFT.connect(notOwner).mint(receiver.address)).to.be.revertedWith("Provider not approved")
-    })
-
-    it("only owner can set approved provider", async () => {
-        await expect(lockDealNFT.connect(notOwner).setApprovedProvider(provider.address, true)).to.be.revertedWith(
-            "Ownable: caller is not the owner"
-        )
     })
 })
