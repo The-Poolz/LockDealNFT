@@ -24,9 +24,21 @@ contract DealProviderModifiers is DealProviderState {
         _;
     }
 
-    modifier onlyPoolOwner(uint256 poolId) {
-        _onlyPoolOwner(poolId);
+    modifier onlyProvider() {
+        _onlyProvider();
         _;
+    }
+
+    modifier validParamsLength(uint256 paramsLength, uint256 minLength) {
+        _validParamsLength(paramsLength, minLength);
+        _;
+    }
+
+    function _validParamsLength(
+        uint256 paramsLength,
+        uint256 minLength
+    ) private pure {
+        require(paramsLength >= minLength, "invalid params length");
     }
 
     function _notZeroAddress(address _address) private pure {
@@ -41,8 +53,11 @@ contract DealProviderModifiers is DealProviderState {
         require(time <= block.timestamp, "Withdrawal time not reached");
     }
 
-    function _onlyPoolOwner(uint256 poolId) private view {
-        require(msg.sender == nftContract.ownerOf(poolId));
+    function _onlyProvider() private view {
+        require(
+            nftContract.approvedProviders(msg.sender),
+            "invalid provider address"
+        );
     }
 
     function _invalidSplitAmount(

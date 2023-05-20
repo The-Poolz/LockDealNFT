@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-interface ICustomLockedDeal {
+interface IProvider {
     function withdraw(
         uint256 itemId
     ) external returns (uint256 withdrawnAmount);

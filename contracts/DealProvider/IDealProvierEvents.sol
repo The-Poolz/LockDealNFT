@@ -7,24 +7,25 @@ interface IDealProvierEvents {
     struct BasePoolInfo {
         uint256 poolId;
         address owner;
+        address token;
     }
 
     struct Deal {
-        address token;
-        uint256 leftAmount;
+        address token; //Part of the Base info
+        uint256 leftAmount; //the first param
     }
 
     event TokenWithdrawn(
-        BasePoolInfo PoolInfo,
-        uint256 Amount,
-        uint256 LeftAmount
+        BasePoolInfo poolInfo,
+        uint256 amount,
+        uint256 leftAmount
     );
 
-    event NewPoolCreated(BasePoolInfo poolInfo, Deal dealInfo);
+    event NewPoolCreated(BasePoolInfo poolInfo, uint256[] params);
 
     event PoolSplit(
-        BasePoolInfo OldPool,
-        BasePoolInfo NewPool,
-        uint256 SplitAmount
+        BasePoolInfo oldPool,
+        BasePoolInfo newPool,
+        uint256 splitAmount
     );
 }

@@ -1,17 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/utils/Counters.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
+import "./LockDealNFTModifiers.sol";
+import "../interface/IProvider.sol";
 
-contract LockDealNFT is Ownable, ERC721Enumerable {
+contract LockDealNFT is LockDealNFTModifiers, IProvider {
     using Counters for Counters.Counter;
-    Counters.Counter public _tokenIdCounter;
-
-    mapping(uint256 => address) public itemIdToProvider;
-    mapping(address => bool) public approvedProviders;
 
     constructor() ERC721("LockDealNFT", "LDNFT") {}
 
@@ -20,7 +14,7 @@ contract LockDealNFT is Ownable, ERC721Enumerable {
 
         uint256 newItemId = _tokenIdCounter.current();
         _safeMint(to, newItemId);
-        itemIdToProvider[newItemId] = msg.sender;
+        poolIdToProvider[newItemId] = msg.sender;
     }
 
     function setApprovedProvider(
@@ -30,16 +24,21 @@ contract LockDealNFT is Ownable, ERC721Enumerable {
         approvedProviders[provider] = status;
     }
 
-    modifier onlyApprovedProvider() {
-        require(approvedProviders[msg.sender], "Provider not approved");
-        _;
+    function withdraw(
+        uint256 poolId
+    ) external onlyOwnerOrAdmin(poolId) returns (uint256 withdrawnAmount) {
+        withdrawnAmount = IProvider(poolIdToProvider[poolId]).withdraw(poolId);
     }
 
-    modifier onlyContract(address contractAddress) {
-        require(
-            Address.isContract(contractAddress),
-            "Invalid contract address"
+    function split(
+        uint256 poolId,
+        uint256 splitAmount,
+        address newOwner
+    ) external onlyOwnerOrAdmin(poolId) {
+        IProvider(poolIdToProvider[poolId]).split(
+            poolId,
+            splitAmount,
+            newOwner
         );
-        _;
     }
 }
