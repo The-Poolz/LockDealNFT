@@ -5,8 +5,9 @@ import "../interface/IProvider.sol";
 import "./BaseLockDealModifiers.sol";
 
 contract BaseLockDealProvider is BaseLockDealModifiers, ERC20Helper, IProvider {
-    constructor(address provider) {
+    constructor(address nft,address provider) {
         dealProvider = DealProvider(provider);
+        nftContract = LockDealNFT(nft);
     }
 
     /// params[0] = amount
@@ -16,20 +17,18 @@ contract BaseLockDealProvider is BaseLockDealModifiers, ERC20Helper, IProvider {
         address token,
         uint256[] memory params
     ) public returns (uint256 poolId) {
-        poolId = dealProvider.createNewPool(owner, token, params);
-        startTimes[poolId] = params[1];
-        if (!dealProvider.nftContract().approvedProviders(msg.sender)) {
-            TransferInToken(token, msg.sender, params[0]);
-        }
+        poolId = nftContract.mint(owner, token, msg.sender, params[0]);
+        registerPool(poolId, params);
     }
 
     /// @dev no use of revert to make sure the loop will work
     function withdraw(
         uint256 poolId
-    ) public override returns (uint256 withdrawnAmount) {
+    ) public override returns (uint256 withdrawnAmount, bool isClosed) {
         if (startTimes[poolId] >= block.timestamp) {
-            withdrawnAmount = dealProvider.withdraw(poolId);
+            return dealProvider.withdraw(poolId);
         }
+        return (0, false);
     }
 
     function split(

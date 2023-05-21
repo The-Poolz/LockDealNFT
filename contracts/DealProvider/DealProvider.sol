@@ -24,30 +24,22 @@ contract DealProvider is DealProviderModifiers, ERC20Helper, IProvider {
         validParamsLength(params.length, currentParamsTargetLenght)
         returns (uint256 poolId)
     {
-        poolId = nftContract.totalSupply();
-        poolIdToDeal[poolId] = Deal(token, params[0]);
-        nftContract.mint(owner);
-        if (!nftContract.approvedProviders(msg.sender)) {
-            TransferInToken(token, msg.sender, params[0]);
-        }
+        poolId = nftContract.mint(owner, token, msg.sender, params[0]);
+        registerPool(poolId, params);
         emit NewPoolCreated(BasePoolInfo(poolId, owner, token), params);
     }
 
     /// @dev no use of revert to make sure the loop will work
     function withdraw(
         uint256 poolId
-    ) public override returns (uint256 withdrawnAmount) {
+    ) public override returns (uint256 withdrawnAmount, bool isClosed) {
         if (
             poolIdToDeal[poolId].leftAmount >= 0 &&
             nftContract.approvedProviders(msg.sender)
         ) {
             withdrawnAmount = poolIdToDeal[poolId].leftAmount;
             poolIdToDeal[poolId].leftAmount = 0;
-            TransferToken(
-                poolIdToDeal[poolId].token,
-                nftContract.ownerOf(poolId),
-                withdrawnAmount
-            );
+            isClosed = true;
             emit TokenWithdrawn(
                 BasePoolInfo(
                     poolId,

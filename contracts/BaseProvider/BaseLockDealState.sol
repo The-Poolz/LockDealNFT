@@ -8,6 +8,7 @@ import "./IBaseLockDealEvents.sol";
 /// @notice Contains storage variables, structures
 contract BaseLockDealState is IBaseLockDealEvents {
     DealProvider public dealProvider;
+    LockDealNFT public nftContract;
     mapping(uint256 => uint256) public startTimes;
     uint256 public constant currentParamsTargetLenght = 1;
 

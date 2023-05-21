@@ -8,6 +8,11 @@ import "@openzeppelin/contracts/utils/Address.sol";
 abstract contract LockDealState is ERC721Enumerable {
     Counters.Counter public _tokenIdCounter;
 
-    mapping(uint256 => address) public poolIdToProvider;
+    mapping(uint256 => PoolInformation) public poolIdToPoolInformation;
     mapping(address => bool) public approvedProviders;
+    mapping(address => address) public TokenToVault;
+    struct PoolInformation{
+        address Provider;
+        address Vault;
+    }
 }
