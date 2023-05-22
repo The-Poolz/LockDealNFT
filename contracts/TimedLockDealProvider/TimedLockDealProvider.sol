@@ -12,6 +12,7 @@ contract TimedLockDealProvider is ERC20Helper, TimedLockDealModifiers {
     /// params[0] = amount
     /// params[1] = startTime
     /// params[2] = finishTime
+    /// params[3] = withdrawnAmount
     function createNewPool(
         address owner,
         address token,
@@ -22,14 +23,7 @@ contract TimedLockDealProvider is ERC20Helper, TimedLockDealModifiers {
             "Finish time should be greater than start time"
         );
         poolId = dealProvider.createNewPool(owner, token, params);
-        poolIdToTimedDeal[poolId] = TimedDeal(params[2], 0);
-        if (
-            !dealProvider.dealProvider().nftContract().approvedProviders(
-                msg.sender
-            )
-        ) {
-            TransferInToken(token, msg.sender, params[0]);
-        }
+        poolIdToTimedDeal[poolId] = TimedDeal(params[2], params[3]);
     }
 
     function withdraw(uint256 poolId) public returns (uint256 withdrawnAmount) {
@@ -58,56 +52,56 @@ contract TimedLockDealProvider is ERC20Helper, TimedLockDealModifiers {
     }
 
     function split(
-        uint256 itemId,
+        uint256 poolId,
         uint256 splitAmount,
         address newOwner
     ) public {
-        //         Deal storage deal = itemIdToDeal[itemId];
-        //         TimedDeal storage timedDeal = poolIdToTimedDeal[itemId];
-        //         uint256 leftAmount = deal.startAmount - timedDeal.withdrawnAmount;
-        //         require(
-        //             leftAmount >= splitAmount,
-        //             "Split amount exceeds the available amount"
-        //         );
-        //         uint256 ratio = (splitAmount * 10 ** 18) / leftAmount;
-        //         uint256 newPoolDebitedAmount = (timedDeal.withdrawnAmount * ratio) /
-        //             10 ** 18;
-        //         uint256 newPoolStartAmount = (deal.startAmount * ratio) / 10 ** 18;
-        //         deal.startAmount -= newPoolStartAmount;
-        //         timedDeal.withdrawnAmount -= newPoolDebitedAmount;
-        //         uint256 newPoolId = _createNewPool(
-        //             newOwner,
-        //             deal.token,
-        //             GetParams(splitAmount, deal.startTime, timedDeal.finishTime)
-        //         );
-        //         emit PoolSplit(
-        //             createBasePoolInfo(itemId, nftContract.ownerOf(itemId), deal.token),
-        //             createBasePoolInfo(newPoolId, newOwner, deal.token),
-        //             splitAmount
-        //         );
-        //     }
-        //     function GetParams(
-        //         uint256 amount,
-        //         uint256 startTime,
-        //         uint256 finishTime
-        //     ) internal pure returns (uint256[] memory params) {
-        //         params = new uint256[](3);
-        //         params[0] = amount;
-        //         params[1] = startTime;
-        //         params[2] = finishTime;
-        //     }
-        //     function _createNewPool(
-        //         address owner,
-        //         address token,
-        //         uint256[] memory params
-        //     ) internal override validParams(params, 3) returns (uint256 newItemId) {
-        //         // Assuming params[0] is amount, params[1] is startTime, params[2] is finishTime
-        //         newItemId = super._createNewPool(
-        //             owner,
-        //             token,
-        //             super.GetParams(params[0], params[1])
-        //         );
-        //         poolIdToTimedDeal[newItemId] = TimedDeal(params[2], 0);
+        (address token, uint256 startAmount) = dealProvider
+            .dealProvider()
+            .poolIdToDeal(poolId);
+        (
+            uint256 leftAmount,
+            uint256 withdrawnAmount,
+            uint256 newPoolLeftAmount,
+            uint256 newPoolWithdrawnAmount
+        ) = _calculateSplit(poolId, startAmount, splitAmount);
+        uint256 startTime = dealProvider.startTimes(poolId);
+        registerPool(
+            poolId,
+            getParams(
+                leftAmount,
+                startTime,
+                poolIdToTimedDeal[poolId].finishTime,
+                withdrawnAmount
+            )
+        );
+        createNewPool(
+            newOwner,
+            token,
+            getParams(
+                newPoolLeftAmount,
+                startTime,
+                poolIdToTimedDeal[poolId].finishTime,
+                newPoolWithdrawnAmount
+            )
+        );
+    }
+
+    function _calculateSplit(
+        uint256 poolId,
+        uint256 startAmount,
+        uint256 splitAmount
+    ) internal view returns (uint256, uint256, uint256, uint256) {
+        uint256 ratio = (splitAmount * 10 ** 18) / startAmount;
+        uint256 tempNewPoolLeftAmount = (poolIdToTimedDeal[poolId]
+            .withdrawnAmount * ratio) / 10 ** 18;
+        uint256 tempNewPoolWithdrawnAmount = (startAmount * ratio) / 10 ** 18;
+        return (
+            startAmount - tempNewPoolLeftAmount,
+            startAmount - tempNewPoolWithdrawnAmount,
+            tempNewPoolLeftAmount,
+            tempNewPoolWithdrawnAmount
+        );
     }
 
     function registerPool(
