@@ -5,7 +5,7 @@ const { ethers } = require("hardhat")
 describe("Base Lock Deal Provider", function (accounts) {
     let baseLockProvider, dealProvider, lockDealNFT, poolId, params
     let receiver
-    let token, startTime, dealData
+    let token, startTime
     const amount = 10000
 
     before(async () => {

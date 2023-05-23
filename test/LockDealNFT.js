@@ -4,30 +4,21 @@ const { constants } = require("ethers")
 
 describe("LockDealNFT", function (accounts) {
     let lockDealNFT, poolId, token
-    let provider, notOwner, receiver
+    let notOwner, receiver, newOwner
 
     before(async () => {
         ;[notOwner, receiver, newOwner] = await ethers.getSigners()
         const LockDealNFT = await ethers.getContractFactory("LockDealNFT")
         const DealProvider = await ethers.getContractFactory("DealProvider")
-        const BaseLockProvider = await ethers.getContractFactory("BaseLockDealProvider")
-        const TimedLockDealProvider = await ethers.getContractFactory("TimedLockDealProvider")
         const ERC20Token = await ethers.getContractFactory("ERC20Token")
         lockDealNFT = await LockDealNFT.deploy()
         await lockDealNFT.deployed()
         dealProvider = await DealProvider.deploy(lockDealNFT.address)
         await dealProvider.deployed()
-        baseLockProvider = await BaseLockProvider.deploy(lockDealNFT.address, dealProvider.address)
-        await baseLockProvider.deployed()
-        timedLockProvider = await TimedLockDealProvider.deploy(lockDealNFT.address, baseLockProvider.address)
-        await timedLockProvider.deployed()
         token = await ERC20Token.deploy("TEST Token", "TERC20")
         await token.deployed()
-        await token.approve(timedLockProvider.address, constants.MaxUint256)
         await token.approve(dealProvider.address, constants.MaxUint256)
-        await token.approve(baseLockProvider.address, constants.MaxUint256)
-        await lockDealNFT.setApprovedProvider(baseLockProvider.address, true)
-        await lockDealNFT.setApprovedProvider(timedLockProvider.address, true)
+        await lockDealNFT.setApprovedProvider(dealProvider.address, true)
     })
 
     beforeEach(async () => {
