@@ -84,7 +84,7 @@ describe("Base Lock Deal Provider", function (accounts) {
             await lockDealNFT.split(poolId, amount / 2, newOwner.address)
             const data = await timedLockProvider.poolIdToTimedDeal(poolId)
             expect(data.startAmount.toString()).to.equal((amount / 2).toString())
-            expect(data.finishTime.toString()).to.equal((finishTime).toString())
+            expect(data.finishTime.toString()).to.equal(finishTime.toString())
         })
 
         it("should check data in new pool after split", async () => {
@@ -92,6 +92,18 @@ describe("Base Lock Deal Provider", function (accounts) {
             const data = await timedLockProvider.poolIdToTimedDeal(parseInt(poolId) + 1)
             expect(data.startAmount.toString()).to.equal((amount / 2).toString())
             expect(data.finishTime.toString()).to.equal(finishTime.toString())
+        })
+
+        it("should check event data after split", async () => {
+            const tx = await lockDealNFT.split(poolId, amount / 2, newOwner.address)
+            await tx.wait()
+            const events = await dealProvider.queryFilter("PoolSplit")
+            expect(events[events.length - 1].args.poolId).to.equal(poolId)
+            expect(events[events.length - 1].args.newPoolId).to.equal(parseInt(poolId) + 1)
+            expect(events[events.length - 1].args.owner).to.equal(receiver.address)
+            expect(events[events.length - 1].args.newOwner).to.equal(newOwner.address)
+            expect(events[events.length - 1].args.splitLeftAmount).to.equal(amount / 2)
+            expect(events[events.length - 1].args.newSplitLeftAmount).to.equal(amount / 2)
         })
     })
 })
