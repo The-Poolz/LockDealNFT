@@ -4,19 +4,21 @@ const { constants } = require("ethers")
 
 describe("LockDealNFT", function (accounts) {
     let lockDealNFT, poolId, token
-    let provider, notOwner, receiver
+    let notOwner, receiver, newOwner
 
     before(async () => {
-        ;[notOwner, receiver] = await ethers.getSigners()
+        ;[notOwner, receiver, newOwner] = await ethers.getSigners()
         const LockDealNFT = await ethers.getContractFactory("LockDealNFT")
         const DealProvider = await ethers.getContractFactory("DealProvider")
         const ERC20Token = await ethers.getContractFactory("ERC20Token")
-        token = await ERC20Token.deploy("TEST Token", "TERC20")
         lockDealNFT = await LockDealNFT.deploy()
-        provider = await DealProvider.deploy(lockDealNFT.address)
         await lockDealNFT.deployed()
-        await lockDealNFT.setApprovedProvider(provider.address, true)
-        await token.approve(provider.address, constants.MaxUint256)
+        dealProvider = await DealProvider.deploy(lockDealNFT.address)
+        await dealProvider.deployed()
+        token = await ERC20Token.deploy("TEST Token", "TERC20")
+        await token.deployed()
+        await token.approve(dealProvider.address, constants.MaxUint256)
+        await lockDealNFT.setApprovedProvider(dealProvider.address, true)
     })
 
     beforeEach(async () => {
@@ -32,12 +34,12 @@ describe("LockDealNFT", function (accounts) {
     })
 
     it("should set provider address", async () => {
-        await lockDealNFT.setApprovedProvider(provider.address, true)
-        expect(await lockDealNFT.approvedProviders(provider.address)).to.be.true
+        await lockDealNFT.setApprovedProvider(dealProvider.address, true)
+        expect(await lockDealNFT.approvedProviders(dealProvider.address)).to.be.true
     })
 
     it("should mint new token", async () => {
-        await provider.createNewPool(receiver.address, token.address, ["1000"])
+        await dealProvider.createNewPool(receiver.address, token.address, ["1000"])
         expect(await lockDealNFT.totalSupply()).to.equal(parseInt(poolId) + 1)
     })
 

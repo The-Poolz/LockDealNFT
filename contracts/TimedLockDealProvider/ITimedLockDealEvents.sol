@@ -8,7 +8,7 @@ import "../BaseProvider/BaseLockDealProvider.sol";
 interface ITimedLockDealEvents {
     struct TimedDeal {
         uint256 finishTime;
-        uint256 withdrawnAmount;
+        uint256 startAmount;
     }
 
     event TokenWithdrawn(

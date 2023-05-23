@@ -24,8 +24,11 @@ interface IDealProvierEvents {
     event NewPoolCreated(BasePoolInfo poolInfo, uint256[] params);
 
     event PoolSplit(
-        BasePoolInfo oldPool,
-        BasePoolInfo newPool,
-        uint256 splitAmount
+        uint256 poolId,
+        address indexed owner,
+        uint256 newPoolId,
+        address indexed newOwner,
+        uint256 splitLeftAmount,
+        uint256 newSplitLeftAmount
     );
 }
