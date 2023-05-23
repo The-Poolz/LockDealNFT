@@ -5,14 +5,15 @@ import "./TimedProviderState.sol";
 import "./TimedLockDealModifiers.sol";
 
 contract TimedLockDealProvider is ERC20Helper, TimedLockDealModifiers {
-    constructor(address provider) {
+    constructor(address nft, address provider) {
         dealProvider = BaseLockDealProvider(provider);
+        lockDealNFT = LockDealNFT(nft);
     }
 
-    /// params[0] = amount
+    /// params[0] = leftAmount
     /// params[1] = startTime
     /// params[2] = finishTime
-    /// params[3] = withdrawnAmount
+    /// params[3] = startAmount
     function createNewPool(
         address owner,
         address token,
@@ -22,8 +23,11 @@ contract TimedLockDealProvider is ERC20Helper, TimedLockDealModifiers {
             params[2] >= params[1],
             "Finish time should be greater than start time"
         );
-        poolId = dealProvider.createNewPool(owner, token, params);
-        poolIdToTimedDeal[poolId] = TimedDeal(params[2], params[3]);
+        poolId = lockDealNFT.mint(owner);
+        _registerPool(poolId, params);
+        if (!dealProvider.dealProvider().nftContract().approvedProviders(msg.sender)) {
+            TransferInToken(token, msg.sender, params[0]);
+        }
     }
 
     function withdraw(uint256 poolId) public returns (uint256 withdrawnAmount) {
@@ -52,56 +56,43 @@ contract TimedLockDealProvider is ERC20Helper, TimedLockDealModifiers {
     }
 
     function split(
-        uint256 poolId,
-        uint256 splitAmount,
-        address newOwner
-    ) public {
-        (address token, uint256 startAmount) = dealProvider
-            .dealProvider()
-            .poolIdToDeal(poolId);
+        uint256 oldPoolId,
+        uint256 newPoolId,
+        uint256 splitAmount
+    ) public onlyProvider {
+        (, uint256 leftAmount) = dealProvider.dealProvider().poolIdToDeal(
+            oldPoolId
+        );
         (
-            uint256 leftAmount,
-            uint256 withdrawnAmount,
             uint256 newPoolLeftAmount,
-            uint256 newPoolWithdrawnAmount
-        ) = _calculateSplit(poolId, startAmount, splitAmount);
-        uint256 startTime = dealProvider.startTimes(poolId);
-        registerPool(
-            poolId,
-            getParams(
-                leftAmount,
-                startTime,
-                poolIdToTimedDeal[poolId].finishTime,
-                withdrawnAmount
-            )
-        );
-        createNewPool(
-            newOwner,
-            token,
-            getParams(
-                newPoolLeftAmount,
-                startTime,
-                poolIdToTimedDeal[poolId].finishTime,
-                newPoolWithdrawnAmount
-            )
-        );
+            uint256 newPoolStartAmount
+        ) = _calcSplit(oldPoolId, leftAmount, splitAmount);
+        dealProvider.split(oldPoolId, newPoolId, newPoolLeftAmount);
+        poolIdToTimedDeal[oldPoolId].startAmount -= newPoolStartAmount;
+        poolIdToTimedDeal[newPoolId].startAmount = newPoolStartAmount;
+        poolIdToTimedDeal[newPoolId].finishTime = poolIdToTimedDeal[oldPoolId].finishTime;
     }
 
-    function _calculateSplit(
+    function _calcSplit(
         uint256 poolId,
-        uint256 startAmount,
+        uint256 leftAmount,
         uint256 splitAmount
-    ) internal view returns (uint256, uint256, uint256, uint256) {
-        uint256 ratio = (splitAmount * 10 ** 18) / startAmount;
-        uint256 tempNewPoolLeftAmount = (poolIdToTimedDeal[poolId]
-            .withdrawnAmount * ratio) / 10 ** 18;
-        uint256 tempNewPoolWithdrawnAmount = (startAmount * ratio) / 10 ** 18;
-        return (
-            startAmount - tempNewPoolLeftAmount,
-            startAmount - tempNewPoolWithdrawnAmount,
-            tempNewPoolLeftAmount,
-            tempNewPoolWithdrawnAmount
-        );
+    ) internal view returns (uint256 newLeftAmount, uint256 newStartAmount) {
+        uint256 ratio = _calcRatio(splitAmount, leftAmount);
+        newLeftAmount = _calcAmountFromRatio(poolIdToTimedDeal[poolId].startAmount, ratio);
+        newStartAmount = _calcAmountFromRatio(leftAmount, ratio);
+    }
+
+    function getParametersTargetLenght() public view returns (uint256) {
+        return currentParamsTargetLenght + dealProvider.currentParamsTargetLenght();
+    }
+
+    function _calcRatio(uint256 amount, uint256 totalAmount) internal pure returns (uint256) {
+        return (amount * 10 ** 18) / totalAmount;
+    }
+
+    function _calcAmountFromRatio(uint256 amount, uint256 ratio) internal pure returns (uint256) {
+        return (amount * ratio) / 10 ** 18;
     }
 
     function registerPool(
@@ -110,15 +101,19 @@ contract TimedLockDealProvider is ERC20Helper, TimedLockDealModifiers {
     )
         public
         onlyProvider
+    {
+        _registerPool(poolId, params);
+    }
+
+    function _registerPool(
+        uint256 poolId,
+        uint256[] memory params
+    )
+        internal
         validParamsLength(params.length, getParametersTargetLenght())
     {
         poolIdToTimedDeal[poolId].finishTime = params[2];
+        poolIdToTimedDeal[poolId].startAmount = params[3];
         dealProvider.registerPool(poolId, params);
-    }
-
-    function getParametersTargetLenght() public view returns (uint256) {
-        return
-            currentParamsTargetLenght +
-            dealProvider.currentParamsTargetLenght();
     }
 }

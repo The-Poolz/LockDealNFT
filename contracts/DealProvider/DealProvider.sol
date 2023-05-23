@@ -61,28 +61,25 @@ contract DealProvider is DealProviderModifiers, ERC20Helper, IProvider {
     }
 
     function split(
-        uint256 poolId,
-        uint256 splitAmount,
-        address newOwner
+        uint256 oldPoolId,
+        uint256 newPoolId,
+        uint256 splitAmount
     )
         public
         override
         notZeroAmount(splitAmount)
-        notZeroAddress(newOwner)
         onlyProvider
-        invalidSplitAmount(poolIdToDeal[poolId].leftAmount, splitAmount)
+        invalidSplitAmount(poolIdToDeal[oldPoolId].leftAmount, splitAmount)
     {
-        Deal storage deal = poolIdToDeal[poolId];
-        deal.leftAmount -= splitAmount;
-        uint256 newPoolId = createNewPool(
-            newOwner,
-            deal.token,
-            getParams(splitAmount)
-        );
+        poolIdToDeal[oldPoolId].leftAmount -= splitAmount;
+        poolIdToDeal[newPoolId].leftAmount = splitAmount;
         emit PoolSplit(
-            BasePoolInfo(poolId, nftContract.ownerOf(poolId), deal.token),
-            BasePoolInfo(newPoolId, newOwner, deal.token),
-            splitAmount
+            oldPoolId,
+            nftContract.ownerOf(oldPoolId),
+            newPoolId,
+            nftContract.ownerOf(newPoolId),
+            poolIdToDeal[oldPoolId].leftAmount,
+            poolIdToDeal[newPoolId].leftAmount
         );
     }
 

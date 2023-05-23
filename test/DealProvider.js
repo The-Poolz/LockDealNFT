@@ -70,32 +70,17 @@ describe("Base Lock Deal Provider", function (accounts) {
         )
     })
 
-    // it("should withdraw tokens from pool", async () => {
-    //     await ethers.provider.send("evm_increaseTime", [startTime])
-    //     await ethers.provider.send("evm_mine")
-    //     await baseLockProvider.withdraw(itemId)
-    //     poolData = await baseLockProvider.itemIdToDeal(itemId.toString())
-    //     expect(poolData[1]).to.equal(0)
-    // })
+    describe("Split Amount", () => {
+        it("should check data in old pool after split", async () => {
+            await lockDealNFT.split(poolId, amount / 2, newOwner.address)
+            const data = await dealProvider.poolIdToDeal(poolId)
+            expect(data.leftAmount.toString()).to.equal((amount / 2).toString())
+        })
 
-    // it("should revert twice withdrawing", async () => {
-    //     await ethers.provider.send("evm_increaseTime", [startTime])
-    //     await ethers.provider.send("evm_mine")
-    //     await baseLockProvider.withdraw(itemId)
-    //     await expect(baseLockProvider.withdraw(itemId)).to.be.revertedWith("amount should be greater than 0")
-    // })
-
-    // it("revert invalid owner", async () => {
-    //     const notOwnerSigner = ethers.provider.getSigner(notOwner.address)
-    //     const baseLockProviderWithNotOwner = baseLockProvider.connect(notOwnerSigner)
-    //     await expect(baseLockProviderWithNotOwner.withdraw(itemId)).to.be.revertedWith("Not the owner of the pool")
-    // })
-
-    // it("should split half pool", async () => {
-    //     await baseLockProvider.split(itemId, amount / 2, owner.address)
-    //     poolData = await baseLockProvider.itemIdToDeal(itemId.toString())
-    //     expect(poolData[0].toString()).to.equal(token.address)
-    //     expect(poolData[1].toString()).to.equal((amount / 2).toString())
-    //     expect(poolData[2].toString()).to.equal(startTime.toString())
-    // })
+        it("should check data in new pool after split", async () => {
+            await lockDealNFT.split(poolId, amount / 2, newOwner.address)
+            const data = await dealProvider.poolIdToDeal(parseInt(poolId) + 1)
+            expect(data.leftAmount.toString()).to.equal((amount / 2).toString())
+        })
+    })
 })

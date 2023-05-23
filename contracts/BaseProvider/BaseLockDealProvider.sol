@@ -5,8 +5,9 @@ import "../interface/IProvider.sol";
 import "./BaseLockDealModifiers.sol";
 
 contract BaseLockDealProvider is BaseLockDealModifiers, ERC20Helper, IProvider {
-    constructor(address provider) {
+    constructor(address nft, address provider) {
         dealProvider = DealProvider(provider);
+        lockDealNFT = LockDealNFT(nft);
     }
 
     /// params[0] = amount
@@ -16,8 +17,8 @@ contract BaseLockDealProvider is BaseLockDealModifiers, ERC20Helper, IProvider {
         address token,
         uint256[] memory params
     ) public returns (uint256 poolId) {
-        poolId = dealProvider.createNewPool(owner, token, params);
-        startTimes[poolId] = params[1];
+        poolId = lockDealNFT.mint(owner);
+        _registerPool(poolId, params);
         if (!dealProvider.nftContract().approvedProviders(msg.sender)) {
             TransferInToken(token, msg.sender, params[0]);
         }
@@ -33,11 +34,12 @@ contract BaseLockDealProvider is BaseLockDealModifiers, ERC20Helper, IProvider {
     }
 
     function split(
-        uint256 poolId,
-        uint256 splitAmount,
-        address newOwner
-    ) public override {
-        dealProvider.split(poolId, splitAmount, newOwner);
+        uint256 oldPoolId,
+        uint256 newPoolId,
+        uint256 splitAmount
+    ) public override onlyProvider {
+        dealProvider.split(oldPoolId, newPoolId, splitAmount);
+        startTimes[newPoolId] = startTimes[oldPoolId];
     }
 
     function registerPool(
@@ -46,8 +48,15 @@ contract BaseLockDealProvider is BaseLockDealModifiers, ERC20Helper, IProvider {
     )
         public
         onlyProvider
-        validParamsLength(params.length, getParametersTargetLenght())
+        
     {
+        _registerPool(poolId, params);
+    }
+
+    function _registerPool(
+        uint256 poolId,
+        uint256[] memory params
+    ) internal validParamsLength(params.length, getParametersTargetLenght()) {
         startTimes[poolId] = params[1];
         dealProvider.registerPool(poolId, params);
     }
