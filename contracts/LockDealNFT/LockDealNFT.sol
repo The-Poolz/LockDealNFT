@@ -11,8 +11,17 @@ contract LockDealNFT is LockDealNFTModifiers {
         approvedProviders[address(this)] = true;
     }
 
-    function mint(address to) public onlyApprovedProvider notZeroAddress(to) returns (uint256){
-        return _mint(to, msg.sender);
+    function mint(
+        address owner,
+        address token
+    )
+        public
+        onlyApprovedProvider
+        notZeroAddress(owner)
+        notZeroAddress(token)
+        returns (uint256)
+    {
+        return _mint(owner, msg.sender);
     }
 
     function setApprovedProvider(
@@ -24,8 +33,8 @@ contract LockDealNFT is LockDealNFTModifiers {
 
     function withdraw(
         uint256 poolId
-    ) external onlyOwnerOrAdmin(poolId) returns (uint256 withdrawnAmount) {
-        withdrawnAmount = IProvider(poolIdToProvider[poolId]).withdraw(poolId);
+    ) external onlyOwnerOrAdmin(poolId) returns (uint256) {
+        return IProvider(poolIdToProvider[poolId]).withdraw(poolId);
     }
 
     function split(
@@ -40,11 +49,14 @@ contract LockDealNFT is LockDealNFTModifiers {
             splitAmount
         );
     }
-    
-    function _mint(address to, address provider) internal returns (uint256 newPoolId){
+
+    function _mint(
+        address owner,
+        address provider
+    ) internal returns (uint256 newPoolId) {
         newPoolId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
-        _safeMint(to, newPoolId);
+        _safeMint(owner, newPoolId);
         poolIdToProvider[newPoolId] = provider;
     }
 }

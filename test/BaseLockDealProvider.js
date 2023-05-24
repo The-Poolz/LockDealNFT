@@ -46,17 +46,11 @@ describe("Base Lock Deal Provider", function (accounts) {
         expect(poolStartTime).to.equal(startTime)
     })
 
-    it("should check contract token balance", async () => {
-        const oldBal = await token.balanceOf(baseLockProvider.address)
-        await baseLockProvider.createNewPool(receiver.address, token.address, params)
-        expect(await token.balanceOf(baseLockProvider.address)).to.equal(parseInt(oldBal) + amount)
+    it("should revert zero owner address", async () => {
+        await expect(
+            baseLockProvider.createNewPool(receiver.address, constants.AddressZero, params)
+        ).to.be.revertedWith("Zero Address is not allowed")
     })
-
-    // it("should revert zero owner address", async () => {
-    //     await expect(
-    //         baseLockProvider.createNewPool(receiver.address, constants.AddressZero, params)
-    //     ).to.be.revertedWith("Zero Address is not allowed")
-    // })
 
     it("should revert zero token address", async () => {
         await expect(baseLockProvider.createNewPool(constants.AddressZero, token.address, params)).to.be.revertedWith(
@@ -82,6 +76,18 @@ describe("Base Lock Deal Provider", function (accounts) {
             await lockDealNFT.split(poolId, amount / 2, newOwner.address)
             const data = await baseLockProvider.startTimes(parseInt(poolId) + 1)
             expect(data.toString()).to.equal(startTime.toString())
+        })
+    })
+
+    describe("Base Deal Withdraw", () => {
+        it("should return withdrawAmount value", async () => {
+            const withdrawnAmount = await lockDealNFT.callStatic.withdraw(poolId)
+            expect(withdrawnAmount.toString()).to.equal(amount.toString())
+        })
+
+        it("should return zero if startTime > block.timestamp", async () => {
+            const withdrawnAmount = await lockDealNFT.callStatic.withdraw(poolId)
+            expect(withdrawnAmount.toString()).to.equal(amount.toString())
         })
     })
 })

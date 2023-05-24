@@ -23,7 +23,7 @@ contract BaseLockDealModifiers is BaseLockDealState {
 
     function _onlyProvider() private view {
         require(
-            dealProvider.nftContract().approvedProviders(msg.sender),
+            dealProvider.lockDealNFT().approvedProviders(msg.sender),
             "invalid provider address"
         );
     }

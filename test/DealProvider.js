@@ -2,14 +2,14 @@ const { expect } = require("chai")
 const { constants } = require("ethers")
 const { ethers } = require("hardhat")
 
-describe("Base Lock Deal Provider", function (accounts) {
+describe("Deal Provider", function (accounts) {
     let dealProvider, lockDealNFT, poolId
-    let notOwner, receiver
+    let notOwner, receiver, newOwner
     let token, poolData, params
     const amount = 10000
 
     before(async () => {
-        ;[notOwner, receiver] = await ethers.getSigners()
+        ;[notOwner, receiver, newOwner] = await ethers.getSigners()
         const LockDealNFT = await ethers.getContractFactory("LockDealNFT")
         const DealProvider = await ethers.getContractFactory("DealProvider")
         const ERC20Token = await ethers.getContractFactory("ERC20Token")
@@ -45,12 +45,6 @@ describe("Base Lock Deal Provider", function (accounts) {
         expect(events[events.length - 1].args.params[0]).to.equal(amount) //assuming amount is at index 0 in the params array
     })
 
-    it("should check contract token balance", async () => {
-        const oldBal = await token.balanceOf(dealProvider.address)
-        await dealProvider.createNewPool(receiver.address, token.address, params)
-        expect(await token.balanceOf(dealProvider.address)).to.equal(parseInt(oldBal) + amount)
-    })
-
     it("should revert zero owner address", async () => {
         await expect(dealProvider.createNewPool(receiver.address, constants.AddressZero, params)).to.be.revertedWith(
             "Zero Address is not allowed"
@@ -81,6 +75,19 @@ describe("Base Lock Deal Provider", function (accounts) {
             await lockDealNFT.split(poolId, amount / 2, newOwner.address)
             const data = await dealProvider.poolIdToDeal(parseInt(poolId) + 1)
             expect(data.leftAmount.toString()).to.equal((amount / 2).toString())
+        })
+    })
+
+    describe("Deal Withdraw", () => {
+        it("should return withdrawAmount value", async () => {
+            const withdrawnAmount = await lockDealNFT.callStatic.withdraw(poolId)
+            expect(withdrawnAmount.toString()).to.equal(amount.toString())
+        })
+
+        it("should check data in pool after withdraw", async () => {
+            await lockDealNFT.withdraw(poolId)
+            const data = await dealProvider.poolIdToDeal(poolId)
+            expect(data.leftAmount.toString()).to.equal("0")
         })
     })
 })

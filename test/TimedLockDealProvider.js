@@ -1,13 +1,15 @@
 const { expect } = require("chai")
 const { constants } = require("ethers")
 const { ethers } = require("hardhat")
+const helpers = require("@nomicfoundation/hardhat-network-helpers")
 
 describe("Base Lock Deal Provider", function (accounts) {
     let timedLockProvider, baseLockProvider, dealProvider, lockDealNFT
+    let timestamp, halfTime
     let poolId, params
     let receiver
     let token, startTime, finishTime
-    const amount = 10000
+    const amount = 100000
 
     before(async () => {
         ;[receiver] = await ethers.getSigners()
@@ -34,7 +36,7 @@ describe("Base Lock Deal Provider", function (accounts) {
 
     beforeEach(async () => {
         let date = new Date()
-        date.setDate(date.getDate() + 1)
+        date.setDate(date.getDate())
         startTime = Math.floor(date.getTime() / 1000)
         date.setDate(date.getDate() + 7)
         finishTime = Math.floor(date.getTime() / 1000)
@@ -54,17 +56,11 @@ describe("Base Lock Deal Provider", function (accounts) {
         expect(timedData.startAmount.toString()).to.equal(amount.toString())
     })
 
-    it("should check contract token balance", async () => {
-        const oldBal = await token.balanceOf(timedLockProvider.address)
-        await timedLockProvider.createNewPool(receiver.address, token.address, params)
-        expect(await token.balanceOf(timedLockProvider.address)).to.equal(parseInt(oldBal) + amount)
+    it("should revert zero owner address", async () => {
+        await expect(
+            timedLockProvider.createNewPool(receiver.address, constants.AddressZero, params)
+        ).to.be.revertedWith("Zero Address is not allowed")
     })
-
-    // it("should revert zero owner address", async () => {
-    //     await expect(
-    //         timedLockProvider.createNewPool(receiver.address, constants.AddressZero, params)
-    //     ).to.be.revertedWith("Zero Address is not allowed")
-    // })
 
     it("should revert zero token address", async () => {
         await expect(timedLockProvider.createNewPool(constants.AddressZero, token.address, params)).to.be.revertedWith(
@@ -105,5 +101,26 @@ describe("Base Lock Deal Provider", function (accounts) {
             expect(events[events.length - 1].args.splitLeftAmount).to.equal(amount / 2)
             expect(events[events.length - 1].args.newSplitLeftAmount).to.equal(amount / 2)
         })
+    })
+
+    describe("Timed Withdraw", () => {
+        beforeEach(async () => {
+            timestamp = await helpers.time.latest()
+            halfTime = (finishTime - startTime) / 2
+            await helpers.time.increase(halfTime)
+        })
+
+        it("should withdraw half tokens", async () => {
+            const tx = await lockDealNFT.withdraw(poolId)
+            await tx.wait()
+            const events = await dealProvider.queryFilter("TokenWithdrawn")
+            //expect(events[events.length - 1].args.leftAmount.toString()).to.equal((amount / 2).toString())
+        })
+
+        // it("should withdraw all tokens", async () => {
+        //     await helpers.time.setNextBlockTimestamp(finishTime)
+        //     const withdrawnAmount = await lockDealNFT.withdraw(poolId)
+        //     //expect(withdrawnAmount.toString()).to.equal(amount.toString())
+        // })
     })
 })

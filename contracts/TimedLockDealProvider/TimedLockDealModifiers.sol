@@ -23,7 +23,7 @@ contract TimedLockDealModifiers is TimedProviderState {
 
     function _onlyProvider() private view {
         require(
-            dealProvider.dealProvider().nftContract().approvedProviders(
+            dealProvider.dealProvider().lockDealNFT().approvedProviders(
                 msg.sender
             ),
             "invalid provider address"
