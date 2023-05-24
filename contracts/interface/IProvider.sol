@@ -13,8 +13,4 @@ interface IProvider {
         uint256 newPoolId,
         uint256 splitAmount
     ) external;
-
-    // function getWithdrawableAmount(
-    //     uint256 poolId
-    // ) external returns (uint256 withdrawableAmount);
 }
