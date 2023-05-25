@@ -55,7 +55,7 @@ contract DealProviderModifiers is DealProviderState {
 
     function _onlyProvider() private view {
         require(
-            nftContract.approvedProviders(msg.sender),
+            lockDealNFT.approvedProviders(msg.sender),
             "invalid provider address"
         );
     }

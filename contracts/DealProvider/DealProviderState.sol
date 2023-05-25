@@ -7,7 +7,7 @@ import "./IDealProvierEvents.sol";
 /// @title DealProviderState contract
 /// @notice Contains storage variables, structures
 contract DealProviderState is IDealProvierEvents {
-    LockDealNFT public nftContract;
+    LockDealNFT public lockDealNFT;
     mapping(uint256 => Deal) public poolIdToDeal;
     uint256 public constant currentParamsTargetLenght = 1;
 

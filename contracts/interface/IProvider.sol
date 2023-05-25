@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 ///@notice This interface is used by the NFT contract to call the provider contract
 interface IProvider {
     function withdraw(
-        uint256 itemId
+        uint256 poolId
     ) external returns (uint256 withdrawnAmount);
 
     function split(

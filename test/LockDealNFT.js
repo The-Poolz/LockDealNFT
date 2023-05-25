@@ -44,6 +44,6 @@ describe("LockDealNFT", function (accounts) {
     })
 
     it("only provider can mint", async () => {
-        await expect(lockDealNFT.connect(notOwner).mint(receiver.address)).to.be.revertedWith("Provider not approved")
+        await expect(lockDealNFT.connect(notOwner).mint(receiver.address, token.address)).to.be.revertedWith("Provider not approved")
     })
 })

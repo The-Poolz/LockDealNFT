@@ -2,13 +2,12 @@
 pragma solidity ^0.8.0;
 
 import "../LockDealNFT/LockDealNFT.sol";
-import "poolz-helper-v2/contracts/ERC20Helper.sol";
 import "./DealProviderModifiers.sol";
 import "../interface/IProvider.sol";
 
-contract DealProvider is DealProviderModifiers, ERC20Helper, IProvider {
+contract DealProvider is DealProviderModifiers, IProvider {
     constructor(address _nftContract) {
-        nftContract = LockDealNFT(_nftContract);
+        lockDealNFT = LockDealNFT(_nftContract);
     }
 
     /// params[0] = amount
@@ -24,12 +23,9 @@ contract DealProvider is DealProviderModifiers, ERC20Helper, IProvider {
         validParamsLength(params.length, currentParamsTargetLenght)
         returns (uint256 poolId)
     {
-        poolId = nftContract.totalSupply();
-        poolIdToDeal[poolId] = Deal(token, params[0]);
-        nftContract.mint(owner);
-        if (!nftContract.approvedProviders(msg.sender)) {
-            TransferInToken(token, msg.sender, params[0]);
-        }
+        poolId = lockDealNFT.mint(owner, token);
+        poolIdToDeal[poolId].leftAmount = params[0];
+        poolIdToDeal[poolId].token = token;
         emit NewPoolCreated(BasePoolInfo(poolId, owner, token), params);
     }
 
@@ -37,23 +33,22 @@ contract DealProvider is DealProviderModifiers, ERC20Helper, IProvider {
     function withdraw(
         uint256 poolId
     ) public override returns (uint256 withdrawnAmount) {
+        withdrawnAmount = withdraw(poolId, poolIdToDeal[poolId].leftAmount);
+    }
+
+    function withdraw(
+        uint256 poolId,
+        uint256 amount
+    ) public returns (uint256 withdrawnAmount) {
         if (
-            poolIdToDeal[poolId].leftAmount >= 0 &&
-            nftContract.approvedProviders(msg.sender)
+            poolIdToDeal[poolId].leftAmount >= amount &&
+            lockDealNFT.approvedProviders(msg.sender)
         ) {
-            withdrawnAmount = poolIdToDeal[poolId].leftAmount;
-            poolIdToDeal[poolId].leftAmount = 0;
-            TransferToken(
-                poolIdToDeal[poolId].token,
-                nftContract.ownerOf(poolId),
-                withdrawnAmount
-            );
+            poolIdToDeal[poolId].leftAmount -= amount;
+            withdrawnAmount = amount;
             emit TokenWithdrawn(
-                BasePoolInfo(
-                    poolId,
-                    nftContract.ownerOf(poolId),
-                    poolIdToDeal[poolId].token
-                ),
+                poolId,
+                lockDealNFT.ownerOf(poolId),
                 withdrawnAmount,
                 poolIdToDeal[poolId].leftAmount
             );
@@ -75,9 +70,9 @@ contract DealProvider is DealProviderModifiers, ERC20Helper, IProvider {
         poolIdToDeal[newPoolId].leftAmount = splitAmount;
         emit PoolSplit(
             oldPoolId,
-            nftContract.ownerOf(oldPoolId),
+            lockDealNFT.ownerOf(oldPoolId),
             newPoolId,
-            nftContract.ownerOf(newPoolId),
+            lockDealNFT.ownerOf(newPoolId),
             poolIdToDeal[oldPoolId].leftAmount,
             poolIdToDeal[newPoolId].leftAmount
         );
