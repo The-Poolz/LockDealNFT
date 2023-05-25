@@ -25,11 +25,9 @@ contract BaseLockDealProvider is BaseLockDealModifiers, IProvider {
     function withdraw(
         uint256 poolId
     ) public override returns (uint256 withdrawnAmount) {
-        if (
-            startTimes[poolId] <= block.timestamp &&
-            lockDealNFT.approvedProviders(msg.sender)
-        ) {
-            withdrawnAmount = dealProvider.withdraw(poolId);
+        if (msg.sender == address(lockDealNFT)) {
+            (, uint256 leftAmount) = dealProvider.poolIdToDeal(poolId);
+            withdrawnAmount = _withdraw(poolId, leftAmount);
         }
     }
 
@@ -37,10 +35,16 @@ contract BaseLockDealProvider is BaseLockDealModifiers, IProvider {
         uint256 poolId,
         uint256 amount
     ) public returns (uint256 withdrawnAmount) {
-        if (
-            startTimes[poolId] <= block.timestamp &&
-            lockDealNFT.approvedProviders(msg.sender)
-        ) {
+        if (lockDealNFT.approvedProviders(msg.sender)) {
+            withdrawnAmount = _withdraw(poolId, amount);
+        }
+    }
+
+    function _withdraw(
+        uint256 poolId,
+        uint256 amount
+    ) internal returns (uint256 withdrawnAmount) {
+        if (startTimes[poolId] <= block.timestamp) {
             withdrawnAmount = dealProvider.withdraw(poolId, amount);
         }
     }

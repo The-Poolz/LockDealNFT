@@ -33,17 +33,28 @@ contract DealProvider is DealProviderModifiers, IProvider {
     function withdraw(
         uint256 poolId
     ) public override returns (uint256 withdrawnAmount) {
-        withdrawnAmount = withdraw(poolId, poolIdToDeal[poolId].leftAmount);
+        if (msg.sender == address(lockDealNFT)) {
+            withdrawnAmount = _withdraw(
+                poolId,
+                poolIdToDeal[poolId].leftAmount
+            );
+        }
     }
 
     function withdraw(
         uint256 poolId,
         uint256 amount
     ) public returns (uint256 withdrawnAmount) {
-        if (
-            poolIdToDeal[poolId].leftAmount >= amount &&
-            lockDealNFT.approvedProviders(msg.sender)
-        ) {
+        if (lockDealNFT.approvedProviders(msg.sender)) {
+            withdrawnAmount = _withdraw(poolId, amount);
+        }
+    }
+
+    function _withdraw(
+        uint256 poolId,
+        uint256 amount
+    ) internal returns (uint256 withdrawnAmount) {
+        if (poolIdToDeal[poolId].leftAmount >= amount) {
             poolIdToDeal[poolId].leftAmount -= amount;
             withdrawnAmount = amount;
             emit TokenWithdrawn(
