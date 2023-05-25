@@ -1,6 +1,7 @@
 const { expect } = require("chai")
 const { constants } = require("ethers")
 const { ethers } = require("hardhat")
+const helpers = require("@nomicfoundation/hardhat-network-helpers")
 
 describe("Base Lock Deal Provider", function (accounts) {
     let baseLockProvider, dealProvider, lockDealNFT, poolId, params
@@ -80,14 +81,11 @@ describe("Base Lock Deal Provider", function (accounts) {
     })
 
     describe("Base Deal Withdraw", () => {
-        it("should return withdrawAmount value", async () => {
-            const withdrawnAmount = await lockDealNFT.callStatic.withdraw(poolId)
-            expect(withdrawnAmount.toString()).to.equal(amount.toString())
-        })
-
-        it("should return zero if startTime > block.timestamp", async () => {
-            const withdrawnAmount = await lockDealNFT.callStatic.withdraw(poolId)
-            expect(withdrawnAmount.toString()).to.equal(amount.toString())
+        it("should withdraw tokens", async () => {
+            await helpers.time.setNextBlockTimestamp(startTime + 1)
+            await lockDealNFT.withdraw(poolId)
+            const data = await dealProvider.poolIdToDeal(poolId)
+            expect(data.leftAmount.toString()).to.equal("0")
         })
     })
 })

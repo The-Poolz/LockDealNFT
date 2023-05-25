@@ -18,7 +18,7 @@ interface IDealProvierEvents {
     event TokenWithdrawn(
         uint256 poolId,
         address indexed owner,
-        uint256 amount,
+        uint256 withdrawnAmount,
         uint256 leftAmount
     );
 

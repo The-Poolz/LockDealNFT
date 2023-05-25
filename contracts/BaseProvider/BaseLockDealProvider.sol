@@ -26,7 +26,7 @@ contract BaseLockDealProvider is BaseLockDealModifiers, IProvider {
         uint256 poolId
     ) public override returns (uint256 withdrawnAmount) {
         if (
-            startTimes[poolId] >= block.timestamp &&
+            startTimes[poolId] <= block.timestamp &&
             lockDealNFT.approvedProviders(msg.sender)
         ) {
             withdrawnAmount = dealProvider.withdraw(poolId);

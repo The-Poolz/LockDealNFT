@@ -49,14 +49,10 @@ contract TimedLockDealProvider is TimedLockDealModifiers, IProvider {
         );
         if (poolIdToTimedDeal[poolId].finishTime < block.timestamp)
             return leftAmount;
-        uint256 totalPoolDuration = poolIdToTimedDeal[poolId].finishTime -
-            startTime;
+        uint256 totalPoolDuration = poolIdToTimedDeal[poolId].finishTime - startTime;
         uint256 timePassed = block.timestamp - startTime;
-        uint256 debitableAmount = (poolIdToTimedDeal[poolId].startAmount *
-            timePassed) / totalPoolDuration;
-        return
-            debitableAmount -
-            (poolIdToTimedDeal[poolId].startAmount - leftAmount);
+        uint256 debitableAmount = (poolIdToTimedDeal[poolId].startAmount * timePassed) / totalPoolDuration;
+        return debitableAmount - (poolIdToTimedDeal[poolId].startAmount - leftAmount);
     }
 
     function split(

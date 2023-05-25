@@ -3,7 +3,7 @@ const { constants } = require("ethers")
 const { ethers } = require("hardhat")
 const helpers = require("@nomicfoundation/hardhat-network-helpers")
 
-describe("Base Lock Deal Provider", function (accounts) {
+describe("Timed Lock Deal Provider", function (accounts) {
     let timedLockProvider, baseLockProvider, dealProvider, lockDealNFT
     let timestamp, halfTime
     let poolId, params
@@ -43,6 +43,8 @@ describe("Base Lock Deal Provider", function (accounts) {
         params = [amount, startTime, finishTime, amount]
         poolId = await lockDealNFT.totalSupply()
         await timedLockProvider.createNewPool(receiver.address, token.address, params)
+        timestamp = await helpers.time.latest()
+        halfTime = (finishTime - startTime) / 2
     })
 
     it("should check deal provider address", async () => {
@@ -104,23 +106,27 @@ describe("Base Lock Deal Provider", function (accounts) {
     })
 
     describe("Timed Withdraw", () => {
-        beforeEach(async () => {
-            timestamp = await helpers.time.latest()
-            halfTime = (finishTime - startTime) / 2
-            await helpers.time.increase(halfTime)
+        it("should withdraw 25% tokens", async () => {
+            await helpers.time.setNextBlockTimestamp(startTime + halfTime / 2)
+            await lockDealNFT.withdraw(poolId)
+            const timedData = await timedLockProvider.poolIdToTimedDeal(poolId)
+            const dealData = await dealProvider.poolIdToDeal(poolId)
+            expect(timedData.startAmount.toString()).to.equal(amount.toString())
+            expect(dealData.leftAmount.toString()).to.equal((amount - amount / 4).toString())
         })
 
         it("should withdraw half tokens", async () => {
-            const tx = await lockDealNFT.withdraw(poolId)
-            await tx.wait()
-            const events = await dealProvider.queryFilter("TokenWithdrawn")
-            //expect(events[events.length - 1].args.leftAmount.toString()).to.equal((amount / 2).toString())
+            await helpers.time.setNextBlockTimestamp(startTime + halfTime)
+            await lockDealNFT.withdraw(poolId)
+            const dealData = await dealProvider.poolIdToDeal(poolId)
+            expect(dealData.leftAmount.toString()).to.equal((amount / 2).toString())
         })
 
-        // it("should withdraw all tokens", async () => {
-        //     await helpers.time.setNextBlockTimestamp(finishTime)
-        //     const withdrawnAmount = await lockDealNFT.withdraw(poolId)
-        //     //expect(withdrawnAmount.toString()).to.equal(amount.toString())
-        // })
+        it("should withdraw all tokens", async () => {
+            await helpers.time.increaseTo(finishTime + halfTime)
+            await lockDealNFT.withdraw(poolId)
+            const dealData = await dealProvider.poolIdToDeal(poolId)
+            expect(dealData.leftAmount.toString()).to.equal("0")
+        })
     })
 })

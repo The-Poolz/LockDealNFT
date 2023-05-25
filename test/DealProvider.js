@@ -89,5 +89,15 @@ describe("Deal Provider", function (accounts) {
             const data = await dealProvider.poolIdToDeal(poolId)
             expect(data.leftAmount.toString()).to.equal("0")
         })
+
+        it("should check events after withdraw", async () => {
+            const tx = await lockDealNFT.withdraw(poolId)
+            await tx.wait()
+            const events = await dealProvider.queryFilter("TokenWithdrawn")
+            expect(events[events.length - 1].args.poolId.toString()).to.equal(poolId.toString())
+            expect(events[events.length - 1].args.owner.toString()).to.equal(receiver.address.toString())
+            expect(events[events.length - 1].args.withdrawnAmount.toString()).to.equal(amount.toString())
+            expect(events[events.length - 1].args.leftAmount.toString()).to.equal("0".toString())
+        })
     })
 })
