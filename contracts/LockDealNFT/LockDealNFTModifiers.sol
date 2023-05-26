@@ -6,23 +6,17 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 abstract contract LockDealNFTModifiers is LockDealState, Ownable {
     modifier onlyApprovedProvider() {
-        require(approvedProviders[msg.sender], "Provider not approved");
+        _onlyApprovedProvider();
         _;
     }
 
     modifier onlyOwnerOrAdmin(uint256 poolId) {
-        require(
-            msg.sender == ownerOf(poolId) || msg.sender == owner(),
-            "invalid caller address"
-        );
+        _onlyOwnerOrAdmin(poolId);
         _;
     }
 
     modifier onlyContract(address contractAddress) {
-        require(
-            Address.isContract(contractAddress),
-            "Invalid contract address"
-        );
+        _onlyContract(contractAddress);
         _;
     }
 
@@ -31,7 +25,25 @@ abstract contract LockDealNFTModifiers is LockDealState, Ownable {
         _;
     }
 
+    function _onlyApprovedProvider() internal view {
+        require(approvedProviders[msg.sender], "Provider not approved");
+    }
+
+    function _onlyOwnerOrAdmin(uint256 poolId) internal view {
+        require(
+            msg.sender == ownerOf(poolId) || msg.sender == owner(),
+            "invalid caller address"
+        );
+    }
+
     function _notZeroAddress(address _address) private pure {
         require(_address != address(0x0), "Zero Address is not allowed");
+    }
+
+    function _onlyContract(address contractAddress) private view {
+        require(
+            Address.isContract(contractAddress),
+            "Invalid contract address"
+        );
     }
 }

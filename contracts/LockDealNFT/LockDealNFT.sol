@@ -3,25 +3,40 @@ pragma solidity ^0.8.0;
 
 import "./LockDealNFTModifiers.sol";
 import "../interface/IProvider.sol";
+import "../interface/IVaultFactory.sol";
+import "../interface/IVault.sol";
 
 contract LockDealNFT is LockDealNFTModifiers {
     using Counters for Counters.Counter;
 
-    constructor() ERC721("LockDealNFT", "LDNFT") {
+    constructor(address _vaultFactory) ERC721("LockDealNFT", "LDNFT") {
+        require(_vaultFactory != address(0x0), "invalid vault factory address");
+        vaultFactory = _vaultFactory;
         approvedProviders[address(this)] = true;
     }
 
     function mint(
         address owner,
-        address token
+        address creator,
+        address token,
+        uint256 amount
     )
         public
         onlyApprovedProvider
         notZeroAddress(owner)
         notZeroAddress(token)
-        returns (uint256)
+        notZeroAddress(tokenToVault[token])
+        notZeroAddress(creator)
+        returns (uint256 poolId)
     {
-        return _mint(owner, msg.sender);
+        IVault(tokenToVault[token]).deposit(creator, amount);
+        poolId = _mint(owner, msg.sender);
+    }
+
+    function createNewVault(
+        address token
+    ) external onlyOwner notZeroAddress(token) {
+        tokenToVault[token] = IVaultFactory(vaultFactory).CreateNewVault(token);
     }
 
     function setApprovedProvider(
@@ -35,6 +50,10 @@ contract LockDealNFT is LockDealNFTModifiers {
         uint256 poolId
     ) external onlyOwnerOrAdmin(poolId) returns (uint256 withdrawnAmount) {
         withdrawnAmount = IProvider(poolIdToProvider[poolId]).withdraw(poolId);
+        IVault(poolIdToVault[poolId]).withdraw(
+            ownerOf(poolId),
+            withdrawnAmount
+        );
     }
 
     function split(
@@ -43,7 +62,7 @@ contract LockDealNFT is LockDealNFTModifiers {
         address newOwner
     ) external onlyOwnerOrAdmin(poolId) {
         uint256 newPoolId = _mint(newOwner, poolIdToProvider[poolId]);
-        IProvider(poolIdToProvider[poolId]).split(
+        IProvider(poolIdToProvider[newPoolId]).split(
             poolId,
             newPoolId,
             splitAmount
@@ -54,8 +73,8 @@ contract LockDealNFT is LockDealNFTModifiers {
         address owner,
         address provider
     ) internal returns (uint256 newPoolId) {
-        newPoolId = _tokenIdCounter.current();
-        _tokenIdCounter.increment();
+        newPoolId = tokenIdCounter.current();
+        tokenIdCounter.increment();
         _safeMint(owner, newPoolId);
         poolIdToProvider[newPoolId] = provider;
     }

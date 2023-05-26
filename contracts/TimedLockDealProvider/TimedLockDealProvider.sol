@@ -7,6 +7,10 @@ import "../interface/IProvider.sol";
 
 contract TimedLockDealProvider is TimedLockDealModifiers, IProvider {
     constructor(address nft, address provider) {
+        require(
+            nft != address(0x0) && provider != address(0x0),
+            "invalid address"
+        );
         dealProvider = BaseLockDealProvider(provider);
         lockDealNFT = LockDealNFT(nft);
     }
@@ -24,8 +28,12 @@ contract TimedLockDealProvider is TimedLockDealModifiers, IProvider {
             params[2] >= params[1],
             "Finish time should be greater than start time"
         );
-        poolId = lockDealNFT.mint(owner, token);
-        _registerPool(poolId, params);
+        require(
+            params[0] == params[3],
+            "Start amount should be equal to left amount"
+        );
+        _registerPool(poolId, token, params);
+        poolId = lockDealNFT.mint(owner, token, msg.sender, params[0]);
     }
 
     function withdraw(
@@ -110,17 +118,19 @@ contract TimedLockDealProvider is TimedLockDealModifiers, IProvider {
 
     function registerPool(
         uint256 poolId,
+        address token,
         uint256[] memory params
     ) public onlyProvider {
-        _registerPool(poolId, params);
+        _registerPool(poolId, token, params);
     }
 
     function _registerPool(
         uint256 poolId,
+        address token,
         uint256[] memory params
     ) internal validParamsLength(params.length, getParametersTargetLenght()) {
         poolIdToTimedDeal[poolId].finishTime = params[2];
         poolIdToTimedDeal[poolId].startAmount = params[3];
-        dealProvider.registerPool(poolId, params);
+        dealProvider.registerPool(poolId, token, params);
     }
 }

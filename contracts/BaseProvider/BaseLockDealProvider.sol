@@ -6,6 +6,10 @@ import "./BaseLockDealModifiers.sol";
 
 contract BaseLockDealProvider is BaseLockDealModifiers, IProvider {
     constructor(address nft, address provider) {
+        require(
+            nft != address(0x0) && provider != address(0x0),
+            "invalid address"
+        );
         dealProvider = DealProvider(provider);
         lockDealNFT = LockDealNFT(nft);
     }
@@ -17,8 +21,8 @@ contract BaseLockDealProvider is BaseLockDealModifiers, IProvider {
         address token,
         uint256[] memory params
     ) public returns (uint256 poolId) {
-        poolId = lockDealNFT.mint(owner, token);
-        _registerPool(poolId, params);
+        _registerPool(poolId, token, params);
+        poolId = lockDealNFT.mint(owner, token, msg.sender, params[0]);
     }
 
     /// @dev no use of revert to make sure the loop will work
@@ -56,17 +60,19 @@ contract BaseLockDealProvider is BaseLockDealModifiers, IProvider {
 
     function registerPool(
         uint256 poolId,
+        address token,
         uint256[] memory params
     ) public onlyProvider {
-        _registerPool(poolId, params);
+        _registerPool(poolId, token, params);
     }
 
     function _registerPool(
         uint256 poolId,
+        address token,
         uint256[] memory params
     ) internal validParamsLength(params.length, getParametersTargetLenght()) {
         startTimes[poolId] = params[1];
-        dealProvider.registerPool(poolId, params);
+        dealProvider.registerPool(poolId, token, params);
     }
 
     function getParametersTargetLenght() public view returns (uint256) {

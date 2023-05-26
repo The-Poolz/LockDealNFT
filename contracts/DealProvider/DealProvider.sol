@@ -7,6 +7,7 @@ import "../interface/IProvider.sol";
 
 contract DealProvider is DealProviderModifiers, IProvider {
     constructor(address _nftContract) {
+        require(_nftContract != address(0x0), "invalid address");
         lockDealNFT = LockDealNFT(_nftContract);
     }
 
@@ -19,13 +20,11 @@ contract DealProvider is DealProviderModifiers, IProvider {
         public
         notZeroAddress(owner)
         notZeroAddress(token)
-        notZeroAmount(params[0])
         validParamsLength(params.length, currentParamsTargetLenght)
         returns (uint256 poolId)
     {
-        poolId = lockDealNFT.mint(owner, token);
-        poolIdToDeal[poolId].leftAmount = params[0];
-        poolIdToDeal[poolId].token = token;
+        _registerPool(poolId, token, params);
+        poolId = lockDealNFT.mint(owner, token, msg.sender, params[0]);
         emit NewPoolCreated(BasePoolInfo(poolId, owner, token), params);
     }
 
@@ -80,12 +79,22 @@ contract DealProvider is DealProviderModifiers, IProvider {
 
     function registerPool(
         uint256 poolId,
+        address token,
+        uint256[] memory params
+    ) public onlyProvider {
+        _registerPool(poolId, token, params);
+    }
+
+    function _registerPool(
+        uint256 poolId,
+        address token,
         uint256[] memory params
     )
-        public
-        onlyProvider
+        internal
+        notZeroAmount(params[0])
         validParamsLength(params.length, currentParamsTargetLenght)
     {
         poolIdToDeal[poolId].leftAmount = params[0];
+        poolIdToDeal[poolId].token = token;
     }
 }
