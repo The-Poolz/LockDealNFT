@@ -62,7 +62,7 @@ contract LockDealNFT is LockDealNFTModifiers {
         address newOwner
     ) external onlyOwnerOrAdmin(poolId) {
         uint256 newPoolId = _mint(newOwner, poolIdToProvider[poolId]);
-        IProvider(poolIdToProvider[newPoolId]).split(
+        IProvider(poolIdToProvider[poolId]).split(
             poolId,
             newPoolId,
             splitAmount
