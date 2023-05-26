@@ -60,32 +60,25 @@ contract TimedLockDealProvider is TimedLockDealModifiers, IProvider {
         uint256 newPoolId,
         uint256 splitAmount
     ) public onlyProvider {
-        (, uint256 leftAmount) = dealProvider.dealProvider().poolIdToDeal(
-            oldPoolId
-        );
-        (uint256 newPoolLeftAmount, uint256 newPoolStartAmount) = _calcSplit(
-            oldPoolId,
-            leftAmount,
-            splitAmount
-        );
-        dealProvider.split(oldPoolId, newPoolId, newPoolLeftAmount);
+        uint256 newPoolStartAmount = _calcSplit(oldPoolId, splitAmount);
+        dealProvider.split(oldPoolId, newPoolId, splitAmount);
         poolIdToTimedDeal[oldPoolId].startAmount -= newPoolStartAmount;
         poolIdToTimedDeal[newPoolId].startAmount = newPoolStartAmount;
-        poolIdToTimedDeal[newPoolId].finishTime = poolIdToTimedDeal[oldPoolId]
-            .finishTime;
+        poolIdToTimedDeal[newPoolId].finishTime = poolIdToTimedDeal[oldPoolId].finishTime;
     }
 
     function _calcSplit(
         uint256 poolId,
-        uint256 leftAmount,
         uint256 splitAmount
-    ) internal view returns (uint256 newLeftAmount, uint256 newStartAmount) {
-        uint256 ratio = _calcRatio(splitAmount, leftAmount);
-        newLeftAmount = _calcAmountFromRatio(
+    ) internal view returns (uint256 newStartAmount) {
+        uint256 ratio = _calcRatio(
+            splitAmount,
+            poolIdToTimedDeal[poolId].startAmount
+        );
+        newStartAmount = _calcAmountFromRatio(
             poolIdToTimedDeal[poolId].startAmount,
             ratio
         );
-        newStartAmount = _calcAmountFromRatio(leftAmount, ratio);
     }
 
     function getParametersTargetLenght() public view returns (uint256) {
