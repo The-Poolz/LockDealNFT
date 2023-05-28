@@ -30,7 +30,7 @@ describe("Base Lock Deal Provider", function (accounts) {
 
     beforeEach(async () => {
         let date = new Date()
-        date.setDate(date.getDate() + 1)
+        date.setDate(date.getDate())
         startTime = Math.floor(date.getTime() / 1000)
         params = [amount, startTime]
         poolId = await lockDealNFT.totalSupply()
@@ -82,7 +82,7 @@ describe("Base Lock Deal Provider", function (accounts) {
 
     describe("Base Deal Withdraw", () => {
         it("should withdraw tokens", async () => {
-            await helpers.time.setNextBlockTimestamp(startTime + 1)
+            await helpers.time.increase(3600)
             await lockDealNFT.withdraw(poolId)
             const data = await dealProvider.poolIdToDeal(poolId)
             expect(data.leftAmount.toString()).to.equal("0")

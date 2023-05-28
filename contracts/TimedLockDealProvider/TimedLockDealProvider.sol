@@ -60,52 +60,17 @@ contract TimedLockDealProvider is TimedLockDealModifiers, IProvider {
         uint256 newPoolId,
         uint256 splitAmount
     ) public onlyProvider {
-        (, uint256 leftAmount) = dealProvider.dealProvider().poolIdToDeal(
-            oldPoolId
-        );
-        (uint256 newPoolLeftAmount, uint256 newPoolStartAmount) = _calcSplit(
-            oldPoolId,
-            leftAmount,
-            splitAmount
-        );
-        dealProvider.split(oldPoolId, newPoolId, newPoolLeftAmount);
+        dealProvider.split(oldPoolId, newPoolId, splitAmount);
+        uint256 newPoolStartAmount = poolIdToTimedDeal[oldPoolId].startAmount - splitAmount;
         poolIdToTimedDeal[oldPoolId].startAmount -= newPoolStartAmount;
         poolIdToTimedDeal[newPoolId].startAmount = newPoolStartAmount;
-        poolIdToTimedDeal[newPoolId].finishTime = poolIdToTimedDeal[oldPoolId]
-            .finishTime;
-    }
-
-    function _calcSplit(
-        uint256 poolId,
-        uint256 leftAmount,
-        uint256 splitAmount
-    ) internal view returns (uint256 newLeftAmount, uint256 newStartAmount) {
-        uint256 ratio = _calcRatio(splitAmount, leftAmount);
-        newLeftAmount = _calcAmountFromRatio(
-            poolIdToTimedDeal[poolId].startAmount,
-            ratio
-        );
-        newStartAmount = _calcAmountFromRatio(leftAmount, ratio);
+        poolIdToTimedDeal[newPoolId].finishTime = poolIdToTimedDeal[oldPoolId].finishTime;
     }
 
     function getParametersTargetLenght() public view returns (uint256) {
         return
             currentParamsTargetLenght +
             dealProvider.currentParamsTargetLenght();
-    }
-
-    function _calcRatio(
-        uint256 amount,
-        uint256 totalAmount
-    ) internal pure returns (uint256) {
-        return (amount * 10 ** 18) / totalAmount;
-    }
-
-    function _calcAmountFromRatio(
-        uint256 amount,
-        uint256 ratio
-    ) internal pure returns (uint256) {
-        return (amount * ratio) / 10 ** 18;
     }
 
     function registerPool(
