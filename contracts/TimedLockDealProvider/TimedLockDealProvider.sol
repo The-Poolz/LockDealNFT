@@ -39,6 +39,7 @@ contract TimedLockDealProvider is
         );
         poolId = lockDealNFT.mint(owner, token);
         _registerPool(poolId, params);
+        emit NewPoolCreated(BasePoolInfo(poolId, owner, token), params);
     }
 
     /// @dev use revert only for permissions
@@ -72,14 +73,10 @@ contract TimedLockDealProvider is
         );
         if (poolIdToTimedDeal[poolId].finishTime < block.timestamp)
             return leftAmount;
-        uint256 totalPoolDuration = poolIdToTimedDeal[poolId].finishTime -
-            startTime;
+        uint256 totalPoolDuration = poolIdToTimedDeal[poolId].finishTime - startTime;
         uint256 timePassed = block.timestamp - startTime;
-        uint256 debitableAmount = (poolIdToTimedDeal[poolId].startAmount *
-            timePassed) / totalPoolDuration;
-        return
-            debitableAmount -
-            (poolIdToTimedDeal[poolId].startAmount - leftAmount);
+        uint256 debitableAmount = (poolIdToTimedDeal[poolId].startAmount * timePassed) / totalPoolDuration;
+        return debitableAmount - (poolIdToTimedDeal[poolId].startAmount - leftAmount);
     }
 
     function split(
