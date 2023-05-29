@@ -4,8 +4,9 @@ pragma solidity ^0.8.0;
 import "../LockDealNFT/LockDealNFT.sol";
 import "./DealProviderModifiers.sol";
 import "../interface/IProvider.sol";
+import "../Provider/ProviderModifiers.sol";
 
-contract DealProvider is DealProviderModifiers, IProvider {
+contract DealProvider is DealProviderModifiers, ProviderModifiers, IProvider {
     constructor(address _nftContract) {
         lockDealNFT = LockDealNFT(_nftContract);
     }
