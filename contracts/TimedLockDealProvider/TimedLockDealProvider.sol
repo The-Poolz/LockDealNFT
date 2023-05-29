@@ -27,16 +27,26 @@ contract TimedLockDealProvider is TimedLockDealModifiers, IProvider {
         poolId = lockDealNFT.mint(owner, token);
         _registerPool(poolId, params);
     }
-
+    
+    /// @dev use revert only for permissions
     function withdraw(
         uint256 poolId
-    ) public override returns (uint256 withdrawnAmount) {
-        if (lockDealNFT.approvedProviders(msg.sender)) {
-            withdrawnAmount = (block.timestamp >=
-                poolIdToTimedDeal[poolId].finishTime)
-                ? dealProvider.withdraw(poolId)
-                : dealProvider.withdraw(poolId, getWithdrawableAmount(poolId));
-        }
+    ) public override onlyNFT returns (uint256 withdrawnAmount) {
+        withdrawnAmount = _withdraw(poolId, getWithdrawableAmount(poolId));
+    }
+
+    function withdraw(
+        uint256 poolId,
+        uint256 amount
+    ) public onlyProvider returns (uint256 withdrawnAmount) {
+        withdrawnAmount = dealProvider.withdraw(poolId, amount);
+    }
+
+    function _withdraw(
+        uint256 poolId,
+        uint256 amount
+    ) internal returns (uint256 withdrawnAmount) {
+        withdrawnAmount = dealProvider.withdraw(poolId, amount);
     }
 
     function getWithdrawableAmount(

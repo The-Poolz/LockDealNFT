@@ -21,26 +21,26 @@ contract BaseLockDealProvider is BaseLockDealModifiers, IProvider {
         _registerPool(poolId, params);
     }
 
-    /// @dev no use of revert to make sure the loop will work
+    /// @dev use revert only for permissions
     function withdraw(
         uint256 poolId
-    ) public override returns (uint256 withdrawnAmount) {
-        if (
-            startTimes[poolId] <= block.timestamp &&
-            lockDealNFT.approvedProviders(msg.sender)
-        ) {
-            withdrawnAmount = dealProvider.withdraw(poolId);
-        }
+    ) public override onlyNFT returns (uint256 withdrawnAmount) {
+        (, uint256 leftAmount) = dealProvider.poolIdToDeal(poolId);
+        withdrawnAmount = _withdraw(poolId, leftAmount);
     }
 
     function withdraw(
         uint256 poolId,
         uint256 amount
-    ) public returns (uint256 withdrawnAmount) {
-        if (
-            startTimes[poolId] <= block.timestamp &&
-            lockDealNFT.approvedProviders(msg.sender)
-        ) {
+    ) public onlyProvider returns (uint256 withdrawnAmount) {
+        withdrawnAmount = _withdraw(poolId, amount);
+    }
+
+    function _withdraw(
+        uint256 poolId,
+        uint256 amount
+    ) internal returns (uint256 withdrawnAmount) {
+        if (startTimes[poolId] <= block.timestamp) {
             withdrawnAmount = dealProvider.withdraw(poolId, amount);
         }
     }

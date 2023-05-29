@@ -29,21 +29,25 @@ contract DealProvider is DealProviderModifiers, IProvider {
         emit NewPoolCreated(BasePoolInfo(poolId, owner, token), params);
     }
 
-    /// @dev no use of revert to make sure the loop will work
+    /// @dev use revert only for permissions
     function withdraw(
         uint256 poolId
-    ) public override returns (uint256 withdrawnAmount) {
-        withdrawnAmount = withdraw(poolId, poolIdToDeal[poolId].leftAmount);
+    ) public override onlyNFT returns (uint256 withdrawnAmount) {
+        withdrawnAmount = _withdraw(poolId, poolIdToDeal[poolId].leftAmount);
     }
 
     function withdraw(
         uint256 poolId,
         uint256 amount
-    ) public returns (uint256 withdrawnAmount) {
-        if (
-            poolIdToDeal[poolId].leftAmount >= amount &&
-            lockDealNFT.approvedProviders(msg.sender)
-        ) {
+    ) public onlyProvider returns (uint256 withdrawnAmount) {
+        withdrawnAmount = _withdraw(poolId, amount);
+    }
+
+    function _withdraw(
+        uint256 poolId,
+        uint256 amount
+    ) internal returns (uint256 withdrawnAmount) {
+        if (poolIdToDeal[poolId].leftAmount >= amount) {
             poolIdToDeal[poolId].leftAmount -= amount;
             withdrawnAmount = amount;
             emit TokenWithdrawn(
