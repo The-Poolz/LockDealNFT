@@ -2,9 +2,14 @@
 pragma solidity ^0.8.0;
 
 import "../interface/IProvider.sol";
-import "./BaseLockDealModifiers.sol";
+import "../Provider/ProviderModifiers.sol";
+import "./BaseLockDealState.sol";
 
-contract BaseLockDealProvider is BaseLockDealModifiers, IProvider {
+contract BaseLockDealProvider is
+    ProviderModifiers,
+    BaseLockDealState,
+    IProvider
+{
     constructor(address nft, address provider) {
         dealProvider = DealProvider(provider);
         lockDealNFT = LockDealNFT(nft);
@@ -16,9 +21,15 @@ contract BaseLockDealProvider is BaseLockDealModifiers, IProvider {
         address owner,
         address token,
         uint256[] memory params
-    ) public returns (uint256 poolId) {
+    )
+        public
+        notZeroAddress(owner)
+        notZeroAddress(token)
+        returns (uint256 poolId)
+    {
         poolId = lockDealNFT.mint(owner, token);
         _registerPool(poolId, params);
+        emit NewPoolCreated(BasePoolInfo(poolId, owner, token), params);
     }
 
     /// @dev use revert only for permissions

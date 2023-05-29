@@ -2,10 +2,14 @@
 pragma solidity ^0.8.0;
 
 import "./TimedProviderState.sol";
-import "./TimedLockDealModifiers.sol";
+import "../Provider/ProviderModifiers.sol";
 import "../interface/IProvider.sol";
 
-contract TimedLockDealProvider is TimedLockDealModifiers, IProvider {
+contract TimedLockDealProvider is
+    ProviderModifiers,
+    TimedProviderState,
+    IProvider
+{
     constructor(address nft, address provider) {
         dealProvider = BaseLockDealProvider(provider);
         lockDealNFT = LockDealNFT(nft);
@@ -19,15 +23,24 @@ contract TimedLockDealProvider is TimedLockDealModifiers, IProvider {
         address owner,
         address token,
         uint256[] memory params
-    ) public returns (uint256 poolId) {
+    )
+        public
+        notZeroAddress(owner)
+        notZeroAddress(token)
+        returns (uint256 poolId)
+    {
         require(
             params[2] >= params[1],
             "Finish time should be greater than start time"
         );
+        require(
+            params[0] == params[3],
+            "Start amount should be equal to left amount"
+        );
         poolId = lockDealNFT.mint(owner, token);
         _registerPool(poolId, params);
     }
-    
+
     /// @dev use revert only for permissions
     function withdraw(
         uint256 poolId
@@ -59,10 +72,14 @@ contract TimedLockDealProvider is TimedLockDealModifiers, IProvider {
         );
         if (poolIdToTimedDeal[poolId].finishTime < block.timestamp)
             return leftAmount;
-        uint256 totalPoolDuration = poolIdToTimedDeal[poolId].finishTime - startTime;
+        uint256 totalPoolDuration = poolIdToTimedDeal[poolId].finishTime -
+            startTime;
         uint256 timePassed = block.timestamp - startTime;
-        uint256 debitableAmount = (poolIdToTimedDeal[poolId].startAmount * timePassed) / totalPoolDuration;
-        return debitableAmount - (poolIdToTimedDeal[poolId].startAmount - leftAmount);
+        uint256 debitableAmount = (poolIdToTimedDeal[poolId].startAmount *
+            timePassed) / totalPoolDuration;
+        return
+            debitableAmount -
+            (poolIdToTimedDeal[poolId].startAmount - leftAmount);
     }
 
     function split(
@@ -71,10 +88,12 @@ contract TimedLockDealProvider is TimedLockDealModifiers, IProvider {
         uint256 splitAmount
     ) public onlyProvider {
         dealProvider.split(oldPoolId, newPoolId, splitAmount);
-        uint256 newPoolStartAmount = poolIdToTimedDeal[oldPoolId].startAmount - splitAmount;
+        uint256 newPoolStartAmount = poolIdToTimedDeal[oldPoolId].startAmount -
+            splitAmount;
         poolIdToTimedDeal[oldPoolId].startAmount -= newPoolStartAmount;
         poolIdToTimedDeal[newPoolId].startAmount = newPoolStartAmount;
-        poolIdToTimedDeal[newPoolId].finishTime = poolIdToTimedDeal[oldPoolId].finishTime;
+        poolIdToTimedDeal[newPoolId].finishTime = poolIdToTimedDeal[oldPoolId]
+            .finishTime;
     }
 
     function getParametersTargetLenght() public view returns (uint256) {
