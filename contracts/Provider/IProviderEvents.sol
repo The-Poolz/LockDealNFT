@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 /// @title Provider interface
 /// @notice Contains all events emitted by the Provider
-interface IProvierEvents {
+interface IProviderEvents {
     struct BasePoolInfo {
         uint256 poolId;
         address owner;
