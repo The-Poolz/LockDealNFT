@@ -27,19 +27,19 @@ contract TimedLockDealProvider is TimedLockDealModifiers, IProvider {
         poolId = lockDealNFT.mint(owner, token);
         _registerPool(poolId, params);
     }
-
+    
+    /// @dev use revert only for permissions
     function withdraw(
         uint256 poolId
-    ) public override returns (uint256 withdrawnAmount) {
-        if (msg.sender == address(lockDealNFT)) {
-            withdrawnAmount = _withdraw(poolId, getWithdrawableAmount(poolId));
-        }
+    ) public override onlyNFT returns (uint256 withdrawnAmount) {
+        withdrawnAmount = _withdraw(poolId, getWithdrawableAmount(poolId));
     }
 
-    function withdraw(uint256 poolId, uint256 amount) public {
-        if (lockDealNFT.approvedProviders(msg.sender)) {
-            dealProvider.withdraw(poolId, amount);
-        }
+    function withdraw(
+        uint256 poolId,
+        uint256 amount
+    ) public onlyProvider returns (uint256 withdrawnAmount) {
+        withdrawnAmount = dealProvider.withdraw(poolId, amount);
     }
 
     function _withdraw(
@@ -59,14 +59,10 @@ contract TimedLockDealProvider is TimedLockDealModifiers, IProvider {
         );
         if (poolIdToTimedDeal[poolId].finishTime < block.timestamp)
             return leftAmount;
-        uint256 totalPoolDuration = poolIdToTimedDeal[poolId].finishTime -
-            startTime;
+        uint256 totalPoolDuration = poolIdToTimedDeal[poolId].finishTime - startTime;
         uint256 timePassed = block.timestamp - startTime;
-        uint256 debitableAmount = (poolIdToTimedDeal[poolId].startAmount *
-            timePassed) / totalPoolDuration;
-        return
-            debitableAmount -
-            (poolIdToTimedDeal[poolId].startAmount - leftAmount);
+        uint256 debitableAmount = (poolIdToTimedDeal[poolId].startAmount * timePassed) / totalPoolDuration;
+        return debitableAmount - (poolIdToTimedDeal[poolId].startAmount - leftAmount);
     }
 
     function split(

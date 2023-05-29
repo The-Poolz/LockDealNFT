@@ -14,6 +14,18 @@ contract BaseLockDealModifiers is BaseLockDealState {
         _;
     }
 
+    modifier onlyNFT() {
+        _onlyNFT();
+        _;
+    }
+
+    function _onlyNFT() internal view {
+        require(
+            msg.sender == address(lockDealNFT),
+            "only NFT contract can call this function"
+        );
+    }
+
     function _validParamsLength(
         uint256 paramsLength,
         uint256 minLength
