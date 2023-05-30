@@ -69,12 +69,12 @@ describe("Base Lock Deal Provider", function (accounts) {
         )
     })
 
-    // it("should revert zero amount", async () => {
-    //     const params = ["0", startTime]
-    //     await expect(baseLockProvider.createNewPool(receiver.address, token.address, params)).to.be.revertedWith(
-    //         "amount should be greater than 0"
-    //     )
-    // })
+    it("should revert zero amount", async () => {
+        const params = ["0", startTime]
+        await expect(baseLockProvider.createNewPool(receiver.address, token.address, params)).to.be.revertedWith(
+            "amount should be greater than 0"
+        )
+    })
 
     describe("Base Split Amount", () => {
         it("should check data in old pool after split", async () => {

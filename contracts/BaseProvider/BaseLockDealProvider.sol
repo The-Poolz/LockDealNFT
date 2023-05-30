@@ -15,19 +15,15 @@ contract BaseLockDealProvider is
         lockDealNFT = LockDealNFT(nft);
     }
 
-    /// params[0] = amount
-    /// params[1] = startTime
+    ///@param params[0] = amount
+    ///@param params[1] = startTime
+    ///@dev requirements are in mint, _register functions
     function createNewPool(
         address owner,
         address token,
         uint256[] memory params
-    )
-        public
-        notZeroAddress(owner)
-        notZeroAddress(token)
-        returns (uint256 poolId)
-    {
-        poolId = lockDealNFT.mint(owner, token);
+    ) public returns (uint256 poolId) {
+        poolId = lockDealNFT.mint(owner, token, params[0]);
         _registerPool(poolId, owner, token, params);
     }
 
