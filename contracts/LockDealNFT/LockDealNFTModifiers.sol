@@ -31,7 +31,16 @@ abstract contract LockDealNFTModifiers is LockDealState, Ownable {
         _;
     }
 
+    modifier notZeroAmount(uint256 amount) {
+        _notZeroAmount(amount);
+        _;
+    }
+
     function _notZeroAddress(address _address) private pure {
         require(_address != address(0x0), "Zero Address is not allowed");
+    }
+
+    function _notZeroAmount(uint256 amount) private pure {
+        require(amount > 0, "amount should be greater than 0");
     }
 }

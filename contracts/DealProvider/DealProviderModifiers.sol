@@ -14,7 +14,7 @@ contract DealProviderModifiers is DealProviderState {
         uint256 splitAmount
     ) private pure {
         require(
-            leftAmount >= splitAmount,
+            leftAmount > 0 && leftAmount >= splitAmount,
             "Split amount exceeds the available amount"
         );
     }

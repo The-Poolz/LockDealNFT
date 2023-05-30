@@ -11,20 +11,14 @@ contract DealProvider is DealProviderModifiers, ProviderModifiers, IProvider {
         lockDealNFT = LockDealNFT(_nftContract);
     }
 
-    /// params[0] = amount
+    ///@param params[0] = amount
+    ///@dev requirements are in mint, _register functions
     function createNewPool(
         address owner,
         address token,
         uint256[] memory params
-    )
-        public
-        notZeroAddress(owner)
-        notZeroAddress(token)
-        notZeroAmount(params[0])
-        validParamsLength(params.length, currentParamsTargetLenght)
-        returns (uint256 poolId)
-    {
-        poolId = lockDealNFT.mint(owner, token);
+    ) public returns (uint256 poolId) {
+        poolId = lockDealNFT.mint(owner, token, params[0]);
         _registerPool(poolId, owner, token, params);
     }
 
@@ -65,7 +59,6 @@ contract DealProvider is DealProviderModifiers, ProviderModifiers, IProvider {
     )
         public
         override
-        notZeroAmount(splitAmount)
         onlyProvider
         invalidSplitAmount(poolIdToDeal[oldPoolId].leftAmount, splitAmount)
     {

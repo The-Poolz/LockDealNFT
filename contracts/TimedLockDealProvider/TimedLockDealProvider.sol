@@ -15,20 +15,15 @@ contract TimedLockDealProvider is
         lockDealNFT = LockDealNFT(nft);
     }
 
-    /// params[0] = leftAmount
-    /// params[1] = startTime
-    /// params[2] = finishTime
-    /// params[3] = startAmount
+    ///@param params[0] = leftAmount
+    ///@param params[1] = startTime
+    ///@param params[2] = finishTime
+    ///@param params[3] = startAmount
     function createNewPool(
         address owner,
         address token,
         uint256[] memory params
-    )
-        public
-        notZeroAddress(owner)
-        notZeroAddress(token)
-        returns (uint256 poolId)
-    {
+    ) public returns (uint256 poolId) {
         require(
             params[2] >= params[1],
             "Finish time should be greater than start time"
@@ -37,7 +32,7 @@ contract TimedLockDealProvider is
             params[0] == params[3],
             "Start amount should be equal to left amount"
         );
-        poolId = lockDealNFT.mint(owner, token);
+        poolId = lockDealNFT.mint(owner, token, params[0]);
         _registerPool(poolId, owner, token, params);
     }
 

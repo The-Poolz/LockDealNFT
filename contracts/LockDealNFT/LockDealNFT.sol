@@ -13,12 +13,14 @@ contract LockDealNFT is LockDealNFTModifiers {
 
     function mint(
         address owner,
-        address token
+        address token,
+        uint256 amount
     )
         public
         onlyApprovedProvider
         notZeroAddress(owner)
         notZeroAddress(token)
+        notZeroAmount(amount)
         returns (uint256)
     {
         return _mint(owner, msg.sender);
