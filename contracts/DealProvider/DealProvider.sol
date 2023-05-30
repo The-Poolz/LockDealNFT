@@ -25,9 +25,7 @@ contract DealProvider is DealProviderModifiers, ProviderModifiers, IProvider {
         returns (uint256 poolId)
     {
         poolId = lockDealNFT.mint(owner, token);
-        poolIdToDeal[poolId].leftAmount = params[0];
-        poolIdToDeal[poolId].token = token;
-        emit NewPoolCreated(BasePoolInfo(poolId, owner, token), params);
+        _registerPool(poolId, owner, token, params);
     }
 
     /// @dev use revert only for permissions
@@ -85,12 +83,21 @@ contract DealProvider is DealProviderModifiers, ProviderModifiers, IProvider {
 
     function registerPool(
         uint256 poolId,
+        address owner,
+        address token,
         uint256[] memory params
-    )
-        public
-        onlyProvider
-        validParamsLength(params.length, currentParamsTargetLenght)
-    {
+    ) public onlyProvider {
+        _registerPool(poolId, owner, token, params);
+    }
+
+    function _registerPool(
+        uint256 poolId,
+        address owner,
+        address token,
+        uint256[] memory params
+    ) internal validParamsLength(params.length, currentParamsTargetLenght) {
         poolIdToDeal[poolId].leftAmount = params[0];
+        poolIdToDeal[poolId].token = token;
+        emit NewPoolCreated(BasePoolInfo(poolId, owner, token), params);
     }
 }

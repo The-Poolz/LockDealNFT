@@ -38,8 +38,7 @@ contract TimedLockDealProvider is
             "Start amount should be equal to left amount"
         );
         poolId = lockDealNFT.mint(owner, token);
-        _registerPool(poolId, params);
-        emit NewPoolCreated(BasePoolInfo(poolId, owner, token), params);
+        _registerPool(poolId, owner, token, params);
     }
 
     /// @dev use revert only for permissions
@@ -101,17 +100,21 @@ contract TimedLockDealProvider is
 
     function registerPool(
         uint256 poolId,
+        address owner,
+        address token,
         uint256[] memory params
     ) public onlyProvider {
-        _registerPool(poolId, params);
+        _registerPool(poolId, owner, token, params);
     }
 
     function _registerPool(
         uint256 poolId,
+        address owner,
+        address token,
         uint256[] memory params
     ) internal validParamsLength(params.length, getParametersTargetLenght()) {
         poolIdToTimedDeal[poolId].finishTime = params[2];
         poolIdToTimedDeal[poolId].startAmount = params[3];
-        dealProvider.registerPool(poolId, params);
+        dealProvider.registerPool(poolId, owner, token, params);
     }
 }

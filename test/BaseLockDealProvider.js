@@ -33,13 +33,23 @@ describe("Base Lock Deal Provider", function (accounts) {
         date.setDate(date.getDate())
         startTime = Math.floor(date.getTime() / 1000)
         params = [amount, startTime]
-        poolId = await lockDealNFT.totalSupply()
+        poolId = parseInt(await lockDealNFT.totalSupply())
         await baseLockProvider.createNewPool(receiver.address, token.address, params)
     })
 
     it("should check deal provider address", async () => {
         const provider = await baseLockProvider.dealProvider()
         expect(provider.toString()).to.equal(dealProvider.address)
+    })
+
+    it("should check cascade pool creation events", async () => {
+        const tx = await baseLockProvider.createNewPool(receiver.address, token.address, params)
+        await tx.wait()
+        const event = await dealProvider.queryFilter("NewPoolCreated")
+        expect(event[event.length - 1].args.poolInfo.poolId).to.equal(poolId + 1)
+        expect(event[event.length - 1].args.poolInfo.token).to.equal(token.address)
+        expect(event[event.length - 1].args.poolInfo.owner).to.equal(receiver.address)
+        expect(event[event.length - 1].args.params[0]).to.equal(amount)
     })
 
     it("should check base provider data after creation", async () => {
