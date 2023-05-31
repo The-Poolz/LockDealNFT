@@ -2,26 +2,17 @@
 pragma solidity ^0.8.0;
 
 import "../LockDealNFT/LockDealNFT.sol";
-import "./ITimedLockDealEvents.sol";
+import "../BaseProvider/BaseLockDealProvider.sol";
 
 /// @title DealProviderState contract
-/// @notice Contains storage variables, structures
-contract TimedProviderState is ITimedLockDealEvents {
+/// @notice Contains storage variables
+contract TimedProviderState {
     BaseLockDealProvider public dealProvider;
     mapping(uint256 => TimedDeal) public poolIdToTimedDeal;
-    LockDealNFT public lockDealNFT;
     uint256 public constant currentParamsTargetLenght = 2;
 
-    function getParams(
-        uint256 leftAmount,
-        uint256 startTime,
-        uint256 finishTime,
-        uint256 startAmount
-    ) internal pure returns (uint256[] memory params) {
-        params = new uint256[](4);
-        params[0] = leftAmount;
-        params[1] = startTime;
-        params[2] = finishTime;
-        params[3] = startAmount;
+    struct TimedDeal {
+        uint256 finishTime;
+        uint256 startAmount;
     }
 }

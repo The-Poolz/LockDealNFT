@@ -2,9 +2,14 @@
 pragma solidity ^0.8.0;
 
 import "../interface/IProvider.sol";
-import "./BaseLockDealModifiers.sol";
+import "../Provider/ProviderModifiers.sol";
+import "./BaseLockDealState.sol";
 
-contract BaseLockDealProvider is BaseLockDealModifiers, IProvider {
+contract BaseLockDealProvider is
+    ProviderModifiers,
+    BaseLockDealState,
+    IProvider
+{
     constructor(address nft, address provider) {
         require(
             nft != address(0x0) && provider != address(0x0),
@@ -14,37 +19,38 @@ contract BaseLockDealProvider is BaseLockDealModifiers, IProvider {
         lockDealNFT = LockDealNFT(nft);
     }
 
-    /// params[0] = amount
-    /// params[1] = startTime
+    ///@param params[0] = amount
+    ///@param params[1] = startTime
+    ///@dev requirements are in mint, _register functions
     function createNewPool(
         address owner,
         address token,
         uint256[] memory params
     ) public returns (uint256 poolId) {
-        _registerPool(poolId, token, params);
-        poolId = lockDealNFT.mint(owner, token, msg.sender, params[0]);
+        poolId = lockDealNFT.mint(owner, token, params[0]);
+        _registerPool(poolId, owner, token, params);
     }
 
-    /// @dev no use of revert to make sure the loop will work
+    /// @dev use revert only for permissions
     function withdraw(
         uint256 poolId
-    ) public override returns (uint256 withdrawnAmount) {
-        if (
-            startTimes[poolId] <= block.timestamp &&
-            lockDealNFT.approvedProviders(msg.sender)
-        ) {
-            withdrawnAmount = dealProvider.withdraw(poolId);
-        }
+    ) public override onlyNFT returns (uint256 withdrawnAmount) {
+        (, uint256 leftAmount) = dealProvider.poolIdToDeal(poolId);
+        withdrawnAmount = _withdraw(poolId, leftAmount);
     }
 
     function withdraw(
         uint256 poolId,
         uint256 amount
-    ) public returns (uint256 withdrawnAmount) {
-        if (
-            startTimes[poolId] <= block.timestamp &&
-            lockDealNFT.approvedProviders(msg.sender)
-        ) {
+    ) public onlyProvider returns (uint256 withdrawnAmount) {
+        withdrawnAmount = _withdraw(poolId, amount);
+    }
+
+    function _withdraw(
+        uint256 poolId,
+        uint256 amount
+    ) internal returns (uint256 withdrawnAmount) {
+        if (startTimes[poolId] <= block.timestamp) {
             withdrawnAmount = dealProvider.withdraw(poolId, amount);
         }
     }
@@ -60,19 +66,21 @@ contract BaseLockDealProvider is BaseLockDealModifiers, IProvider {
 
     function registerPool(
         uint256 poolId,
+        address owner,
         address token,
         uint256[] memory params
     ) public onlyProvider {
-        _registerPool(poolId, token, params);
+        _registerPool(poolId, owner, token, params);
     }
 
     function _registerPool(
         uint256 poolId,
+        address owner,
         address token,
         uint256[] memory params
     ) internal validParamsLength(params.length, getParametersTargetLenght()) {
         startTimes[poolId] = params[1];
-        dealProvider.registerPool(poolId, token, params);
+        dealProvider.registerPool(poolId, owner, token, params);
     }
 
     function getParametersTargetLenght() public view returns (uint256) {

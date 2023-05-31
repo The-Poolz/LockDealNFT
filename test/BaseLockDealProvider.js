@@ -30,16 +30,26 @@ describe("Base Lock Deal Provider", function (accounts) {
 
     beforeEach(async () => {
         let date = new Date()
-        date.setDate(date.getDate() + 1)
+        date.setDate(date.getDate())
         startTime = Math.floor(date.getTime() / 1000)
         params = [amount, startTime]
-        poolId = await lockDealNFT.totalSupply()
+        poolId = parseInt(await lockDealNFT.totalSupply())
         await baseLockProvider.createNewPool(receiver.address, token.address, params)
     })
 
     it("should check deal provider address", async () => {
         const provider = await baseLockProvider.dealProvider()
         expect(provider.toString()).to.equal(dealProvider.address)
+    })
+
+    it("should check cascade pool creation events", async () => {
+        const tx = await baseLockProvider.createNewPool(receiver.address, token.address, params)
+        await tx.wait()
+        const event = await dealProvider.queryFilter("NewPoolCreated")
+        expect(event[event.length - 1].args.poolInfo.poolId).to.equal(poolId + 1)
+        expect(event[event.length - 1].args.poolInfo.token).to.equal(token.address)
+        expect(event[event.length - 1].args.poolInfo.owner).to.equal(receiver.address)
+        expect(event[event.length - 1].args.params[0]).to.equal(amount)
     })
 
     it("should check base provider data after creation", async () => {
@@ -59,12 +69,12 @@ describe("Base Lock Deal Provider", function (accounts) {
         )
     })
 
-    // it("should revert zero amount", async () => {
-    //     const params = ["0", startTime]
-    //     await expect(baseLockProvider.createNewPool(receiver.address, token.address, params)).to.be.revertedWith(
-    //         "amount should be greater than 0"
-    //     )
-    // })
+    it("should revert zero amount", async () => {
+        const params = ["0", startTime]
+        await expect(baseLockProvider.createNewPool(receiver.address, token.address, params)).to.be.revertedWith(
+            "amount should be greater than 0"
+        )
+    })
 
     describe("Base Split Amount", () => {
         it("should check data in old pool after split", async () => {
@@ -82,7 +92,7 @@ describe("Base Lock Deal Provider", function (accounts) {
 
     describe("Base Deal Withdraw", () => {
         it("should withdraw tokens", async () => {
-            await helpers.time.setNextBlockTimestamp(startTime + 1)
+            await helpers.time.increase(3600)
             await lockDealNFT.withdraw(poolId)
             const data = await dealProvider.poolIdToDeal(poolId)
             expect(data.leftAmount.toString()).to.equal("0")

@@ -2,10 +2,14 @@
 pragma solidity ^0.8.0;
 
 import "./TimedProviderState.sol";
-import "./TimedLockDealModifiers.sol";
+import "../Provider/ProviderModifiers.sol";
 import "../interface/IProvider.sol";
 
-contract TimedLockDealProvider is TimedLockDealModifiers, IProvider {
+contract TimedLockDealProvider is
+    ProviderModifiers,
+    TimedProviderState,
+    IProvider
+{
     constructor(address nft, address provider) {
         require(
             nft != address(0x0) && provider != address(0x0),
@@ -15,10 +19,10 @@ contract TimedLockDealProvider is TimedLockDealModifiers, IProvider {
         lockDealNFT = LockDealNFT(nft);
     }
 
-    /// params[0] = leftAmount
-    /// params[1] = startTime
-    /// params[2] = finishTime
-    /// params[3] = startAmount
+    ///@param params[0] = leftAmount
+    ///@param params[1] = startTime
+    ///@param params[2] = finishTime
+    ///@param params[3] = startAmount
     function createNewPool(
         address owner,
         address token,
@@ -32,19 +36,29 @@ contract TimedLockDealProvider is TimedLockDealModifiers, IProvider {
             params[0] == params[3],
             "Start amount should be equal to left amount"
         );
-        _registerPool(poolId, token, params);
-        poolId = lockDealNFT.mint(owner, token, msg.sender, params[0]);
+        poolId = lockDealNFT.mint(owner, token, params[0]);
+        _registerPool(poolId, owner, token, params);
+    }
+
+    /// @dev use revert only for permissions
+    function withdraw(
+        uint256 poolId
+    ) public override onlyNFT returns (uint256 withdrawnAmount) {
+        withdrawnAmount = _withdraw(poolId, getWithdrawableAmount(poolId));
     }
 
     function withdraw(
-        uint256 poolId
-    ) public override returns (uint256 withdrawnAmount) {
-        if (lockDealNFT.approvedProviders(msg.sender)) {
-            withdrawnAmount = (block.timestamp >=
-                poolIdToTimedDeal[poolId].finishTime)
-                ? dealProvider.withdraw(poolId)
-                : dealProvider.withdraw(poolId, getWithdrawableAmount(poolId));
-        }
+        uint256 poolId,
+        uint256 amount
+    ) public onlyProvider returns (uint256 withdrawnAmount) {
+        withdrawnAmount = dealProvider.withdraw(poolId, amount);
+    }
+
+    function _withdraw(
+        uint256 poolId,
+        uint256 amount
+    ) internal returns (uint256 withdrawnAmount) {
+        withdrawnAmount = dealProvider.withdraw(poolId, amount);
     }
 
     function getWithdrawableAmount(
@@ -68,32 +82,13 @@ contract TimedLockDealProvider is TimedLockDealModifiers, IProvider {
         uint256 newPoolId,
         uint256 splitAmount
     ) public onlyProvider {
-        (, uint256 leftAmount) = dealProvider.dealProvider().poolIdToDeal(
-            oldPoolId
-        );
-        (uint256 newPoolLeftAmount, uint256 newPoolStartAmount) = _calcSplit(
-            oldPoolId,
-            leftAmount,
-            splitAmount
-        );
-        dealProvider.split(oldPoolId, newPoolId, newPoolLeftAmount);
+        dealProvider.split(oldPoolId, newPoolId, splitAmount);
+        uint256 newPoolStartAmount = poolIdToTimedDeal[oldPoolId].startAmount -
+            splitAmount;
         poolIdToTimedDeal[oldPoolId].startAmount -= newPoolStartAmount;
         poolIdToTimedDeal[newPoolId].startAmount = newPoolStartAmount;
         poolIdToTimedDeal[newPoolId].finishTime = poolIdToTimedDeal[oldPoolId]
             .finishTime;
-    }
-
-    function _calcSplit(
-        uint256 poolId,
-        uint256 leftAmount,
-        uint256 splitAmount
-    ) internal view returns (uint256 newLeftAmount, uint256 newStartAmount) {
-        uint256 ratio = _calcRatio(splitAmount, leftAmount);
-        newLeftAmount = _calcAmountFromRatio(
-            poolIdToTimedDeal[poolId].startAmount,
-            ratio
-        );
-        newStartAmount = _calcAmountFromRatio(leftAmount, ratio);
     }
 
     function getParametersTargetLenght() public view returns (uint256) {
@@ -102,35 +97,23 @@ contract TimedLockDealProvider is TimedLockDealModifiers, IProvider {
             dealProvider.currentParamsTargetLenght();
     }
 
-    function _calcRatio(
-        uint256 amount,
-        uint256 totalAmount
-    ) internal pure returns (uint256) {
-        return (amount * 10 ** 18) / totalAmount;
-    }
-
-    function _calcAmountFromRatio(
-        uint256 amount,
-        uint256 ratio
-    ) internal pure returns (uint256) {
-        return (amount * ratio) / 10 ** 18;
-    }
-
     function registerPool(
         uint256 poolId,
+        address owner,
         address token,
         uint256[] memory params
     ) public onlyProvider {
-        _registerPool(poolId, token, params);
+        _registerPool(poolId, owner, token, params);
     }
 
     function _registerPool(
         uint256 poolId,
+        address owner,
         address token,
         uint256[] memory params
     ) internal validParamsLength(params.length, getParametersTargetLenght()) {
         poolIdToTimedDeal[poolId].finishTime = params[2];
         poolIdToTimedDeal[poolId].startAmount = params[3];
-        dealProvider.registerPool(poolId, token, params);
+        dealProvider.registerPool(poolId, owner, token, params);
     }
 }

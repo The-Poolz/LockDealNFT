@@ -3,21 +3,18 @@ pragma solidity ^0.8.0;
 
 import "./LockDealNFTModifiers.sol";
 import "../interface/IProvider.sol";
-import "../interface/IVaultFactory.sol";
-import "../interface/IVault.sol";
 
 contract LockDealNFT is LockDealNFTModifiers {
     using Counters for Counters.Counter;
 
-    constructor(address _vaultFactory) ERC721("LockDealNFT", "LDNFT") {
-        require(_vaultFactory != address(0x0), "invalid vault factory address");
-        vaultFactory = _vaultFactory;
+    constructor(address _vaultManager) ERC721("LockDealNFT", "LDNFT") {
+        require(_vaultManager != address(0x0), "invalid vault manager address");
+        vaultManager = IVaultManager(_vaultManager);
         approvedProviders[address(this)] = true;
     }
 
     function mint(
         address owner,
-        address creator,
         address token,
         uint256 amount
     )
@@ -25,18 +22,16 @@ contract LockDealNFT is LockDealNFTModifiers {
         onlyApprovedProvider
         notZeroAddress(owner)
         notZeroAddress(token)
-        notZeroAddress(tokenToVault[token])
-        notZeroAddress(creator)
+        notZeroAmount(amount)
         returns (uint256 poolId)
     {
-        IVault(tokenToVault[token]).deposit(creator, amount);
+        if (tokenToVaultId[token] == 0) {
+            tokenToVaultId[token] = vaultManager.CreateNewVault(token);
+        }
         poolId = _mint(owner, msg.sender);
-    }
-
-    function createNewVault(
-        address token
-    ) external onlyOwner notZeroAddress(token) {
-        tokenToVault[token] = IVaultFactory(vaultFactory).CreateNewVault(token);
+        poolIdToVaultId[poolId] = tokenToVaultId[token];
+        poolIdToProvider[poolId] = msg.sender;
+        vaultManager.DepositeByVaultId(tokenToVaultId[token], owner, amount);
     }
 
     function setApprovedProvider(
@@ -50,7 +45,8 @@ contract LockDealNFT is LockDealNFTModifiers {
         uint256 poolId
     ) external onlyOwnerOrAdmin(poolId) returns (uint256 withdrawnAmount) {
         withdrawnAmount = IProvider(poolIdToProvider[poolId]).withdraw(poolId);
-        IVault(poolIdToVault[poolId]).withdraw(
+        vaultManager.WithdrawByVaultId(
+            poolIdToVaultId[poolId],
             ownerOf(poolId),
             withdrawnAmount
         );

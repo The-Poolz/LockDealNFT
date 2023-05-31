@@ -7,14 +7,6 @@ import "./IDealProvierEvents.sol";
 /// @title DealProviderState contract
 /// @notice Contains storage variables, structures
 contract DealProviderState is IDealProvierEvents {
-    LockDealNFT public lockDealNFT;
     mapping(uint256 => Deal) public poolIdToDeal;
     uint256 public constant currentParamsTargetLenght = 1;
-
-    function getParams(
-        uint256 leftAmount
-    ) internal pure returns (uint256[] memory params) {
-        params = new uint256[](1);
-        params[0] = leftAmount;
-    }
 }
