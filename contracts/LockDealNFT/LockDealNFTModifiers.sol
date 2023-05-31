@@ -41,10 +41,6 @@ abstract contract LockDealNFTModifiers is LockDealState, Ownable {
         );
     }
 
-    function _notZeroAmount(uint256 amount) private pure {
-        require(amount > 0, "amount should be greater than 0");
-    }
-
     function _onlyOwnerOrAdmin(uint256 poolId) internal view {
         require(
             msg.sender == ownerOf(poolId) || msg.sender == owner(),
@@ -54,5 +50,9 @@ abstract contract LockDealNFTModifiers is LockDealState, Ownable {
 
     function _onlyApprovedProvider() internal view {
         require(approvedProviders[msg.sender], "Provider not approved");
+    }
+    
+    function _notZeroAmount(uint256 amount) private pure {
+        require(amount > 0, "amount should be greater than 0");
     }
 }
