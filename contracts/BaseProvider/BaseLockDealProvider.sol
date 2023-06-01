@@ -85,7 +85,7 @@ contract BaseLockDealProvider is
             dealProvider.currentParamsTargetLenght();
     }
 
-    function getData(uint256 poolId) external override view returns (BasePoolInfo memory poolInfo, uint256[] memory params) {
+    function getData(uint256 poolId) external override view returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params) {
         uint256[] memory dealProviderParams;
         (poolInfo, dealProviderParams) = dealProvider.getData(poolId);
 

@@ -113,7 +113,7 @@ contract TimedLockDealProvider is
         dealProvider.registerPool(poolId, owner, token, params);
     }
 
-    function getData(uint256 poolId) external override view returns (BasePoolInfo memory poolInfo, uint256[] memory params) {
+    function getData(uint256 poolId) external override view returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params) {
         uint256[] memory baseLockDealProviderParams;
         (poolInfo, baseLockDealProviderParams) = dealProvider.getData(poolId);
 
