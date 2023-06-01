@@ -73,6 +73,7 @@ contract DealProvider is DealProviderModifiers, ProviderModifiers, IProvider {
     {
         poolIdToDeal[oldPoolId].leftAmount -= splitAmount;
         poolIdToDeal[newPoolId].leftAmount = splitAmount;
+        poolIdToDeal[newPoolId].token = poolIdToDeal[oldPoolId].token;
         emit PoolSplit(
             oldPoolId,
             lockDealNFT.ownerOf(oldPoolId),
