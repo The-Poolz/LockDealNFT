@@ -16,6 +16,7 @@ contract LockDealNFT is LockDealNFTModifiers {
     function mint(
         address owner,
         address token,
+        address from,
         uint256 amount
     )
         public
@@ -25,13 +26,9 @@ contract LockDealNFT is LockDealNFTModifiers {
         notZeroAmount(amount)
         returns (uint256 poolId)
     {
-        if (tokenToVaultId[token] == 0) {
-            tokenToVaultId[token] = vaultManager.CreateNewVault(token);
-        }
         poolId = _mint(owner, msg.sender);
-        poolIdToVaultId[poolId] = tokenToVaultId[token];
+        poolIdToVaultId[poolId] = vaultManager.DepositByToken(token, from, amount);
         poolIdToProvider[poolId] = msg.sender;
-        vaultManager.DepositeByVaultId(tokenToVaultId[token], owner, amount);
     }
 
     function setApprovedProvider(

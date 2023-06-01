@@ -4,16 +4,19 @@ const { ethers } = require("hardhat")
 
 describe("Deal Provider", function (accounts) {
     let dealProvider, lockDealNFT, poolId
-    let notOwner, receiver, newOwner
+    let receiver, newOwner
     let token, poolData, params
     const amount = 10000
 
     before(async () => {
-        ;[notOwner, receiver, newOwner] = await ethers.getSigners()
+        ;[receiver, newOwner] = await ethers.getSigners()
         const LockDealNFT = await ethers.getContractFactory("LockDealNFT")
         const DealProvider = await ethers.getContractFactory("DealProvider")
         const ERC20Token = await ethers.getContractFactory("ERC20Token")
-        lockDealNFT = await LockDealNFT.deploy()
+        const MockVaultManager = await ethers.getContractFactory("MockVaultManager")
+        const mockVaultManagger = await MockVaultManager.deploy()
+        await mockVaultManagger.deployed()
+        lockDealNFT = await LockDealNFT.deploy(mockVaultManagger.address)
         await lockDealNFT.deployed()
         dealProvider = await DealProvider.deploy(lockDealNFT.address)
         token = await ERC20Token.deploy("TEST Token", "TERC20")

@@ -12,6 +12,5 @@ abstract contract LockDealState is ERC721Enumerable {
 
     mapping(uint256 => address) public poolIdToProvider;
     mapping(uint256 => uint256) public poolIdToVaultId;
-    mapping(address => uint256) public tokenToVaultId;
     mapping(address => bool) public approvedProviders;
 }

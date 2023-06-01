@@ -11,7 +11,10 @@ describe("LockDealNFT", function (accounts) {
         const LockDealNFT = await ethers.getContractFactory("LockDealNFT")
         const DealProvider = await ethers.getContractFactory("DealProvider")
         const ERC20Token = await ethers.getContractFactory("ERC20Token")
-        lockDealNFT = await LockDealNFT.deploy()
+        const MockVaultManager = await ethers.getContractFactory("MockVaultManager")
+        const mockVaultManagger = await MockVaultManager.deploy()
+        await mockVaultManagger.deployed()
+        lockDealNFT = await LockDealNFT.deploy(mockVaultManagger.address)
         await lockDealNFT.deployed()
         dealProvider = await DealProvider.deploy(lockDealNFT.address)
         await dealProvider.deployed()
@@ -44,8 +47,8 @@ describe("LockDealNFT", function (accounts) {
     })
 
     it("only provider can mint", async () => {
-        await expect(lockDealNFT.connect(notOwner).mint(receiver.address, token.address, 10)).to.be.revertedWith(
-            "Provider not approved"
-        )
+        await expect(
+            lockDealNFT.connect(notOwner).mint(receiver.address, notOwner.address, token.address, 10)
+        ).to.be.revertedWith("Provider not approved")
     })
 })
