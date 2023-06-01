@@ -93,7 +93,7 @@ describe("Deal Provider", function (accounts) {
             await lockDealNFT.withdraw(poolId)
             
             poolData = await dealProvider.getData(poolId);
-            expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token.address]);
+            expect(poolData.poolInfo).to.deep.equal([poolId, constants.AddressZero, token.address]);
             expect(poolData.params[0]).to.equal(0);
         })
 

@@ -60,17 +60,19 @@ contract TimedLockDealProvider is
     function getWithdrawableAmount(
         uint256 poolId
     ) public view returns (uint256) {
-        uint256 startTime = dealProvider.startTimes(poolId);
+        (, uint256[] memory params) = getData(poolId);
+        uint256 leftAmount = params[0];
+        uint256 startTime = params[1];
+        uint256 finishTime = params[2];
+        uint256 startAmount = params[3];
+
         if (block.timestamp < startTime) return 0;
-        (, uint256 leftAmount) = dealProvider.dealProvider().poolIdToDeal(
-            poolId
-        );
-        if (poolIdToTimedDeal[poolId].finishTime < block.timestamp)
-            return leftAmount;
-        uint256 totalPoolDuration = poolIdToTimedDeal[poolId].finishTime - startTime;
+        if (finishTime < block.timestamp) return leftAmount;
+
+        uint256 totalPoolDuration = finishTime - startTime;
         uint256 timePassed = block.timestamp - startTime;
-        uint256 debitableAmount = (poolIdToTimedDeal[poolId].startAmount * timePassed) / totalPoolDuration;
-        return debitableAmount - (poolIdToTimedDeal[poolId].startAmount - leftAmount);
+        uint256 debitableAmount = (startAmount * timePassed) / totalPoolDuration;
+        return debitableAmount - (startAmount - leftAmount);
     }
 
     function split(
@@ -113,7 +115,7 @@ contract TimedLockDealProvider is
         dealProvider.registerPool(poolId, owner, token, params);
     }
 
-    function getData(uint256 poolId) external override view returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params) {
+    function getData(uint256 poolId) public override view returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params) {
         uint256[] memory baseLockDealProviderParams;
         (poolInfo, baseLockDealProviderParams) = dealProvider.getData(poolId);
 
