@@ -11,6 +11,10 @@ contract TimedLockDealProvider is
     IProvider
 {
     constructor(address nft, address provider) {
+        require(
+            nft != address(0x0) && provider != address(0x0),
+            "invalid address"
+        );
         dealProvider = BaseLockDealProvider(provider);
         lockDealNFT = LockDealNFT(nft);
     }
@@ -32,7 +36,7 @@ contract TimedLockDealProvider is
             params[0] == params[3],
             "Start amount should be equal to left amount"
         );
-        poolId = lockDealNFT.mint(owner, token, params[0]);
+        poolId = lockDealNFT.mint(owner,  token, msg.sender, params[0]);
         _registerPool(poolId, owner, token, params);
     }
 

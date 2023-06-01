@@ -7,7 +7,9 @@ import "../interface/IProvider.sol";
 contract LockDealNFT is LockDealNFTModifiers {
     using Counters for Counters.Counter;
 
-    constructor() ERC721("LockDealNFT", "LDNFT") {
+    constructor(address _vaultManager) ERC721("LockDealNFT", "LDNFT") {
+        require(_vaultManager != address(0x0), "invalid vault manager address");
+        vaultManager = IVaultManager(_vaultManager);
         approvedProviders[address(this)] = true;
     }
 
@@ -18,6 +20,7 @@ contract LockDealNFT is LockDealNFTModifiers {
     function mint(
         address owner,
         address token,
+        address from,
         uint256 amount
     )
         public
@@ -25,9 +28,12 @@ contract LockDealNFT is LockDealNFTModifiers {
         notZeroAddress(owner)
         notZeroAddress(token)
         notZeroAmount(amount)
-        returns (uint256)
+        approvedAmount(token, from, amount)
+        returns (uint256 poolId)
     {
-        return _mint(owner, msg.sender);
+        poolId = _mint(owner, msg.sender);
+        poolIdToVaultId[poolId] = vaultManager.DepositByToken(token, from, amount);
+        poolIdToProvider[poolId] = msg.sender;
     }
 
     function setApprovedProvider(
@@ -41,6 +47,11 @@ contract LockDealNFT is LockDealNFTModifiers {
         uint256 poolId
     ) external onlyOwnerOrAdmin(poolId) returns (uint256 withdrawnAmount, bool isFinal) {
         (withdrawnAmount, isFinal) = IProvider(poolIdToProvider[poolId]).withdraw(poolId);
+        vaultManager.WithdrawByVaultId(
+            poolIdToVaultId[poolId],
+            ownerOf(poolId),
+            withdrawnAmount
+        );
         if (isFinal) {
             _burn(poolId);
         }
@@ -63,8 +74,8 @@ contract LockDealNFT is LockDealNFTModifiers {
         address owner,
         address provider
     ) internal returns (uint256 newPoolId) {
-        newPoolId = _tokenIdCounter.current();
-        _tokenIdCounter.increment();
+        newPoolId = tokenIdCounter.current();
+        tokenIdCounter.increment();
         _safeMint(owner, newPoolId);
         poolIdToProvider[newPoolId] = provider;
     }

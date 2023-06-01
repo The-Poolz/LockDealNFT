@@ -8,6 +8,7 @@ import "../Provider/ProviderModifiers.sol";
 
 contract DealProvider is DealProviderModifiers, ProviderModifiers, IProvider {
     constructor(address _nftContract) {
+        require(_nftContract != address(0x0), "invalid address");
         lockDealNFT = LockDealNFT(_nftContract);
     }
 
@@ -18,7 +19,7 @@ contract DealProvider is DealProviderModifiers, ProviderModifiers, IProvider {
         address token,
         uint256[] memory params
     ) public returns (uint256 poolId) {
-        poolId = lockDealNFT.mint(owner, token, params[0]);
+        poolId = lockDealNFT.mint(owner, token, msg.sender, params[0]);
         _registerPool(poolId, owner, token, params);
     }
 
