@@ -80,7 +80,7 @@ describe("Deal Provider", function (accounts) {
 
     describe("Deal Withdraw", () => {
         it("should return withdrawAmount value", async () => {
-            [withdrawnAmount, isFinal] = await lockDealNFT.callStatic.withdraw(poolId)
+            const [withdrawnAmount, isFinal] = await lockDealNFT.callStatic.withdraw(poolId)
             expect(withdrawnAmount.toString()).to.equal(amount.toString())
             expect(isFinal).to.equal(true)
         })
