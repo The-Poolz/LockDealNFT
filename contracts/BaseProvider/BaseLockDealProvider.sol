@@ -31,7 +31,9 @@ contract BaseLockDealProvider is
     function withdraw(
         uint256 poolId
     ) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
-        (, uint256 leftAmount) = dealProvider.poolIdToDeal(poolId);
+        (, uint256[] memory params) = getData(poolId);
+        uint256 leftAmount = params[0];
+        
         (withdrawnAmount, isFinal) = _withdraw(poolId, leftAmount);
     }
 
@@ -85,7 +87,7 @@ contract BaseLockDealProvider is
             dealProvider.currentParamsTargetLenght();
     }
 
-    function getData(uint256 poolId) external override view returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params) {
+    function getData(uint256 poolId) public override view returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params) {
         uint256[] memory dealProviderParams;
         (poolInfo, dealProviderParams) = dealProvider.getData(poolId);
 
