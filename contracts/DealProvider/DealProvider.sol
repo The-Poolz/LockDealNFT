@@ -100,7 +100,8 @@ contract DealProvider is DealProviderModifiers, ProviderModifiers, IProvider {
     function getData(uint256 poolId) external override view returns (BasePoolInfo memory poolInfo, uint256[] memory params) {
         address token = poolIdToDeal[poolId].token;
         uint256 leftAmount = poolIdToDeal[poolId].leftAmount;
-        poolInfo = BasePoolInfo(poolId, lockDealNFT.ownerOf(poolId), token);
+        address owner = lockDealNFT.exist(poolId) ? lockDealNFT.ownerOf(poolId) : address(0);
+        poolInfo = BasePoolInfo(poolId, owner, token);
         params = new uint256[](1);
         params[0] = leftAmount; // leftAmount
     }

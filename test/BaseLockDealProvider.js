@@ -56,9 +56,11 @@ describe("Base Lock Deal Provider", function (accounts) {
         expect(event[event.length - 1].args.params[0]).to.equal(amount)
     })
 
-    it("should check base provider data after creation", async () => {
-        const poolStartTime = await baseLockProvider.startTimes(poolId)
-        expect(poolStartTime).to.equal(startTime)
+    it("should get base provider data after creation", async () => {       
+        poolData = await baseLockProvider.getData(poolId);
+        expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token.address]);
+        expect(poolData.params[0]).to.equal(amount);
+        expect(poolData.params[1]).to.equal(startTime);
     })
 
     it("should revert zero owner address", async () => {
@@ -83,14 +85,20 @@ describe("Base Lock Deal Provider", function (accounts) {
     describe("Base Split Amount", () => {
         it("should check data in old pool after split", async () => {
             await lockDealNFT.split(poolId, amount / 2, newOwner.address)
-            const data = await baseLockProvider.startTimes(poolId)
-            expect(data.toString()).to.equal(startTime.toString())
+            
+            poolData = await baseLockProvider.getData(poolId);
+            expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token.address]);
+            expect(poolData.params[0]).to.equal(amount / 2);
+            expect(poolData.params[1]).to.equal(startTime);
         })
 
         it("should check data in new pool after split", async () => {
             await lockDealNFT.split(poolId, amount / 2, newOwner.address)
-            const data = await baseLockProvider.startTimes(parseInt(poolId) + 1)
-            expect(data.toString()).to.equal(startTime.toString())
+
+            poolData = await baseLockProvider.getData(parseInt(poolId) + 1);
+            expect(poolData.poolInfo).to.deep.equal([parseInt(poolId) + 1, newOwner.address, token.address]);
+            expect(poolData.params[0]).to.equal(amount / 2);
+            expect(poolData.params[1]).to.equal(startTime);
         })
     })
 
@@ -98,8 +106,11 @@ describe("Base Lock Deal Provider", function (accounts) {
         it("should withdraw tokens", async () => {
             await helpers.time.increase(3600)
             await lockDealNFT.withdraw(poolId)
-            const data = await dealProvider.poolIdToDeal(poolId)
-            expect(data.leftAmount.toString()).to.equal("0")
+            
+            poolData = await baseLockProvider.getData(poolId);
+            expect(poolData.poolInfo).to.deep.equal([poolId, constants.AddressZero, token.address]);
+            expect(poolData.params[0]).to.equal(0);
+            expect(poolData.params[1]).to.equal(startTime);
         })
     })
 })

@@ -13,6 +13,10 @@ contract LockDealNFT is LockDealNFTModifiers {
         approvedProviders[address(this)] = true;
     }
 
+    function exist(uint256 poolId) external view returns (bool) {
+        return _exists(poolId);
+    }
+
     function mint(
         address owner,
         address token,
