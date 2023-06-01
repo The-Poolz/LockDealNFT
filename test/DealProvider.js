@@ -1,6 +1,6 @@
 const { expect } = require("chai")
 const { constants } = require("ethers")
-const { ethers } = require("hardhat")
+const { deployed } = require("./helper")
 
 describe("Deal Provider", function (accounts) {
     let dealProvider, lockDealNFT, poolId
@@ -10,18 +10,10 @@ describe("Deal Provider", function (accounts) {
 
     before(async () => {
         ;[receiver, newOwner] = await ethers.getSigners()
-        const LockDealNFT = await ethers.getContractFactory("LockDealNFT")
-        const DealProvider = await ethers.getContractFactory("DealProvider")
-        const ERC20Token = await ethers.getContractFactory("ERC20Token")
-        const MockVaultManager = await ethers.getContractFactory("MockVaultManager")
-        const mockVaultManagger = await MockVaultManager.deploy()
-        await mockVaultManagger.deployed()
-        lockDealNFT = await LockDealNFT.deploy(mockVaultManagger.address)
-        await lockDealNFT.deployed()
-        dealProvider = await DealProvider.deploy(lockDealNFT.address)
-        token = await ERC20Token.deploy("TEST Token", "TERC20")
-        await dealProvider.deployed()
-        await token.deployed()
+        const mockVaultManagger = await deployed("MockVaultManager")
+        lockDealNFT = await deployed("LockDealNFT", mockVaultManagger.address)
+        token = await deployed("ERC20Token", "TEST Token", "TERC20")
+        dealProvider = await deployed("DealProvider", lockDealNFT.address)
         await token.approve(dealProvider.address, constants.MaxUint256)
         await token.approve(mockVaultManagger.address, constants.MaxUint256)
         await lockDealNFT.setApprovedProvider(dealProvider.address, true)
