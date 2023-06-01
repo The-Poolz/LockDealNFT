@@ -34,24 +34,24 @@ contract BaseLockDealProvider is
     /// @dev use revert only for permissions
     function withdraw(
         uint256 poolId
-    ) public override onlyNFT returns (uint256 withdrawnAmount) {
+    ) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
         (, uint256 leftAmount) = dealProvider.poolIdToDeal(poolId);
-        withdrawnAmount = _withdraw(poolId, leftAmount);
+        (withdrawnAmount, isFinal) = _withdraw(poolId, leftAmount);
     }
 
     function withdraw(
         uint256 poolId,
         uint256 amount
-    ) public onlyProvider returns (uint256 withdrawnAmount) {
-        withdrawnAmount = _withdraw(poolId, amount);
+    ) public onlyProvider returns (uint256 withdrawnAmount, bool isFinal) {
+        (withdrawnAmount, isFinal) = _withdraw(poolId, amount);
     }
 
     function _withdraw(
         uint256 poolId,
         uint256 amount
-    ) internal returns (uint256 withdrawnAmount) {
+    ) internal returns (uint256 withdrawnAmount, bool isFinal) {
         if (startTimes[poolId] <= block.timestamp) {
-            withdrawnAmount = dealProvider.withdraw(poolId, amount);
+            (withdrawnAmount, isFinal) = dealProvider.withdraw(poolId, amount);
         }
     }
 

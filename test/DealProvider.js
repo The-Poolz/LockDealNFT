@@ -87,9 +87,10 @@ describe("Deal Provider", function (accounts) {
     })
 
     describe("Deal Withdraw", () => {
-        it("should return withdrawAmount value", async () => {
-            const withdrawnAmount = await lockDealNFT.callStatic.withdraw(poolId)
+        it("should return withdrawAmount and isFinal values", async () => {
+            const [withdrawnAmount, isFinal] = await lockDealNFT.callStatic.withdraw(poolId)
             expect(withdrawnAmount.toString()).to.equal(amount.toString())
+            expect(isFinal).to.equal(true)
         })
 
         it("should check data in pool after withdraw", async () => {
@@ -101,6 +102,7 @@ describe("Deal Provider", function (accounts) {
         })
 
         it("should check events after withdraw", async () => {
+            poolId = await lockDealNFT.totalSupply()
             const tx = await lockDealNFT.withdraw(poolId)
             await tx.wait()
             const events = await dealProvider.queryFilter("TokenWithdrawn")
