@@ -35,8 +35,11 @@ contract LockDealNFT is LockDealNFTModifiers {
 
     function withdraw(
         uint256 poolId
-    ) external onlyOwnerOrAdmin(poolId) returns (uint256 withdrawnAmount) {
-        withdrawnAmount = IProvider(poolIdToProvider[poolId]).withdraw(poolId);
+    ) external onlyOwnerOrAdmin(poolId) returns (uint256 withdrawnAmount, bool isFinal) {
+        (withdrawnAmount, isFinal) = IProvider(poolIdToProvider[poolId]).withdraw(poolId);
+        if (isFinal) {
+            _burn(poolId);
+        }
     }
 
     function split(

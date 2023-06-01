@@ -8,7 +8,7 @@ import "../DealProvider/IDealProvierEvents.sol";
 interface IProvider {
     function withdraw(
         uint256 poolId
-    ) external returns (uint256 withdrawnAmount);
+    ) external returns (uint256 withdrawnAmount, bool isFinal);
 
     function split(
         uint256 oldPoolId,
