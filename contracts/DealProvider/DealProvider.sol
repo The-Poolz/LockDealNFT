@@ -11,23 +11,15 @@ contract DealProvider is DealProviderModifiers, ProviderModifiers, IProvider {
         lockDealNFT = LockDealNFT(_nftContract);
     }
 
-    /// params[0] = amount
+    ///@param params[0] = amount
+    ///@dev requirements are in mint, _register functions
     function createNewPool(
         address owner,
         address token,
         uint256[] memory params
-    )
-        public
-        notZeroAddress(owner)
-        notZeroAddress(token)
-        notZeroAmount(params[0])
-        validParamsLength(params.length, currentParamsTargetLenght)
-        returns (uint256 poolId)
-    {
-        poolId = lockDealNFT.mint(owner, token);
-        poolIdToDeal[poolId].leftAmount = params[0];
-        poolIdToDeal[poolId].token = token;
-        emit NewPoolCreated(BasePoolInfo(poolId, owner, token), params);
+    ) public returns (uint256 poolId) {
+        poolId = lockDealNFT.mint(owner, token, params[0]);
+        _registerPool(poolId, owner, token, params);
     }
 
     /// @dev use revert only for permissions
@@ -67,7 +59,6 @@ contract DealProvider is DealProviderModifiers, ProviderModifiers, IProvider {
     )
         public
         override
-        notZeroAmount(splitAmount)
         onlyProvider
         invalidSplitAmount(poolIdToDeal[oldPoolId].leftAmount, splitAmount)
     {
@@ -86,13 +77,22 @@ contract DealProvider is DealProviderModifiers, ProviderModifiers, IProvider {
 
     function registerPool(
         uint256 poolId,
+        address owner,
+        address token,
         uint256[] memory params
-    )
-        public
-        onlyProvider
-        validParamsLength(params.length, currentParamsTargetLenght)
-    {
+    ) public onlyProvider {
+        _registerPool(poolId, owner, token, params);
+    }
+
+    function _registerPool(
+        uint256 poolId,
+        address owner,
+        address token,
+        uint256[] memory params
+    ) internal validParamsLength(params.length, currentParamsTargetLenght) {
         poolIdToDeal[poolId].leftAmount = params[0];
+        poolIdToDeal[poolId].token = token;
+        emit NewPoolCreated(BasePoolInfo(poolId, owner, token), params);
     }
 
     function getData(uint256 poolId) external override view returns (BasePoolInfo memory poolInfo, uint256[] memory params) {

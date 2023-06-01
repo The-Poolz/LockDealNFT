@@ -15,21 +15,16 @@ contract BaseLockDealProvider is
         lockDealNFT = LockDealNFT(nft);
     }
 
-    /// params[0] = amount
-    /// params[1] = startTime
+    ///@param params[0] = amount
+    ///@param params[1] = startTime
+    ///@dev requirements are in mint, _register functions
     function createNewPool(
         address owner,
         address token,
         uint256[] memory params
-    )
-        public
-        notZeroAddress(owner)
-        notZeroAddress(token)
-        returns (uint256 poolId)
-    {
-        poolId = lockDealNFT.mint(owner, token);
-        _registerPool(poolId, params);
-        emit NewPoolCreated(BasePoolInfo(poolId, owner, token), params);
+    ) public returns (uint256 poolId) {
+        poolId = lockDealNFT.mint(owner, token, params[0]);
+        _registerPool(poolId, owner, token, params);
     }
 
     /// @dev use revert only for permissions
@@ -67,17 +62,21 @@ contract BaseLockDealProvider is
 
     function registerPool(
         uint256 poolId,
+        address owner,
+        address token,
         uint256[] memory params
     ) public onlyProvider {
-        _registerPool(poolId, params);
+        _registerPool(poolId, owner, token, params);
     }
 
     function _registerPool(
         uint256 poolId,
+        address owner,
+        address token,
         uint256[] memory params
     ) internal validParamsLength(params.length, getParametersTargetLenght()) {
         startTimes[poolId] = params[1];
-        dealProvider.registerPool(poolId, params);
+        dealProvider.registerPool(poolId, owner, token, params);
     }
 
     function getParametersTargetLenght() public view returns (uint256) {

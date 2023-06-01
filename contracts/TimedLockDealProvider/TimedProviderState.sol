@@ -15,17 +15,4 @@ contract TimedProviderState {
         uint256 finishTime;
         uint256 startAmount;
     }
-
-    function getParams(
-        uint256 leftAmount,
-        uint256 startTime,
-        uint256 finishTime,
-        uint256 startAmount
-    ) internal pure returns (uint256[] memory params) {
-        params = new uint256[](4);
-        params[0] = leftAmount;
-        params[1] = startTime;
-        params[2] = finishTime;
-        params[3] = startAmount;
-    }
 }

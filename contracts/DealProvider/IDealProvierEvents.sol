@@ -9,6 +9,14 @@ interface IDealProvierEvents {
         uint256 leftAmount; //the first param
     }
 
+    struct BasePoolInfo {
+        uint256 poolId;
+        address owner;
+        address token;
+    }
+
+    event NewPoolCreated(BasePoolInfo poolInfo, uint256[] params);
+
     event TokenWithdrawn(
         uint256 poolId,
         address indexed owner,

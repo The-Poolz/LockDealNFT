@@ -58,6 +58,17 @@ describe("Timed Lock Deal Provider", function (accounts) {
         expect(timedData.startAmount.toString()).to.equal(amount.toString())
     })
 
+    it("should check cascade NewPoolCreated event", async () => {
+        const tx = await timedLockProvider.createNewPool(receiver.address, token.address, params)
+        await tx.wait()
+        const event = await dealProvider.queryFilter("NewPoolCreated((uint256,address,address),uint256[])")
+        const data = event[event.length - 1].args
+        expect(data.poolInfo.poolId).to.equal(parseInt(poolId) + 1)
+        expect(data.poolInfo.token).to.equal(token.address)
+        expect(data.poolInfo.owner).to.equal(receiver.address)
+        expect(data.params[0]).to.equal(amount)
+    })
+
     it("should revert zero owner address", async () => {
         await expect(
             timedLockProvider.createNewPool(receiver.address, constants.AddressZero, params)
@@ -70,12 +81,12 @@ describe("Timed Lock Deal Provider", function (accounts) {
         )
     })
 
-    // it("should revert zero amount", async () => {
-    //     const params = ["0", startTime, finishTime, "0"]
-    //     await expect(timedLockProvider.createNewPool(receiver.address, token.address, params)).to.be.revertedWith(
-    //         "amount should be greater than 0"
-    //     )
-    // })
+    it("should revert zero amount", async () => {
+        const params = ["0", startTime, finishTime, "0"]
+        await expect(timedLockProvider.createNewPool(receiver.address, token.address, params)).to.be.revertedWith(
+            "amount should be greater than 0"
+        )
+    })
 
     describe("Timed Split Amount", () => {
         it("should check data in old pool after split", async () => {
