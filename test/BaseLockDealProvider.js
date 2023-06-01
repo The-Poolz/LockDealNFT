@@ -27,6 +27,7 @@ describe("Base Lock Deal Provider", function (accounts) {
         token = await ERC20Token.deploy("TEST Token", "TERC20")
         await token.deployed()
         await token.approve(baseLockProvider.address, constants.MaxUint256)
+        await token.approve(mockVaultManagger.address, constants.MaxUint256)
         await lockDealNFT.setApprovedProvider(baseLockProvider.address, true)
         await lockDealNFT.setApprovedProvider(dealProvider.address, true)
     })

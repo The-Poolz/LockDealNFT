@@ -3,7 +3,7 @@ const { ethers } = require("hardhat")
 const { constants } = require("ethers")
 
 describe("LockDealNFT", function (accounts) {
-    let lockDealNFT, poolId, token
+    let lockDealNFT, poolId, token, mockVaultManagger
     let notOwner, receiver, newOwner
 
     before(async () => {
@@ -12,7 +12,7 @@ describe("LockDealNFT", function (accounts) {
         const DealProvider = await ethers.getContractFactory("DealProvider")
         const ERC20Token = await ethers.getContractFactory("ERC20Token")
         const MockVaultManager = await ethers.getContractFactory("MockVaultManager")
-        const mockVaultManagger = await MockVaultManager.deploy()
+        mockVaultManagger = await MockVaultManager.deploy()
         await mockVaultManagger.deployed()
         lockDealNFT = await LockDealNFT.deploy(mockVaultManagger.address)
         await lockDealNFT.deployed()
@@ -21,6 +21,7 @@ describe("LockDealNFT", function (accounts) {
         token = await ERC20Token.deploy("TEST Token", "TERC20")
         await token.deployed()
         await token.approve(dealProvider.address, constants.MaxUint256)
+        await token.approve(mockVaultManagger.address, constants.MaxUint256)
         await lockDealNFT.setApprovedProvider(dealProvider.address, true)
     })
 
@@ -50,5 +51,13 @@ describe("LockDealNFT", function (accounts) {
         await expect(
             lockDealNFT.connect(notOwner).mint(receiver.address, notOwner.address, token.address, 10)
         ).to.be.revertedWith("Provider not approved")
+    })
+
+    it("should revert not approved amount", async () => {
+        await token.approve(mockVaultManagger.address, "0")
+        await expect(dealProvider.createNewPool(receiver.address, token.address, ["1000"])).to.be.revertedWith(
+            "Sending tokens not approved"
+        )
+        await token.approve(mockVaultManagger.address, constants.MaxUint256)
     })
 })

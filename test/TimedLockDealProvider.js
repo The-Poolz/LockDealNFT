@@ -32,6 +32,7 @@ describe("Timed Lock Deal Provider", function (accounts) {
         token = await ERC20Token.deploy("TEST Token", "TERC20")
         await token.deployed()
         await token.approve(timedLockProvider.address, constants.MaxUint256)
+        await token.approve(mockVaultManagger.address, constants.MaxUint256)
         await lockDealNFT.setApprovedProvider(dealProvider.address, true)
         await lockDealNFT.setApprovedProvider(baseLockProvider.address, true)
         await lockDealNFT.setApprovedProvider(timedLockProvider.address, true)

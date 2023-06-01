@@ -23,6 +23,7 @@ describe("Deal Provider", function (accounts) {
         await dealProvider.deployed()
         await token.deployed()
         await token.approve(dealProvider.address, constants.MaxUint256)
+        await token.approve(mockVaultManagger.address, constants.MaxUint256)
         await lockDealNFT.setApprovedProvider(dealProvider.address, true)
     })
 
