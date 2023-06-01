@@ -33,10 +33,10 @@ describe("Deal Provider", function (accounts) {
         await dealProvider.createNewPool(receiver.address, token.address, params)
     })
 
-    it("should check pool data", async () => {
-        poolData = await dealProvider.poolIdToDeal(poolId.toString())
-        expect(poolData[0].toString()).to.equal(token.address)
-        expect(poolData[1].toString()).to.equal(amount.toString())
+    it("should get pool data", async () => {
+        poolData = await dealProvider.getData(poolId);
+        expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token.address]);
+        expect(poolData.params[0]).to.equal(amount);
     })
 
     it("should check pool creation events", async () => {
@@ -71,14 +71,18 @@ describe("Deal Provider", function (accounts) {
     describe("Split Amount", () => {
         it("should check data in old pool after split", async () => {
             await lockDealNFT.split(poolId, amount / 2, newOwner.address)
-            const data = await dealProvider.poolIdToDeal(poolId)
-            expect(data.leftAmount.toString()).to.equal((amount / 2).toString())
+
+            poolData = await dealProvider.getData(poolId);
+            expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token.address]);
+            expect(poolData.params[0]).to.equal(amount / 2);
         })
 
         it("should check data in new pool after split", async () => {
             await lockDealNFT.split(poolId, amount / 2, newOwner.address)
-            const data = await dealProvider.poolIdToDeal(parseInt(poolId) + 1)
-            expect(data.leftAmount.toString()).to.equal((amount / 2).toString())
+
+            poolData = await dealProvider.getData(parseInt(poolId) + 1);
+            expect(poolData.poolInfo).to.deep.equal([parseInt(poolId) + 1, newOwner.address, token.address]);
+            expect(poolData.params[0]).to.equal(amount / 2);
         })
     })
 
@@ -90,8 +94,10 @@ describe("Deal Provider", function (accounts) {
 
         it("should check data in pool after withdraw", async () => {
             await lockDealNFT.withdraw(poolId)
-            const data = await dealProvider.poolIdToDeal(poolId)
-            expect(data.leftAmount.toString()).to.equal("0")
+            
+            poolData = await dealProvider.getData(poolId);
+            expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token.address]);
+            expect(poolData.params[0]).to.equal(0);
         })
 
         it("should check events after withdraw", async () => {

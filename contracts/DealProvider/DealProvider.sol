@@ -65,6 +65,7 @@ contract DealProvider is DealProviderModifiers, ProviderModifiers, IProvider {
     {
         poolIdToDeal[oldPoolId].leftAmount -= splitAmount;
         poolIdToDeal[newPoolId].leftAmount = splitAmount;
+        poolIdToDeal[newPoolId].token = poolIdToDeal[oldPoolId].token;
         emit PoolSplit(
             oldPoolId,
             lockDealNFT.ownerOf(oldPoolId),
@@ -93,5 +94,13 @@ contract DealProvider is DealProviderModifiers, ProviderModifiers, IProvider {
         poolIdToDeal[poolId].leftAmount = params[0];
         poolIdToDeal[poolId].token = token;
         emit NewPoolCreated(BasePoolInfo(poolId, owner, token), params);
+    }
+
+    function getData(uint256 poolId) external override view returns (BasePoolInfo memory poolInfo, uint256[] memory params) {
+        address token = poolIdToDeal[poolId].token;
+        uint256 leftAmount = poolIdToDeal[poolId].leftAmount;
+        poolInfo = BasePoolInfo(poolId, lockDealNFT.ownerOf(poolId), token);
+        params = new uint256[](1);
+        params[0] = leftAmount; // leftAmount
     }
 }
