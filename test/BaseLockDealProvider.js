@@ -33,9 +33,7 @@ describe("Base Lock Deal Provider", function (accounts) {
     })
 
     beforeEach(async () => {
-        let date = new Date()
-        date.setDate(date.getDate())
-        startTime = Math.floor(date.getTime() / 1000)
+        startTime = await helpers.time.latest()
         params = [amount, startTime]
         poolId = parseInt(await lockDealNFT.totalSupply())
         await baseLockProvider.createNewPool(receiver.address, token.address, params)
