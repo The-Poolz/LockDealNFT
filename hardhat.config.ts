@@ -1,8 +1,7 @@
-require("@nomicfoundation/hardhat-toolbox")
-require("solidity-coverage")
+import { HardhatUserConfig } from "hardhat/config";
+import "@nomicfoundation/hardhat-toolbox";
 
-/** @type import('hardhat/config').HardhatUserConfig */
-module.exports = {
+const config: HardhatUserConfig =  {
     solidity: {
         version: "0.8.18",
         settings: {
@@ -58,3 +57,5 @@ module.exports = {
         },
     },
 }
+
+export default config;
