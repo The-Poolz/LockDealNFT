@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../interface/IProvider.sol";
+import "../ProviderInterface/IProvider.sol";
 import "../Provider/ProviderModifiers.sol";
 import "./BaseLockDealState.sol";
 

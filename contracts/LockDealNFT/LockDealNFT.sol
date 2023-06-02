@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./LockDealNFTModifiers.sol";
-import "../interface/IProvider.sol";
+import "../ProviderInterface/IProvider.sol";
 
 contract LockDealNFT is LockDealNFTModifiers {
     using Counters for Counters.Counter;
