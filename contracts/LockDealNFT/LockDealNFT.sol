@@ -33,7 +33,6 @@ contract LockDealNFT is LockDealNFTModifiers {
     {
         poolId = _mint(owner, msg.sender);
         poolIdToVaultId[poolId] = vaultManager.DepositByToken(token, from, amount);
-        poolIdToProvider[poolId] = msg.sender;
     }
 
     function setApprovedProvider(
