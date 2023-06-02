@@ -5,7 +5,7 @@ const { deployed } = require("./helper")
 
 describe("LockDealNFT", function (accounts) {
     let lockDealNFT, poolId, token, mockVaultManager
-    let notOwner, receiver, newOwner
+    let notOwner, receiver, newOwner, dealProvider
 
     before(async () => {
         ;[notOwner, receiver, newOwner] = await ethers.getSigners()
