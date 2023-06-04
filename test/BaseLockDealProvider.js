@@ -1,6 +1,6 @@
 const { expect } = require("chai")
 const { constants } = require("ethers")
-const { ethers } = require("hardhat")
+const { deployed } = require("./helper")
 const helpers = require("@nomicfoundation/hardhat-network-helpers")
 
 describe("Base Lock Deal Provider", function (accounts) {
@@ -11,21 +11,11 @@ describe("Base Lock Deal Provider", function (accounts) {
 
     before(async () => {
         ;[receiver, newOwner] = await ethers.getSigners()
-        const LockDealNFT = await ethers.getContractFactory("LockDealNFT")
-        const DealProvider = await ethers.getContractFactory("DealProvider")
-        const BaseLockProvider = await ethers.getContractFactory("BaseLockDealProvider")
-        const ERC20Token = await ethers.getContractFactory("ERC20Token")
-        const MockVaultManager = await ethers.getContractFactory("MockVaultManager")
-        const mockVaultManagger = await MockVaultManager.deploy()
-        await mockVaultManagger.deployed()
-        lockDealNFT = await LockDealNFT.deploy(mockVaultManagger.address)
-        await lockDealNFT.deployed()
-        dealProvider = await DealProvider.deploy(lockDealNFT.address)
-        await dealProvider.deployed()
-        baseLockProvider = await BaseLockProvider.deploy(lockDealNFT.address, dealProvider.address)
-        await baseLockProvider.deployed()
-        token = await ERC20Token.deploy("TEST Token", "TERC20")
-        await token.deployed()
+        const mockVaultManagger = await deployed("MockVaultManager")
+        lockDealNFT = await deployed("LockDealNFT", mockVaultManagger.address)
+        dealProvider = await deployed("DealProvider", lockDealNFT.address)
+        token = await deployed("ERC20Token", "TEST Token", "TERC20")
+        baseLockProvider = await deployed("BaseLockDealProvider", lockDealNFT.address, dealProvider.address)
         await token.approve(baseLockProvider.address, constants.MaxUint256)
         await token.approve(mockVaultManagger.address, constants.MaxUint256)
         await lockDealNFT.setApprovedProvider(baseLockProvider.address, true)
@@ -33,9 +23,7 @@ describe("Base Lock Deal Provider", function (accounts) {
     })
 
     beforeEach(async () => {
-        let date = new Date()
-        date.setDate(date.getDate())
-        startTime = Math.floor(date.getTime() / 1000)
+        startTime = await helpers.time.latest()
         params = [amount, startTime]
         poolId = parseInt(await lockDealNFT.totalSupply())
         await baseLockProvider.createNewPool(receiver.address, token.address, params)
