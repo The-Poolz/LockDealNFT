@@ -1,27 +1,20 @@
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
 const { constants } = require("ethers")
+const { deployed } = require("./helper")
 
 describe("LockDealNFT", function (accounts) {
-    let lockDealNFT, poolId, token, mockVaultManagger
-    let notOwner, receiver, newOwner
+    let lockDealNFT, poolId, token, mockVaultManager
+    let notOwner, receiver, newOwner, dealProvider
 
     before(async () => {
         ;[notOwner, receiver, newOwner] = await ethers.getSigners()
-        const LockDealNFT = await ethers.getContractFactory("LockDealNFT")
-        const DealProvider = await ethers.getContractFactory("DealProvider")
-        const ERC20Token = await ethers.getContractFactory("ERC20Token")
-        const MockVaultManager = await ethers.getContractFactory("MockVaultManager")
-        mockVaultManagger = await MockVaultManager.deploy()
-        await mockVaultManagger.deployed()
-        lockDealNFT = await LockDealNFT.deploy(mockVaultManagger.address)
-        await lockDealNFT.deployed()
-        dealProvider = await DealProvider.deploy(lockDealNFT.address)
-        await dealProvider.deployed()
-        token = await ERC20Token.deploy("TEST Token", "TERC20")
-        await token.deployed()
+        mockVaultManager = await deployed("MockVaultManager")
+        lockDealNFT = await deployed("LockDealNFT", mockVaultManager.address)
+        dealProvider = await deployed("DealProvider", lockDealNFT.address)
+        token = await deployed("ERC20Token", "TEST Token", "TERC20")
         await token.approve(dealProvider.address, constants.MaxUint256)
-        await token.approve(mockVaultManagger.address, constants.MaxUint256)
+        await token.approve(mockVaultManager.address, constants.MaxUint256)
         await lockDealNFT.setApprovedProvider(dealProvider.address, true)
     })
 
@@ -54,10 +47,10 @@ describe("LockDealNFT", function (accounts) {
     })
 
     it("should revert not approved amount", async () => {
-        await token.approve(mockVaultManagger.address, "0")
+        await token.approve(mockVaultManager.address, "0")
         await expect(dealProvider.createNewPool(receiver.address, token.address, ["1000"])).to.be.revertedWith(
             "Sending tokens not approved"
         )
-        await token.approve(mockVaultManagger.address, constants.MaxUint256)
+        await token.approve(mockVaultManager.address, constants.MaxUint256)
     })
 })
