@@ -39,11 +39,9 @@ describe("Timed Lock Deal Provider", function (accounts) {
     })
 
     beforeEach(async () => {
-        let date = new Date()
-        date.setDate(date.getDate() + 1)
-        startTime = Math.floor(date.getTime() / 1000)
-        date.setDate(date.getDate() + 7)
-        finishTime = Math.floor(date.getTime() / 1000)
+        const ONE_DAY = 86400
+        startTime = await helpers.time.latest() + ONE_DAY   // plus 1 day
+        finishTime = startTime + 7 * ONE_DAY   // plus 7 days from `startTime`
         params = [amount, startTime, finishTime, amount]
         poolId = await lockDealNFT.totalSupply()
         await timedLockProvider.createNewPool(receiver.address, token.address, params)
