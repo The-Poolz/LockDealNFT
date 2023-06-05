@@ -10,6 +10,7 @@ import { ERC20Token } from '../typechain-types/poolz-helper-v2/contracts/token';
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { MockProvider } from "../typechain-types/contracts/test/MockProvider";
 import { deployed } from "./helper";
+import { MockVaultManager } from "../typechain-types";
 
 describe("Timed Deal Provider", function () {
     let timedDealProvider: TimedDealProvider 
@@ -32,7 +33,7 @@ describe("Timed Deal Provider", function () {
 
     before(async () => {
         [receiver, newOwner] = await ethers.getSigners()
-        const mockVaultManager = await deployed("MockVaultManager")
+        const mockVaultManager: MockVaultManager = await deployed("MockVaultManager")
         lockDealNFT = await deployed("LockDealNFT", mockVaultManager.address)
         token = await deployed("ERC20Token", "TEST Token", "TERC20")
         dealProvider = await deployed("DealProvider", lockDealNFT.address)
@@ -240,14 +241,14 @@ describe("Timed Deal Provider", function () {
         })
 
         it("invalid provider can't change data", async () => {
-            const invalidContract = await deployed("MockProvider", timedDealProvider.address)
+            const invalidContract = await deployed<MockProvider>("MockProvider", timedDealProvider.address)
             await expect(invalidContract.createNewPool(receiver.address, token.address, params)).to.be.revertedWith(
                 "invalid provider address"
             )
         })
 
         it("invalid provider can't withdraw", async () => {
-            const invalidContract = await deployed("MockProvider", timedDealProvider.address)
+            const invalidContract = await deployed<MockProvider>("MockProvider", timedDealProvider.address)
             await expect(invalidContract.withdraw(poolId, amount / 2)).to.be.revertedWith(
                 "invalid provider address"
             )

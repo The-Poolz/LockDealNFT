@@ -5,6 +5,7 @@ import { LockDealNFT } from "../typechain-types/contracts/LockDealNFT";
 import { DealProvider, IDealProvierEvents } from "../typechain-types/contracts/DealProvider";
 import { ERC20Token } from '../typechain-types/poolz-helper-v2/contracts/token';
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { MockVaultManager } from "../typechain-types";
 import { deployed } from "./helper";
 
 describe("Deal Provider", function () {
@@ -21,15 +22,14 @@ describe("Deal Provider", function () {
     }
     const amount = 10000
 
-
     before(async () => {
         [receiver, newOwner] = await ethers.getSigners()
-        const mockVaultManagger = await deployed("MockVaultManager")
-        lockDealNFT = await deployed("LockDealNFT", mockVaultManagger.address)
+        const mockVaultManager: MockVaultManager = await deployed("MockVaultManager")
+        lockDealNFT = await deployed("LockDealNFT", mockVaultManager.address)
         token = await deployed("ERC20Token", "TEST Token", "TERC20")
         dealProvider = await deployed("DealProvider", lockDealNFT.address)
         await token.approve(dealProvider.address, constants.MaxUint256)
-        await token.approve(mockVaultManagger.address, constants.MaxUint256)
+        await token.approve(mockVaultManager.address, constants.MaxUint256)
         await lockDealNFT.setApprovedProvider(dealProvider.address, true)
     })
 
