@@ -40,6 +40,11 @@ describe("LockDealNFT", function (accounts) {
         expect(await lockDealNFT.totalSupply()).to.equal(parseInt(poolId) + 1)
     })
 
+    it("should save provider address", async () => {
+        await dealProvider.createNewPool(receiver.address, token.address, ["1000"])
+        expect(await lockDealNFT.poolIdToProvider(poolId)).to.equal(dealProvider.address)
+    })
+
     it("only provider can mint", async () => {
         await expect(
             lockDealNFT.connect(notOwner).mint(receiver.address, notOwner.address, token.address, 10)
