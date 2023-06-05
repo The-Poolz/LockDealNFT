@@ -1,11 +1,23 @@
-const { expect } = require("chai")
-const { ethers } = require("hardhat")
-const { constants } = require("ethers")
-const { deployed } = require("./helper")
+import { expect } from "chai";
+import { constants } from "ethers";
+import { ethers } from 'hardhat';
+import { LockDealNFT } from "../typechain-types/contracts/LockDealNFT";
+import { DealProvider } from "../typechain-types/contracts/DealProvider";
+import { ERC20Token } from '../typechain-types/poolz-helper-v2/contracts/token';
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { MockVaultManager } from "../typechain-types/contracts/test/MockVaultManager";
+import { deployed } from "./helper";
 
-describe("LockDealNFT", function (accounts) {
-    let lockDealNFT, poolId, token, mockVaultManager
-    let notOwner, receiver, newOwner, dealProvider
+describe("LockDealNFT", function () {
+    let lockDealNFT: LockDealNFT
+    let poolId: number
+    let token: ERC20Token
+    let mockVaultManager: MockVaultManager
+    let dealProvider: DealProvider
+    let receiver: SignerWithAddress
+    let newOwner: SignerWithAddress
+    let notOwner: SignerWithAddress
+
 
     before(async () => {
         ;[notOwner, receiver, newOwner] = await ethers.getSigners()
@@ -19,7 +31,7 @@ describe("LockDealNFT", function (accounts) {
     })
 
     beforeEach(async () => {
-        poolId = await lockDealNFT.totalSupply()
+        poolId = (await lockDealNFT.totalSupply()).toNumber()
     })
 
     it("check NFT name", async () => {
@@ -37,7 +49,7 @@ describe("LockDealNFT", function (accounts) {
 
     it("should mint new token", async () => {
         await dealProvider.createNewPool(receiver.address, token.address, ["1000"])
-        expect(await lockDealNFT.totalSupply()).to.equal(parseInt(poolId) + 1)
+        expect(await lockDealNFT.totalSupply()).to.equal(poolId + 1)
     })
 
     it("should save provider address", async () => {

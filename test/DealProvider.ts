@@ -1,12 +1,33 @@
-const { expect } = require("chai")
-const { constants } = require("ethers")
-const { deployed } = require("./helper")
+import { expect } from "chai";
+import { constants } from "ethers";
+import { ethers } from 'hardhat';
+import { LockDealNFT } from "../typechain-types/contracts/LockDealNFT";
+import { DealProvider } from "../typechain-types/contracts/DealProvider";
+import { ERC20Token } from '../typechain-types/poolz-helper-v2/contracts/token';
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { IDealProvierEvents } from "../typechain-types/contracts/DealProvider";
+import { BigNumber } from "ethers";
+import { deployed } from "./helper";
 
-describe("Deal Provider", function (accounts) {
-    let dealProvider, lockDealNFT, poolId
-    let receiver, newOwner
-    let token, poolData, params
+describe("Deal Provider", function () {
+    // let dealProvider, lockDealNFT, poolId
+    // let receiver, newOwner
+    // let token, poolData, params
+    // const amount = 10000
+
+    let dealProvider: DealProvider
+    let lockDealNFT: LockDealNFT
+    let poolId: number
+    let receiver: SignerWithAddress
+    let newOwner: SignerWithAddress
+    let token: ERC20Token
+    let params: [number]
+    let poolData: [IDealProvierEvents.BasePoolInfoStructOutput, BigNumber[]] & {
+        poolInfo: IDealProvierEvents.BasePoolInfoStructOutput;
+        params: BigNumber[];
+    }
     const amount = 10000
+
 
     before(async () => {
         ;[receiver, newOwner] = await ethers.getSigners()
@@ -20,7 +41,7 @@ describe("Deal Provider", function (accounts) {
     })
 
     beforeEach(async () => {
-        poolId = await lockDealNFT.totalSupply()
+        poolId = (await lockDealNFT.totalSupply()).toNumber()
         params = [amount]
         await dealProvider.createNewPool(receiver.address, token.address, params)
     })
@@ -34,8 +55,8 @@ describe("Deal Provider", function (accounts) {
     it("should check pool creation events", async () => {
         const tx = await dealProvider.createNewPool(receiver.address, token.address, params)
         await tx.wait()
-        const events = await dealProvider.queryFilter("NewPoolCreated")
-        expect(events[events.length - 1].args.poolInfo.poolId).to.equal(parseInt(poolId) + 1)
+        const events = await dealProvider.queryFilter(dealProvider.filters.NewPoolCreated())
+        expect(events[events.length - 1].args.poolInfo.poolId).to.equal(poolId + 1)
         expect(events[events.length - 1].args.poolInfo.token).to.equal(token.address)
         expect(events[events.length - 1].args.poolInfo.owner).to.equal(receiver.address)
         expect(events[events.length - 1].args.params[0]).to.equal(amount) //assuming amount is at index 0 in the params array
@@ -72,8 +93,8 @@ describe("Deal Provider", function (accounts) {
         it("should check data in new pool after split", async () => {
             await lockDealNFT.split(poolId, amount / 2, newOwner.address)
 
-            poolData = await dealProvider.getData(parseInt(poolId) + 1);
-            expect(poolData.poolInfo).to.deep.equal([parseInt(poolId) + 1, newOwner.address, token.address]);
+            poolData = await dealProvider.getData(poolId + 1);
+            expect(poolData.poolInfo).to.deep.equal([poolId + 1, newOwner.address, token.address]);
             expect(poolData.params[0]).to.equal(amount / 2);
         })
     })
@@ -94,10 +115,10 @@ describe("Deal Provider", function (accounts) {
         })
 
         it("should check events after withdraw", async () => {
-            poolId = await lockDealNFT.totalSupply()
+            poolId = (await lockDealNFT.totalSupply()).toNumber()
             const tx = await lockDealNFT.withdraw(poolId)
             await tx.wait()
-            const events = await dealProvider.queryFilter("TokenWithdrawn")
+            const events = await dealProvider.queryFilter(dealProvider.filters.TokenWithdrawn())
             expect(events[events.length - 1].args.poolId.toString()).to.equal(poolId.toString())
             expect(events[events.length - 1].args.owner.toString()).to.equal(receiver.address.toString())
             expect(events[events.length - 1].args.withdrawnAmount.toString()).to.equal(amount.toString())
