@@ -2,14 +2,8 @@
 pragma solidity ^0.8.0;
 
 import "./TimedProviderState.sol";
-import "../Provider/ProviderModifiers.sol";
-import "../interface/IProvider.sol";
 
-contract TimedDealProvider is
-    ProviderModifiers,
-    TimedProviderState,
-    IProvider
-{
+contract TimedDealProvider is TimedProviderState {
     constructor(address nft, address provider) {
         require(
             nft != address(0x0) && provider != address(0x0),
@@ -91,42 +85,5 @@ contract TimedDealProvider is
         poolIdToTimedDeal[newPoolId].startAmount = newPoolStartAmount;
         poolIdToTimedDeal[newPoolId].finishTime = poolIdToTimedDeal[oldPoolId]
             .finishTime;
-    }
-
-    function getParametersTargetLenght() public view returns (uint256) {
-        return
-            currentParamsTargetLenght +
-            dealProvider.currentParamsTargetLenght();
-    }
-
-    function registerPool(
-        uint256 poolId,
-        address owner,
-        address token,
-        uint256[] memory params
-    ) public onlyProvider {
-        _registerPool(poolId, owner, token, params);
-    }
-
-    function _registerPool(
-        uint256 poolId,
-        address owner,
-        address token,
-        uint256[] memory params
-    ) internal validParamsLength(params.length, getParametersTargetLenght()) {
-        poolIdToTimedDeal[poolId].finishTime = params[2];
-        poolIdToTimedDeal[poolId].startAmount = params[3];
-        dealProvider.registerPool(poolId, owner, token, params);
-    }
-
-    function getData(uint256 poolId) public override view returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params) {
-        uint256[] memory baseLockDealProviderParams;
-        (poolInfo, baseLockDealProviderParams) = dealProvider.getData(poolId);
-
-        params = new uint256[](4);
-        params[0] = baseLockDealProviderParams[0];  // leftAmount
-        params[1] = baseLockDealProviderParams[1];  // startTime
-        params[2] = poolIdToTimedDeal[poolId].finishTime; // finishTime
-        params[3] = poolIdToTimedDeal[poolId].startAmount; // startAmount
     }
 }

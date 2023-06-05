@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./DealProviderState.sol";
 
-contract DealProviderModifiers is DealProviderState {
+abstract contract DealProviderModifiers is DealProviderState {
     modifier invalidSplitAmount(uint256 leftAmount, uint256 splitAmount) {
         _invalidSplitAmount(leftAmount, splitAmount);
         _;
