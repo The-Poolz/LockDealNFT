@@ -6,7 +6,7 @@ const { deployed } = require("./helper")
 
 describe("Timed Deal Provider", function (accounts) {
     let timedDealProvider, lockProvider, dealProvider, lockDealNFT
-    let timestamp, halfTime
+    let mockProvider, poolData, halfTime
     let poolId, params
     let receiver
     let token, startTime, finishTime
@@ -20,11 +20,13 @@ describe("Timed Deal Provider", function (accounts) {
         dealProvider = await deployed("DealProvider", lockDealNFT.address)
         lockProvider = await deployed("LockDealProvider", lockDealNFT.address, dealProvider.address)
         timedDealProvider = await deployed("TimedDealProvider", lockDealNFT.address, lockProvider.address)
+        mockProvider = await deployed("MockProvider", timedDealProvider.address)
         await token.approve(timedDealProvider.address, constants.MaxUint256)
         await token.approve(mockVaultManager.address, constants.MaxUint256)
         await lockDealNFT.setApprovedProvider(dealProvider.address, true)
         await lockDealNFT.setApprovedProvider(lockProvider.address, true)
         await lockDealNFT.setApprovedProvider(timedDealProvider.address, true)
+        await lockDealNFT.setApprovedProvider(mockProvider.address, true)
     })
 
     beforeEach(async () => {
@@ -34,7 +36,6 @@ describe("Timed Deal Provider", function (accounts) {
         params = [amount, startTime, finishTime, amount]
         poolId = await lockDealNFT.totalSupply()
         await timedDealProvider.createNewPool(receiver.address, token.address, params)
-        timestamp = await helpers.time.latest()
         halfTime = (finishTime - startTime) / 2
     })
 
@@ -140,6 +141,10 @@ describe("Timed Deal Provider", function (accounts) {
     })
 
     describe("Timed Withdraw", () => {
+        it("getWithdrawableAmount should return zero before startTime", async () => {
+            expect(await timedDealProvider.getWithdrawableAmount(poolId)).to.equal(0)
+        })
+
         it("should withdraw 25% tokens", async () => {
             await helpers.time.setNextBlockTimestamp(startTime + halfTime / 2)
 
@@ -167,7 +172,7 @@ describe("Timed Deal Provider", function (accounts) {
         })
 
         it("should withdraw all tokens", async () => {
-            await helpers.time.increaseTo(finishTime + halfTime)
+            await helpers.time.setNextBlockTimestamp(finishTime + 1)
 
             await lockDealNFT.withdraw(poolId)
 
@@ -177,6 +182,57 @@ describe("Timed Deal Provider", function (accounts) {
             expect(poolData.params[1]).to.equal(startTime);
             expect(poolData.params[2]).to.equal(finishTime);
             expect(poolData.params[3]).to.equal(amount);
+        })
+    })
+
+    describe("test higher cascading providers", () => {
+        beforeEach(async () => {
+            poolId = await lockDealNFT.totalSupply()
+            await mockProvider.createNewPool(receiver.address, token.address, params)
+            await helpers.time.setNextBlockTimestamp(startTime)
+        })
+
+        it("should register data", async () => {
+            poolData = await mockProvider.getData(poolId)
+            expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token.address])
+            expect(poolData.params[0]).to.equal(amount)
+            expect(poolData.params[1]).to.equal(startTime)
+            expect(poolData.params[2]).to.equal(finishTime)
+            expect(poolData.params[3]).to.equal(amount)
+        })
+
+        it("should withdraw half tokens with higher mock provider", async () => {
+            await mockProvider.withdraw(poolId, amount / 2)
+            poolData = await mockProvider.getData(poolId)
+            expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token.address])
+            expect(poolData.params[0]).to.equal(amount / 2)
+            expect(poolData.params[1]).to.equal(startTime)
+            expect(poolData.params[2]).to.equal(finishTime)
+            expect(poolData.params[3]).to.equal(amount)
+        })
+
+        it("should withdraw all tokens with higher mock provider", async () => {
+            await mockProvider.withdraw(poolId, amount)
+            poolData = await mockProvider.getData(poolId)
+            expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token.address])
+            expect(poolData.params[0]).to.equal(0)
+            expect(poolData.params[1]).to.equal(startTime)
+            expect(poolData.params[2]).to.equal(finishTime)
+            expect(poolData.params[3]).to.equal(amount)
+        })
+
+        it("invalid provider can't change data", async () => {
+            const invalidContract = await deployed("MockProvider", timedDealProvider.address)
+            await expect(invalidContract.createNewPool(receiver.address, token.address, params)).to.be.revertedWith(
+                "invalid provider address"
+            )
+        })
+
+        it("invalid provider can't withdraw", async () => {
+            const invalidContract = await deployed("MockProvider", timedDealProvider.address)
+            await expect(invalidContract.withdraw(poolId, amount / 2)).to.be.revertedWith(
+                "invalid provider address"
+            )
         })
     })
 })
