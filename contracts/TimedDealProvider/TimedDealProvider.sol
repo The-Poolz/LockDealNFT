@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./TimedProviderState.sol";
 import "../Provider/ProviderModifiers.sol";
-import "../interface/IProvider.sol";
+import "../ProviderInterface/IProvider.sol";
 
 contract TimedDealProvider is
     ProviderModifiers,

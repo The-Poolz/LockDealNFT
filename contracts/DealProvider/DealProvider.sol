@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "../LockDealNFT/LockDealNFT.sol";
 import "./DealProviderModifiers.sol";
-import "../interface/IProvider.sol";
+import "../ProviderInterface/IProvider.sol";
 import "../Provider/ProviderModifiers.sol";
 
 contract DealProvider is DealProviderModifiers, ProviderModifiers, IProvider {
