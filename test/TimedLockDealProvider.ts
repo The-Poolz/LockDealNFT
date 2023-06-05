@@ -9,6 +9,7 @@ import { DealProvider } from "../typechain-types/contracts/DealProvider";
 import { ERC20Token } from '../typechain-types/poolz-helper-v2/contracts/token';
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { IDealProvierEvents } from "../typechain-types/contracts/DealProvider";
+import { deployed } from "./helper";
 
 
 describe("Timed Lock Deal Provider", function () {
@@ -31,37 +32,23 @@ describe("Timed Lock Deal Provider", function () {
 
     before(async () => {
         ;[receiver, newOwner] = await ethers.getSigners()
-        const LockDealNFT = await ethers.getContractFactory("LockDealNFT")
-        const DealProvider = await ethers.getContractFactory("DealProvider")
-        const BaseLockProvider = await ethers.getContractFactory("BaseLockDealProvider")
-        const TimedLockDealProvider = await ethers.getContractFactory("TimedLockDealProvider")
-        const ERC20Token = await ethers.getContractFactory("ERC20Token")
-        const MockVaultManager = await ethers.getContractFactory("MockVaultManager")
-        const mockVaultManagger = await MockVaultManager.deploy()
-        await mockVaultManagger.deployed()
-        lockDealNFT = await LockDealNFT.deploy(mockVaultManagger.address)
-        await lockDealNFT.deployed()
-        dealProvider = await DealProvider.deploy(lockDealNFT.address)
-        await dealProvider.deployed()
-        baseLockProvider = await BaseLockProvider.deploy(lockDealNFT.address, dealProvider.address)
-        await baseLockProvider.deployed()
-        timedLockProvider = await TimedLockDealProvider.deploy(lockDealNFT.address, baseLockProvider.address)
-        await timedLockProvider.deployed()
-        token = await ERC20Token.deploy("TEST Token", "TERC20")
-        await token.deployed()
+        const mockVaultManager = await deployed("MockVaultManager")
+        lockDealNFT = await deployed("LockDealNFT", mockVaultManager.address)
+        token = await deployed("ERC20Token", "TEST Token", "TERC20")
+        dealProvider = await deployed("DealProvider", lockDealNFT.address)
+        baseLockProvider = await deployed("BaseLockDealProvider", lockDealNFT.address, dealProvider.address)
+        timedLockProvider = await deployed("TimedLockDealProvider", lockDealNFT.address, baseLockProvider.address)
         await token.approve(timedLockProvider.address, constants.MaxUint256)
-        await token.approve(mockVaultManagger.address, constants.MaxUint256)
+        await token.approve(mockVaultManager.address, constants.MaxUint256)
         await lockDealNFT.setApprovedProvider(dealProvider.address, true)
         await lockDealNFT.setApprovedProvider(baseLockProvider.address, true)
         await lockDealNFT.setApprovedProvider(timedLockProvider.address, true)
     })
 
     beforeEach(async () => {
-        let date = new Date()
-        date.setDate(date.getDate() + 1)
-        startTime = Math.floor(date.getTime() / 1000)
-        date.setDate(date.getDate() + 7)
-        finishTime = Math.floor(date.getTime() / 1000)
+        const ONE_DAY = 86400
+        startTime = await time.latest() + ONE_DAY   // plus 1 day
+        finishTime = startTime + 7 * ONE_DAY   // plus 7 days from `startTime`
         params = [amount, startTime, finishTime, amount]
         poolId = (await lockDealNFT.totalSupply()).toNumber()
         await timedLockProvider.createNewPool(receiver.address, token.address, params)

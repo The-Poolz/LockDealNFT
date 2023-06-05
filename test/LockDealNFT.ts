@@ -1,17 +1,18 @@
-const { expect } = require("chai")
-const { constants } = require("ethers")
-const { ethers } = require("hardhat")
+import { expect } from "chai";
+import { constants } from "ethers";
+import { ethers } from 'hardhat';
 import { LockDealNFT } from "../typechain-types/contracts/LockDealNFT";
 import { DealProvider } from "../typechain-types/contracts/DealProvider";
 import { ERC20Token } from '../typechain-types/poolz-helper-v2/contracts/token';
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { MockVaultManager } from "../typechain-types/contracts/test/MockVaultManager";
+import { deployed } from "./helper";
 
 describe("LockDealNFT", function () {
     let lockDealNFT: LockDealNFT
     let poolId: number
     let token: ERC20Token
-    let mockVaultManagger: MockVaultManager
+    let mockVaultManager: MockVaultManager
     let dealProvider: DealProvider
     let receiver: SignerWithAddress
     let newOwner: SignerWithAddress
@@ -19,20 +20,12 @@ describe("LockDealNFT", function () {
 
     before(async () => {
         ;[notOwner, receiver, newOwner] = await ethers.getSigners()
-        const LockDealNFT = await ethers.getContractFactory("LockDealNFT")
-        const DealProvider = await ethers.getContractFactory("DealProvider")
-        const ERC20Token = await ethers.getContractFactory("ERC20Token")
-        const MockVaultManager = await ethers.getContractFactory("MockVaultManager")
-        mockVaultManagger = await MockVaultManager.deploy()
-        await mockVaultManagger.deployed()
-        lockDealNFT = await LockDealNFT.deploy(mockVaultManagger.address)
-        await lockDealNFT.deployed()
-        dealProvider = await DealProvider.deploy(lockDealNFT.address)
-        await dealProvider.deployed()
-        token = await ERC20Token.deploy("TEST Token", "TERC20")
-        await token.deployed()
+        mockVaultManager = await deployed("MockVaultManager")
+        lockDealNFT = await deployed("LockDealNFT", mockVaultManager.address)
+        dealProvider = await deployed("DealProvider", lockDealNFT.address)
+        token = await deployed("ERC20Token", "TEST Token", "TERC20")
         await token.approve(dealProvider.address, constants.MaxUint256)
-        await token.approve(mockVaultManagger.address, constants.MaxUint256)
+        await token.approve(mockVaultManager.address, constants.MaxUint256)
         await lockDealNFT.setApprovedProvider(dealProvider.address, true)
     })
 
@@ -65,10 +58,10 @@ describe("LockDealNFT", function () {
     })
 
     it("should revert not approved amount", async () => {
-        await token.approve(mockVaultManagger.address, "0")
+        await token.approve(mockVaultManager.address, "0")
         await expect(dealProvider.createNewPool(receiver.address, token.address, ["1000"])).to.be.revertedWith(
             "Sending tokens not approved"
         )
-        await token.approve(mockVaultManagger.address, constants.MaxUint256)
+        await token.approve(mockVaultManager.address, constants.MaxUint256)
     })
 })
