@@ -10,11 +10,6 @@ import { BigNumber } from "ethers";
 import { deployed } from "./helper";
 
 describe("Deal Provider", function () {
-    // let dealProvider, lockDealNFT, poolId
-    // let receiver, newOwner
-    // let token, poolData, params
-    // const amount = 10000
-
     let dealProvider: DealProvider
     let lockDealNFT: LockDealNFT
     let poolId: number
@@ -30,7 +25,7 @@ describe("Deal Provider", function () {
 
 
     before(async () => {
-        ;[receiver, newOwner] = await ethers.getSigners()
+        [receiver, newOwner] = await ethers.getSigners()
         const mockVaultManagger = await deployed("MockVaultManager")
         lockDealNFT = await deployed("LockDealNFT", mockVaultManagger.address)
         token = await deployed("ERC20Token", "TEST Token", "TERC20")

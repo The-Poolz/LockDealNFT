@@ -15,12 +15,11 @@ describe("LockDealNFT", function () {
     let mockVaultManager: MockVaultManager
     let dealProvider: DealProvider
     let receiver: SignerWithAddress
-    let newOwner: SignerWithAddress
     let notOwner: SignerWithAddress
 
 
     before(async () => {
-        ;[notOwner, receiver, newOwner] = await ethers.getSigners()
+        [notOwner, receiver] = await ethers.getSigners()
         mockVaultManager = await deployed("MockVaultManager")
         lockDealNFT = await deployed("LockDealNFT", mockVaultManager.address)
         dealProvider = await deployed("DealProvider", lockDealNFT.address)

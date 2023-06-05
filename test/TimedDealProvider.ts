@@ -32,7 +32,7 @@ describe("Timed Deal Provider", function () {
     const amount = 100000
 
     before(async () => {
-        ;[receiver, newOwner] = await ethers.getSigners()
+        [receiver, newOwner] = await ethers.getSigners()
         const mockVaultManager = await deployed("MockVaultManager")
         lockDealNFT = await deployed("LockDealNFT", mockVaultManager.address)
         token = await deployed("ERC20Token", "TEST Token", "TERC20")

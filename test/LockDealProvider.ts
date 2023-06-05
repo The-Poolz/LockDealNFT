@@ -22,7 +22,7 @@ describe("Lock Deal Provider", function () {
     const amount = 10000
 
     before(async () => {
-        ;[receiver, newOwner] = await ethers.getSigners()
+        [receiver, newOwner] = await ethers.getSigners()
         const mockVaultManagger = await deployed("MockVaultManager")
         lockDealNFT = await deployed("LockDealNFT", mockVaultManagger.address)
         dealProvider = await deployed("DealProvider", lockDealNFT.address)
