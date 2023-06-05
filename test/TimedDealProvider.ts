@@ -5,10 +5,9 @@ import { time } from "@nomicfoundation/hardhat-network-helpers";
 import { LockDealProvider } from "../typechain-types/contracts/LockProvider";
 import { TimedDealProvider } from "../typechain-types/contracts/TimedDealProvider";
 import { LockDealNFT } from "../typechain-types/contracts/LockDealNFT";
-import { DealProvider } from "../typechain-types/contracts/DealProvider";
+import { DealProvider, IDealProvierEvents } from "../typechain-types/contracts/DealProvider";
 import { ERC20Token } from '../typechain-types/poolz-helper-v2/contracts/token';
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { IDealProvierEvents } from "../typechain-types/contracts/DealProvider";
 import { MockProvider } from "../typechain-types/contracts/test/MockProvider";
 import { deployed } from "./helper";
 

@@ -1,12 +1,10 @@
 import { expect } from "chai";
-import { constants } from "ethers";
+import { constants, BigNumber } from "ethers";
 import { ethers } from 'hardhat';
 import { LockDealNFT } from "../typechain-types/contracts/LockDealNFT";
-import { DealProvider } from "../typechain-types/contracts/DealProvider";
+import { DealProvider, IDealProvierEvents } from "../typechain-types/contracts/DealProvider";
 import { ERC20Token } from '../typechain-types/poolz-helper-v2/contracts/token';
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { IDealProvierEvents } from "../typechain-types/contracts/DealProvider";
-import { BigNumber } from "ethers";
 import { deployed } from "./helper";
 
 describe("Deal Provider", function () {
