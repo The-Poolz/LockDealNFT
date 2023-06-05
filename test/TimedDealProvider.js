@@ -189,6 +189,7 @@ describe("Timed Deal Provider", function (accounts) {
         beforeEach(async () => {
             poolId = await lockDealNFT.totalSupply()
             await mockProvider.createNewPool(receiver.address, token.address, params)
+            await helpers.time.setNextBlockTimestamp(startTime)
         })
 
         it("should register data", async () => {
@@ -201,7 +202,6 @@ describe("Timed Deal Provider", function (accounts) {
         })
 
         it("should withdraw half tokens with higher mock provider", async () => {
-            await helpers.time.setNextBlockTimestamp(startTime)
             await mockProvider.withdraw(poolId, amount / 2)
             poolData = await mockProvider.getData(poolId)
             expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token.address])
@@ -212,7 +212,6 @@ describe("Timed Deal Provider", function (accounts) {
         })
 
         it("should withdraw all tokens with higher mock provider", async () => {
-            await helpers.time.setNextBlockTimestamp(startTime)
             await mockProvider.withdraw(poolId, amount)
             poolData = await mockProvider.getData(poolId)
             expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token.address])
