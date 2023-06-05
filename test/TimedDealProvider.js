@@ -220,5 +220,19 @@ describe("Timed Deal Provider", function (accounts) {
             expect(poolData.params[2]).to.equal(finishTime)
             expect(poolData.params[3]).to.equal(amount)
         })
+
+        it("invalid provider can't change data", async () => {
+            const invalidContract = await deployed("MockProvider", timedDealProvider.address)
+            await expect(invalidContract.createNewPool(receiver.address, token.address, params)).to.be.revertedWith(
+                "invalid provider address"
+            )
+        })
+
+        it("invalid provider can't withdraw", async () => {
+            const invalidContract = await deployed("MockProvider", timedDealProvider.address)
+            await expect(invalidContract.withdraw(poolId, amount / 2)).to.be.revertedWith(
+                "invalid provider address"
+            )
+        })
     })
 })
