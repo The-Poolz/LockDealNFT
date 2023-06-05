@@ -3,13 +3,9 @@ pragma solidity ^0.8.0;
 
 import "../interface/IProvider.sol";
 import "../Provider/ProviderModifiers.sol";
-import "./BaseLockDealState.sol";
+import "./LockDealState.sol";
 
-contract BaseLockDealProvider is
-    ProviderModifiers,
-    BaseLockDealState,
-    IProvider
-{
+contract LockDealProvider is ProviderModifiers, LockDealState, IProvider {
     constructor(address nft, address provider) {
         require(
             nft != address(0x0) && provider != address(0x0),

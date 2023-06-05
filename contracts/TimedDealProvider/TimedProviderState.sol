@@ -2,12 +2,12 @@
 pragma solidity ^0.8.0;
 
 import "../LockDealNFT/LockDealNFT.sol";
-import "../BaseProvider/BaseLockDealProvider.sol";
+import "../LockProvider/LockDealProvider.sol";
 
 /// @title DealProviderState contract
 /// @notice Contains storage variables
 contract TimedProviderState {
-    BaseLockDealProvider public dealProvider;
+    LockDealProvider public dealProvider;
     mapping(uint256 => TimedDeal) public poolIdToTimedDeal;
     uint256 public constant currentParamsTargetLenght = 2;
 

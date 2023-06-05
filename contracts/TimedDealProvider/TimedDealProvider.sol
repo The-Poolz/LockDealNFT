@@ -5,7 +5,7 @@ import "./TimedProviderState.sol";
 import "../Provider/ProviderModifiers.sol";
 import "../interface/IProvider.sol";
 
-contract TimedLockDealProvider is
+contract TimedDealProvider is
     ProviderModifiers,
     TimedProviderState,
     IProvider
@@ -15,7 +15,7 @@ contract TimedLockDealProvider is
             nft != address(0x0) && provider != address(0x0),
             "invalid address"
         );
-        dealProvider = BaseLockDealProvider(provider);
+        dealProvider = LockDealProvider(provider);
         lockDealNFT = LockDealNFT(nft);
     }
 

@@ -4,8 +4,8 @@ const { ethers } = require("hardhat")
 const helpers = require("@nomicfoundation/hardhat-network-helpers")
 const { deployed } = require("./helper")
 
-describe("Timed Lock Deal Provider", function (accounts) {
-    let timedLockProvider, baseLockProvider, dealProvider, lockDealNFT
+describe("Timed Deal Provider", function (accounts) {
+    let timedDealProvider, lockProvider, dealProvider, lockDealNFT
     let timestamp, halfTime
     let poolId, params
     let receiver
@@ -18,13 +18,13 @@ describe("Timed Lock Deal Provider", function (accounts) {
         lockDealNFT = await deployed("LockDealNFT", mockVaultManager.address)
         token = await deployed("ERC20Token", "TEST Token", "TERC20")
         dealProvider = await deployed("DealProvider", lockDealNFT.address)
-        baseLockProvider = await deployed("BaseLockDealProvider", lockDealNFT.address, dealProvider.address)
-        timedLockProvider = await deployed("TimedLockDealProvider", lockDealNFT.address, baseLockProvider.address)
-        await token.approve(timedLockProvider.address, constants.MaxUint256)
+        lockProvider = await deployed("LockDealProvider", lockDealNFT.address, dealProvider.address)
+        timedDealProvider = await deployed("TimedDealProvider", lockDealNFT.address, lockProvider.address)
+        await token.approve(timedDealProvider.address, constants.MaxUint256)
         await token.approve(mockVaultManager.address, constants.MaxUint256)
         await lockDealNFT.setApprovedProvider(dealProvider.address, true)
-        await lockDealNFT.setApprovedProvider(baseLockProvider.address, true)
-        await lockDealNFT.setApprovedProvider(timedLockProvider.address, true)
+        await lockDealNFT.setApprovedProvider(lockProvider.address, true)
+        await lockDealNFT.setApprovedProvider(timedDealProvider.address, true)
     })
 
     beforeEach(async () => {
@@ -33,18 +33,18 @@ describe("Timed Lock Deal Provider", function (accounts) {
         finishTime = startTime + 7 * ONE_DAY   // plus 7 days from `startTime`
         params = [amount, startTime, finishTime, amount]
         poolId = await lockDealNFT.totalSupply()
-        await timedLockProvider.createNewPool(receiver.address, token.address, params)
+        await timedDealProvider.createNewPool(receiver.address, token.address, params)
         timestamp = await helpers.time.latest()
         halfTime = (finishTime - startTime) / 2
     })
 
     it("should check deal provider address", async () => {
-        const provider = await timedLockProvider.dealProvider()
-        expect(provider.toString()).to.equal(baseLockProvider.address)
+        const provider = await timedDealProvider.dealProvider()
+        expect(provider.toString()).to.equal(lockProvider.address)
     })
 
     it("should get timed provider data after creation", async () => {
-        poolData = await timedLockProvider.getData(poolId);
+        poolData = await timedDealProvider.getData(poolId);
         expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token.address]);
         expect(poolData.params[0]).to.equal(amount);
         expect(poolData.params[1]).to.equal(startTime);
@@ -53,7 +53,7 @@ describe("Timed Lock Deal Provider", function (accounts) {
     })
 
     it("should check cascade NewPoolCreated event", async () => {
-        const tx = await timedLockProvider.createNewPool(receiver.address, token.address, params)
+        const tx = await timedDealProvider.createNewPool(receiver.address, token.address, params)
         await tx.wait()
         const event = await dealProvider.queryFilter("NewPoolCreated((uint256,address,address),uint256[])")
         const data = event[event.length - 1].args
@@ -65,19 +65,19 @@ describe("Timed Lock Deal Provider", function (accounts) {
 
     it("should revert zero owner address", async () => {
         await expect(
-            timedLockProvider.createNewPool(receiver.address, constants.AddressZero, params)
+            timedDealProvider.createNewPool(receiver.address, constants.AddressZero, params)
         ).to.be.revertedWith("Zero Address is not allowed")
     })
 
     it("should revert zero token address", async () => {
-        await expect(timedLockProvider.createNewPool(constants.AddressZero, token.address, params)).to.be.revertedWith(
+        await expect(timedDealProvider.createNewPool(constants.AddressZero, token.address, params)).to.be.revertedWith(
             "Zero Address is not allowed"
         )
     })
 
     it("should revert zero amount", async () => {
         const params = ["0", startTime, finishTime, "0"]
-        await expect(timedLockProvider.createNewPool(receiver.address, token.address, params)).to.be.revertedWith(
+        await expect(timedDealProvider.createNewPool(receiver.address, token.address, params)).to.be.revertedWith(
             "amount should be greater than 0"
         )
     })
@@ -86,7 +86,7 @@ describe("Timed Lock Deal Provider", function (accounts) {
         it("should check data in old pool after split", async () => {
             await lockDealNFT.split(poolId, amount / 2, newOwner.address)
             
-            poolData = await timedLockProvider.getData(poolId);
+            poolData = await timedDealProvider.getData(poolId);
             expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token.address]);
             expect(poolData.params[0]).to.equal(amount / 2);
             expect(poolData.params[1]).to.equal(startTime);
@@ -97,7 +97,7 @@ describe("Timed Lock Deal Provider", function (accounts) {
         it("should check data in new pool after split", async () => {
             await lockDealNFT.split(poolId, amount / 2, newOwner.address)
 
-            poolData = await timedLockProvider.getData(parseInt(poolId) + 1);
+            poolData = await timedDealProvider.getData(parseInt(poolId) + 1);
             expect(poolData.poolInfo).to.deep.equal([parseInt(poolId) + 1, newOwner.address, token.address]);
             expect(poolData.params[0]).to.equal(amount / 2);
             expect(poolData.params[1]).to.equal(startTime);
@@ -123,14 +123,14 @@ describe("Timed Lock Deal Provider", function (accounts) {
             await lockDealNFT.withdraw(poolId)
             await lockDealNFT.split(poolId, parseInt(amount / 2), newOwner.address)
 
-            poolData = await timedLockProvider.getData(poolId);
+            poolData = await timedDealProvider.getData(poolId);
             expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token.address]);
             expect(poolData.params[0]).to.equal(amount / 2 - amount / 10);
             expect(poolData.params[1]).to.equal(startTime);
             expect(poolData.params[2]).to.equal(finishTime);
             expect(poolData.params[3]).to.equal(amount / 2);
 
-            newPoolData = await timedLockProvider.getData(parseInt(poolId) + 1);
+            newPoolData = await timedDealProvider.getData(parseInt(poolId) + 1);
             expect(newPoolData.poolInfo).to.deep.equal([parseInt(poolId) + 1, newOwner.address, token.address]);
             expect(newPoolData.params[0]).to.equal(amount / 2);
             expect(newPoolData.params[1]).to.equal(startTime);
@@ -145,7 +145,7 @@ describe("Timed Lock Deal Provider", function (accounts) {
 
             await lockDealNFT.withdraw(poolId)
 
-            poolData = await timedLockProvider.getData(poolId);
+            poolData = await timedDealProvider.getData(poolId);
             expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token.address]);
             expect(poolData.params[0]).to.equal(amount - amount / 4);
             expect(poolData.params[1]).to.equal(startTime);
@@ -158,7 +158,7 @@ describe("Timed Lock Deal Provider", function (accounts) {
 
             await lockDealNFT.withdraw(poolId)
 
-            poolData = await timedLockProvider.getData(poolId);
+            poolData = await timedDealProvider.getData(poolId);
             expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token.address]);
             expect(poolData.params[0]).to.equal(amount - amount / 2);
             expect(poolData.params[1]).to.equal(startTime);
@@ -171,7 +171,7 @@ describe("Timed Lock Deal Provider", function (accounts) {
 
             await lockDealNFT.withdraw(poolId)
 
-            poolData = await timedLockProvider.getData(poolId);
+            poolData = await timedDealProvider.getData(poolId);
             expect(poolData.poolInfo).to.deep.equal([poolId, constants.AddressZero, token.address]);
             expect(poolData.params[0]).to.equal(0);
             expect(poolData.params[1]).to.equal(startTime);
