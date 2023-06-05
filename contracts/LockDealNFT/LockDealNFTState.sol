@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "poolz-helper-v2/contracts/interfaces/IVaultManager.sol";
 
-abstract contract LockDealState is ERC721Enumerable {
+abstract contract LockDealNFTState is ERC721Enumerable {
     Counters.Counter public tokenIdCounter;
     IVaultManager public vaultManager;
 
