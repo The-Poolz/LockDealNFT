@@ -15,4 +15,8 @@ contract TimedProviderState {
         uint256 finishTime;
         uint256 startAmount;
     }
+    
+    function getParametersTargetLenght() public view returns (uint256) {
+        return currentParamsTargetLenght + dealProvider.currentParamsTargetLenght();
+    }
 }

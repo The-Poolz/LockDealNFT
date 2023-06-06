@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../ProviderInterface/IProvider.sol";
-import "../Provider/ProviderModifiers.sol";
+import "../Provider/BasicProvider.sol";
 import "./LockDealState.sol";
 
-contract LockDealProvider is ProviderModifiers, LockDealState, IProvider {
+contract LockDealProvider is BasicProvider, LockDealState {
     constructor(address nft, address provider) {
         require(
             nft != address(0x0) && provider != address(0x0),
@@ -13,18 +12,6 @@ contract LockDealProvider is ProviderModifiers, LockDealState, IProvider {
         );
         dealProvider = DealProvider(provider);
         lockDealNFT = LockDealNFT(nft);
-    }
-
-    ///@param params[0] = amount
-    ///@param params[1] = startTime
-    ///@dev requirements are in mint, _register functions
-    function createNewPool(
-        address owner,
-        address token,
-        uint256[] memory params
-    ) public returns (uint256 poolId) {
-        poolId = lockDealNFT.mint(owner,  token, msg.sender, params[0]);
-        _registerPool(poolId, owner, token, params);
     }
 
     /// @dev use revert only for permissions
@@ -37,17 +24,10 @@ contract LockDealProvider is ProviderModifiers, LockDealState, IProvider {
         (withdrawnAmount, isFinal) = _withdraw(poolId, leftAmount);
     }
 
-    function withdraw(
-        uint256 poolId,
-        uint256 amount
-    ) public onlyProvider returns (uint256 withdrawnAmount, bool isFinal) {
-        (withdrawnAmount, isFinal) = _withdraw(poolId, amount);
-    }
-
     function _withdraw(
         uint256 poolId,
         uint256 amount
-    ) internal returns (uint256 withdrawnAmount, bool isFinal) {
+    ) internal override returns (uint256 withdrawnAmount, bool isFinal) {
         if (startTimes[poolId] <= block.timestamp) {
             (withdrawnAmount, isFinal) = dealProvider.withdraw(poolId, amount);
         }
@@ -62,29 +42,16 @@ contract LockDealProvider is ProviderModifiers, LockDealState, IProvider {
         startTimes[newPoolId] = startTimes[oldPoolId];
     }
 
-    function registerPool(
-        uint256 poolId,
-        address owner,
-        address token,
-        uint256[] memory params
-    ) public onlyProvider {
-        _registerPool(poolId, owner, token, params);
-    }
-
+    ///@param params[0] = amount
+    ///@param params[1] = startTime
     function _registerPool(
         uint256 poolId,
         address owner,
         address token,
         uint256[] memory params
-    ) internal validParamsLength(params.length, getParametersTargetLenght()) {
+    ) internal override validParamsLength(params.length, getParametersTargetLenght()) {
         startTimes[poolId] = params[1];
         dealProvider.registerPool(poolId, owner, token, params);
-    }
-
-    function getParametersTargetLenght() public view returns (uint256) {
-        return
-            currentParamsTargetLenght +
-            dealProvider.currentParamsTargetLenght();
     }
 
     function getData(uint256 poolId) public override view returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params) {
