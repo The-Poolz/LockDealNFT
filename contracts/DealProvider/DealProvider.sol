@@ -3,24 +3,12 @@ pragma solidity ^0.8.0;
 
 import "../LockDealNFT/LockDealNFT.sol";
 import "./DealProviderModifiers.sol";
-import "../ProviderInterface/IProvider.sol";
-import "../Provider/ProviderModifiers.sol";
+import "../Provider/BasicProvider.sol";
 
-contract DealProvider is DealProviderModifiers, ProviderModifiers, IProvider {
+contract DealProvider is DealProviderModifiers, BasicProvider {
     constructor(address _nftContract) {
         require(_nftContract != address(0x0), "invalid address");
         lockDealNFT = LockDealNFT(_nftContract);
-    }
-
-    ///@param params[0] = amount
-    ///@dev requirements are in mint, _register functions
-    function createNewPool(
-        address owner,
-        address token,
-        uint256[] memory params
-    ) public returns (uint256 poolId) {
-        poolId = lockDealNFT.mint(owner, token, msg.sender, params[0]);
-        _registerPool(poolId, owner, token, params);
     }
 
     /// @dev use revert only for permissions
@@ -30,17 +18,10 @@ contract DealProvider is DealProviderModifiers, ProviderModifiers, IProvider {
         (withdrawnAmount, isFinal) = _withdraw(poolId, poolIdToDeal[poolId].leftAmount);
     }
 
-    function withdraw(
-        uint256 poolId,
-        uint256 amount
-    ) public onlyProvider returns (uint256 withdrawnAmount, bool isFinal) {
-        (withdrawnAmount, isFinal) = _withdraw(poolId, amount);
-    }
-
     function _withdraw(
         uint256 poolId,
         uint256 amount
-    ) internal returns (uint256 withdrawnAmount, bool isFinal) {
+    ) internal override returns (uint256 withdrawnAmount, bool isFinal) {
         if (poolIdToDeal[poolId].leftAmount >= amount) {
             poolIdToDeal[poolId].leftAmount -= amount;
             withdrawnAmount = amount;
@@ -77,21 +58,13 @@ contract DealProvider is DealProviderModifiers, ProviderModifiers, IProvider {
         );
     }
 
-    function registerPool(
-        uint256 poolId,
-        address owner,
-        address token,
-        uint256[] memory params
-    ) public onlyProvider {
-        _registerPool(poolId, owner, token, params);
-    }
-
+    ///@param params[0] = amount
     function _registerPool(
         uint256 poolId,
         address owner,
         address token,
         uint256[] memory params
-    ) internal validParamsLength(params.length, currentParamsTargetLenght) {
+    ) internal override validParamsLength(params.length, currentParamsTargetLenght) {
         poolIdToDeal[poolId].leftAmount = params[0];
         poolIdToDeal[poolId].token = token;
         emit NewPoolCreated(BasePoolInfo(poolId, owner, token), params);

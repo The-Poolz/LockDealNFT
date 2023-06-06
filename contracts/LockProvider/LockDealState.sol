@@ -10,4 +10,8 @@ contract LockDealState {
     DealProvider public dealProvider;
     mapping(uint256 => uint256) public startTimes;
     uint256 public constant currentParamsTargetLenght = 1;
+
+    function getParametersTargetLenght() public view returns (uint256) {
+        return currentParamsTargetLenght + dealProvider.currentParamsTargetLenght();
+    }
 }
