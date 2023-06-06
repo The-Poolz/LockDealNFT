@@ -48,10 +48,10 @@ contract LockDealBundleProvider is
 
         // mint the NFT owned by the BunderDealProvider with 0 token transfer amount
         LockDealProvider lockDealProvider = timedDealProvider.dealProvider();
-        uint256 poolIdForLockDealProvider = lockDealNFT.mint(address(lockDealProvider), token, msg.sender, 0);
+        uint256 poolIdForLockDealProvider = lockDealNFT.mint(address(this), token, msg.sender, 0);
 
         // mint the NFT owned by the BunderDealProvider with 0 token transfer amount
-        lockDealNFT.mint(address(timedDealProvider), token, msg.sender, 0);
+        lockDealNFT.mint(address(this), token, msg.sender, 0);
 
         // create a new pool owned by teh owner with `totalAmount` token trasnfer amount
         poolId = lockDealNFT.mint(owner, token, msg.sender, params[4]);
@@ -62,7 +62,10 @@ contract LockDealBundleProvider is
     function withdraw(
         uint256 poolId
     ) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
-        (withdrawnAmount, isFinal) = _withdraw(poolId, getWithdrawableAmount(poolId));
+        uint256 firstSubPoolId = poolIdToLockDealBundle[poolId].firstSubPoolId;
+        for (uint256 i = firstSubPoolId; i < poolId; ++i) {
+            (withdrawnAmount, isFinal) = _withdraw(poolId, getWithdrawableAmount(poolId));
+        }
     }
 
     function withdraw(
@@ -82,11 +85,11 @@ contract LockDealBundleProvider is
     function getWithdrawableAmount(
         uint256 poolId
     ) public view returns (uint256) {
-        (, uint256[] memory params) = getData(poolId);
-        uint256 leftAmount = params[0];
-        uint256 startTime = params[1];
-        uint256 finishTime = params[2];
-        uint256 startAmount = params[3];
+        (, uint256[] memory poolParams) = getData(poolId);
+        uint256 leftAmount = poolParams[0];
+        uint256 startTime = poolParams[1];
+        uint256 finishTime = poolParams[2];
+        uint256 startAmount = poolParams[3];
 
         if (block.timestamp < startTime) return 0;
         if (finishTime < block.timestamp) return leftAmount;
