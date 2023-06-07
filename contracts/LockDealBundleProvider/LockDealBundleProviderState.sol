@@ -8,11 +8,12 @@ import "../TimedDealProvider/TimedDealProvider.sol";
 /// @notice Contains storage variables
 contract LockDealBundleProviderState {
     TimedDealProvider public timedDealProvider;
+    mapping(uint256 => bool) public isLockDealBundlePoolId;
     mapping(uint256 => LockDealBundle) public poolIdToLockDealBundle;
     uint256 public constant currentParamsTargetLenght = 1;
 
     struct LockDealBundle {
-        uint256 totalAmount;
+        uint256 totalStartAmount;
         uint256 firstSubPoolId;
     }
 }
