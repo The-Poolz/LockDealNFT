@@ -96,7 +96,7 @@ contract TimedDealProvider is
     function getParametersTargetLenght() public view returns (uint256) {
         return
             currentParamsTargetLenght +
-            dealProvider.currentParamsTargetLenght();
+            dealProvider.getParametersTargetLenght();
     }
 
     function registerPool(
@@ -104,7 +104,7 @@ contract TimedDealProvider is
         address owner,
         address token,
         uint256[] memory params
-    ) public onlyProvider {
+    ) public override onlyProvider {
         _registerPool(poolId, owner, token, params);
     }
 
@@ -120,12 +120,12 @@ contract TimedDealProvider is
     }
 
     function getData(uint256 poolId) public override view returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params) {
-        uint256[] memory baseLockDealProviderParams;
-        (poolInfo, baseLockDealProviderParams) = dealProvider.getData(poolId);
+        uint256[] memory lockDealProviderParams;
+        (poolInfo, lockDealProviderParams) = dealProvider.getData(poolId);
 
         params = new uint256[](4);
-        params[0] = baseLockDealProviderParams[0];  // leftAmount
-        params[1] = baseLockDealProviderParams[1];  // startTime
+        params[0] = lockDealProviderParams[0];  // leftAmount
+        params[1] = lockDealProviderParams[1];  // startTime
         params[2] = poolIdToTimedDeal[poolId].finishTime; // finishTime
         params[3] = poolIdToTimedDeal[poolId].startAmount; // startAmount
     }
