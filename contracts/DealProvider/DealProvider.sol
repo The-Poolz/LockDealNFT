@@ -64,7 +64,7 @@ contract DealProvider is DealProviderModifiers, BasicProvider {
         address owner,
         address token,
         uint256[] memory params
-    ) internal override validParamsLength(params.length, currentParamsTargetLenght) {
+    ) internal override {
         poolIdToDeal[poolId].leftAmount = params[0];
         poolIdToDeal[poolId].token = token;
         emit NewPoolCreated(BasePoolInfo(poolId, owner, token), params);

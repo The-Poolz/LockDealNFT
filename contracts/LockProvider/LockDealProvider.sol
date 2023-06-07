@@ -41,6 +41,10 @@ contract LockDealProvider is BasicProvider, LockDealState {
         dealProvider.split(oldPoolId, newPoolId, splitAmount);
         startTimes[newPoolId] = startTimes[oldPoolId];
     }
+        
+    function currentParamsTargetLenght() public override view returns (uint256) {
+        return 1 + dealProvider.currentParamsTargetLenght();
+    }
 
     ///@param params[0] = amount
     ///@param params[1] = startTime
@@ -49,7 +53,7 @@ contract LockDealProvider is BasicProvider, LockDealState {
         address owner,
         address token,
         uint256[] memory params
-    ) internal override validParamsLength(params.length, getParametersTargetLenght()) {
+    ) internal override {
         startTimes[poolId] = params[1];
         dealProvider.registerPool(poolId, owner, token, params);
     }
