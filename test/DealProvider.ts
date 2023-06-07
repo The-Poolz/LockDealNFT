@@ -74,6 +74,12 @@ describe("Deal Provider", function () {
         )
     })
 
+    it("should revert zero params", async () => {
+        await expect(dealProvider.createNewPool(receiver.address, token.address, [])).to.be.revertedWith(
+            "invalid params length"
+        )
+    })
+
     describe("Split Amount", () => {
         it("should check data in old pool after split", async () => {
             await lockDealNFT.split(poolId, amount / 2, newOwner.address)
