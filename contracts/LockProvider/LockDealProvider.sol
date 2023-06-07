@@ -67,7 +67,7 @@ contract LockDealProvider is ProviderModifiers, LockDealState, IProvider {
         address owner,
         address token,
         uint256[] memory params
-    ) public onlyProvider {
+    ) public override onlyProvider {
         _registerPool(poolId, owner, token, params);
     }
 
