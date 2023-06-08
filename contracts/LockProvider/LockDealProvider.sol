@@ -58,7 +58,7 @@ contract LockDealProvider is BasicProvider, LockDealState {
         dealProvider.registerPool(poolId, owner, token, params);
     }
 
-    function getData(uint256 poolId) public override view returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params) {
+    function getData(uint256 poolId) public view returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params) {
         uint256[] memory dealProviderParams;
         (poolInfo, dealProviderParams) = dealProvider.getData(poolId);
 

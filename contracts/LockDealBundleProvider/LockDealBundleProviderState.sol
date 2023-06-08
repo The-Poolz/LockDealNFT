@@ -8,7 +8,6 @@ import "../LockDealNFT/LockDealNFT.sol";
 contract LockDealBundleProviderState {
     mapping(uint256 => bool) public isLockDealBundlePoolId;
     mapping(uint256 => LockDealBundle) public poolIdToLockDealBundle;
-    uint256 public constant currentParamsTargetLenght = 1;
 
     struct LockDealBundle {
         uint256 totalStartAmount;
