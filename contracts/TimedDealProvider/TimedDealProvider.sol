@@ -28,14 +28,6 @@ contract TimedDealProvider is
         address token,
         uint256[] memory params
     ) public returns (uint256 poolId) {
-        require(
-            params[2] >= params[1],
-            "Finish time should be greater than start time"
-        );
-        require(
-            params[0] == params[3],
-            "Start amount should be equal to left amount"
-        );
         poolId = lockDealNFT.mint(owner,  token, msg.sender, params[0]);
         _registerPool(poolId, owner, token, params);
     }
@@ -114,6 +106,14 @@ contract TimedDealProvider is
         address token,
         uint256[] memory params
     ) internal validParamsLength(params.length, getParametersTargetLenght()) {
+        require(
+            params[2] >= params[1],
+            "Finish time should be greater than start time"
+        );
+        require(
+            params[0] == params[3],
+            "Start amount should be equal to left amount"
+        );
         poolIdToTimedDeal[poolId].finishTime = params[2];
         poolIdToTimedDeal[poolId].startAmount = params[3];
         dealProvider.registerPool(poolId, owner, token, params);
