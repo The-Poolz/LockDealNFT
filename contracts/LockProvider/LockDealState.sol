@@ -9,5 +9,4 @@ import "../DealProvider/DealProvider.sol";
 contract LockDealState {
     DealProvider public dealProvider;
     mapping(uint256 => uint256) public startTimes;
-    uint256 public constant currentParamsTargetLenght = 1;
 }

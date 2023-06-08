@@ -9,7 +9,6 @@ import "../LockProvider/LockDealProvider.sol";
 contract TimedProviderState {
     LockDealProvider public dealProvider;
     mapping(uint256 => TimedDeal) public poolIdToTimedDeal;
-    uint256 public constant currentParamsTargetLenght = 2;
 
     struct TimedDeal {
         uint256 finishTime;

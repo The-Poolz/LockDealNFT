@@ -8,5 +8,4 @@ import "./IDealProvierEvents.sol";
 /// @notice Contains storage variables, structures
 contract DealProviderState is IDealProvierEvents {
     mapping(uint256 => Deal) public poolIdToDeal;
-    uint256 public constant currentParamsTargetLenght = 1;
 }

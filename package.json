@@ -27,6 +27,7 @@
       "@types/mocha": "^10.0.0",
       "@types/node": "^18.11.9",
       "@typescript-eslint/eslint-plugin": "^5.44.0",
+      "@truffle/dashboard-hardhat-plugin": "0.2.7",
       "@typescript-eslint/parser": "^5.44.0",
       "chai": "^4.3.7",
       "ethers": "^5.7.2",
