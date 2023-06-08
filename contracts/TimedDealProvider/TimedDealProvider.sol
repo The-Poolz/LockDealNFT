@@ -96,7 +96,7 @@ contract TimedDealProvider is
         address owner,
         address token,
         uint256[] memory params
-    ) public override onlyProvider {
+    ) public onlyProvider {
         _registerPool(poolId, owner, token, params);
     }
 
@@ -119,7 +119,7 @@ contract TimedDealProvider is
         dealProvider.registerPool(poolId, owner, token, params);
     }
 
-    function getData(uint256 poolId) public override view returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params) {
+    function getData(uint256 poolId) public view returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params) {
         uint256[] memory lockDealProviderParams;
         (poolInfo, lockDealProviderParams) = dealProvider.getData(poolId);
 
