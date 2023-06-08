@@ -1,13 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./LockDealBundleProviderState.sol";
+import "./LockDealBundleProviderModifiers.sol";
 import "../Provider/ProviderModifiers.sol";
 import "../ProviderInterface/IProvider.sol";
 
+interface IProviderExtend {
+    function registerPool(uint256 poolId, address owner, address token, uint256[] memory params) external;
+    function getData(uint256 poolData) external returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params);
+}
+
 contract LockDealBundleProvider is
     ProviderModifiers,
-    LockDealBundleProviderState,
+    LockDealBundleProviderModifiers,
     IProvider
 {
     constructor(address nft, address provider) {
@@ -15,7 +20,6 @@ contract LockDealBundleProvider is
             nft != address(0x0) && provider != address(0x0),
             "invalid address"
         );
-        timedDealProvider = TimedDealProvider(provider);
         lockDealNFT = LockDealNFT(nft);
     }
 
@@ -41,10 +45,9 @@ contract LockDealBundleProvider is
         // mint the NFT owned by the BunderDealProvider with 0 token transfer amount on TimedDealProvider
         // mint the NFT owned by the owner with `totalAmount` token transfer amount on LockDealBundleProvider
 
-        require(providers.length == providerParams.length, "providers and params length mismatch");
-
-        LockDealProvider lockDealProvider = timedDealProvider.dealProvider();
-        DealProvider dealProvider = lockDealProvider.dealProvider();
+        uint256 providerCount = providers.length;
+        require(providerCount == providerParams.length, "providers and params length mismatch");
+        require(providerCount > 1, "providers length must be greater than 1");
 
         uint256 firstSubPoolId;
         uint256 totalStartAmount;
@@ -54,129 +57,78 @@ contract LockDealBundleProvider is
 
             // check if the provider address is valid
             require(
-                provider == address(dealProvider) ||
-                provider == address(lockDealProvider) ||
-                provider == address(timedDealProvider),
+                lockDealNFT.approvedProviders(provider) &&
+                provider != address(lockDealNFT),
                 "invalid provider address"
             );
 
             // create the pool and store the first sub poolId
             // mint the NFT owned by the BunderDealProvider with 0 token transfer amount
-            uint256 subPoolId = lockDealNFT.mint(address(this), token, msg.sender, 0);
-            if (firstSubPoolId == 0) firstSubPoolId = subPoolId;
-            IProvider(provider).registerPool(subPoolId, owner, token, params);
+            uint256 subPoolId = _createNewPool(address(this), token, msg.sender, 0, provider, params);
+            if (i == 0) firstSubPoolId = subPoolId;
 
-            // calculate the total start amount
+            // increase the `totalStartAmount`
             totalStartAmount += params[0];
-
-            // in case `TimedDealProvider`, add the missing checks from `createNewPool` function and ensure that `totalAmount` is correct
-            if (provider == address(timedDealProvider)) {
-                require(
-                    params[2] >= params[1],
-                    "Finish time should be greater than start time"
-                );
-                require(
-                    params[0] == params[3],
-                    "Start amount should be equal to left amount"
-                );
-            }
         }
 
-        // create a new pool owned by teh owner with `totalStartAmount` token trasnfer amount
+        // create a new pool owned by the owner with `totalStartAmount` token trasnfer amount
         poolId = lockDealNFT.mint(owner, token, msg.sender, totalStartAmount);
-        _registerPool(poolId, totalStartAmount, firstSubPoolId);
+        uint256[] memory lockDealBundlePoolParams = new uint256[](2);
+        lockDealBundlePoolParams[0] = totalStartAmount;
+        lockDealBundlePoolParams[1] = firstSubPoolId;
+        _registerPool(poolId, lockDealBundlePoolParams, providers);
         isLockDealBundlePoolId[poolId] = true;
+    }
+
+    function _createNewPool(
+        address owner,
+        address token,
+        address from,
+        uint256 amount,
+        address provider,
+        uint256[] memory params
+    ) internal returns (uint256 poolId) {
+        poolId = lockDealNFT.mint(owner, token, from, amount);
+        IProviderExtend(provider).registerPool(poolId, owner, token, params);
     }
 
     /// @dev use revert only for permissions
     function withdraw(
         uint256 poolId
-    ) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
-    //     uint256 firstSubPoolId = poolIdToLockDealBundle[poolId].firstSubPoolId;
-    //     for (uint256 i = firstSubPoolId; i < poolId; ++i) {
-    //         (withdrawnAmount, isFinal) = _withdraw(poolId, getWithdrawableAmount(poolId));
-    //     }
+    ) public override onlyNFT onlyBundlePoolId(poolId) returns (uint256 withdrawnAmount, bool isFinal) {
     }
 
-    function withdraw(
-        uint256 poolId,
-        uint256 amount
-    ) public onlyProvider returns (uint256 withdrawnAmount, bool isFinal) {
-    //     (withdrawnAmount, isFinal) = timedDealProvider.withdraw(poolId, amount);
+    function _withdraw(
+        uint256 provider,
+        uint256 poolId
+    ) internal returns (uint256 withdrawnAmount, bool isFinal) {
     }
-
-    // function _withdraw(
-    //     uint256 poolId,
-    //     uint256 amount
-    // ) internal returns (uint256 withdrawnAmount, bool isFinal) {
-    //     (withdrawnAmount, isFinal) = timedDealProvider.withdraw(poolId, amount);
-    // }
-
-    // function getWithdrawableAmount(
-    //     uint256 poolId
-    // ) public view returns (uint256) {
-    //     (, uint256[] memory poolParams) = getData(poolId);
-    //     uint256 leftAmount = poolParams[0];
-    //     uint256 startTime = poolParams[1];
-    //     uint256 finishTime = poolParams[2];
-    //     uint256 startAmount = poolParams[3];
-
-    //     if (block.timestamp < startTime) return 0;
-    //     if (finishTime < block.timestamp) return leftAmount;
-
-    //     uint256 totalPoolDuration = finishTime - startTime;
-    //     uint256 timePassed = block.timestamp - startTime;
-    //     uint256 debitableAmount = (startAmount * timePassed) / totalPoolDuration;
-    //     return debitableAmount - (startAmount - leftAmount);
-    // }
 
     function split(
         uint256 oldPoolId,
         uint256 newPoolId,
         uint256 splitAmount
     ) public onlyProvider {
-    //     timedDealProvider.split(oldPoolId, newPoolId, splitAmount);
-    //     uint256 newPoolStartAmount = poolIdToTimedDeal[oldPoolId].startAmount -
-    //         splitAmount;
-    //     poolIdToTimedDeal[oldPoolId].startAmount -= newPoolStartAmount;
-    //     poolIdToTimedDeal[newPoolId].startAmount = newPoolStartAmount;
-    //     poolIdToTimedDeal[newPoolId].finishTime = poolIdToTimedDeal[oldPoolId]
-    //         .finishTime;
     }
-
-    // function getParametersTargetLenght() public view returns (uint256) {
-    //     return
-    //         currentParamsTargetLenght +
-    //         timedDealProvider.getParametersTargetLenght();
-    // }
 
     ///@param params[0] = totalStartAmount
     ///@param params[1] = firstSubPoolId
-    function registerPool(
-        uint256 poolId,
-        address owner,
-        address token,
-        uint256[] memory params
-    ) public override onlyProvider {
-    //     _registerPool(poolId, owner, token, params, firstSubPoolId);
-    }
-
     function _registerPool(
         uint256 poolId,
-        uint256 totalStartAmount,
-        uint256 firstSubPoolId
+        uint256[] memory params,
+        address[] memory providers
     ) internal {
-        poolIdToLockDealBundle[poolId].totalStartAmount = totalStartAmount;
-        poolIdToLockDealBundle[poolId].firstSubPoolId = firstSubPoolId;
+        poolIdToLockDealBundle[poolId].totalStartAmount = params[0];
+        poolIdToLockDealBundle[poolId].firstSubPoolId = params[1];
+        poolIdToLockDealBundle[poolId].providers = providers;
     }
 
-    function getData(uint256 poolId) public override view returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params) {
-        require(isLockDealBundlePoolId[poolId], "invalid poolId");
-
+    function getBundleData(uint256 poolId) public view onlyBundlePoolId(poolId) returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params, address[] memory providers) {
         address owner = lockDealNFT.ownerOf(poolId);
         poolInfo = IDealProvierEvents.BasePoolInfo(poolId, owner, address(0));
         params = new uint256[](2);
         params[0] = poolIdToLockDealBundle[poolId].totalStartAmount; // totalStartAmount
         params[1] = poolIdToLockDealBundle[poolId].firstSubPoolId; // firstSubPoolId
+        providers = poolIdToLockDealBundle[poolId].providers;   // providers
     }
 }
