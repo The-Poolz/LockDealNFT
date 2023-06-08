@@ -4,7 +4,7 @@ import { LockDealProvider } from "../typechain-types/contracts/LockProvider/Lock
 async function main() {
   const lockDealNFT = "0xCcf41440a137299CB6af95114cb043Ce4e28679A"// TODO: replace with your lockDealNFT address
   const dealProvider = "0x5cA05dB2c7377DdB964097B139A7958f0723A70b"// TODO: replace with your dealProvider address
-  let lockProvider: LockDealProvider = await deployed("LockDealProvider", lockDealNFT, dealProvider);
+  const lockProvider: LockDealProvider = await deployed("LockDealProvider", lockDealNFT, dealProvider);
   console.log(
     `Contract deployed to ${lockProvider.address}`
   );
