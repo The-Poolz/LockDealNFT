@@ -5,7 +5,13 @@ import "./ProviderModifiers.sol";
 import "../ProviderInterface/IProvider.sol";
 
 abstract contract BasicProvider is IProvider, ProviderModifiers {
-    ///@dev requirements are in mint, _register functions
+    /**
+     * @dev Creates a new pool with the specified parameters.
+     * @param owner The address of the pool owner.
+     * @param token The address of the token associated with the pool.
+     * @param params An array of pool parameters.
+     * @return poolId The ID of the newly created pool.
+     */
     function createNewPool(
         address owner,
         address token,
@@ -15,6 +21,8 @@ abstract contract BasicProvider is IProvider, ProviderModifiers {
         _registerPool(poolId, owner, token, params);
     }
 
+    
+    /// @dev used by providers to implement cascading pool creation logic.
     function registerPool(
         uint256 poolId,
         address owner,
@@ -24,6 +32,7 @@ abstract contract BasicProvider is IProvider, ProviderModifiers {
         _registerPool(poolId, owner, token, params);
     }
 
+    /// @dev used by providers to implement cascading withdraw logic from the pool.
     function withdraw(
         uint256 poolId,
         uint256 amount
