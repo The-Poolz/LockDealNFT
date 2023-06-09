@@ -6,6 +6,10 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "poolz-helper-v2/contracts/interfaces/IVaultManager.sol";
 
+/**
+ * @title LockDealNFTState
+ * @dev An abstract contract that defines the state variables and mappings for the LockDealNFT contract.
+ */
 abstract contract LockDealNFTState is ERC721Enumerable {
     Counters.Counter public tokenIdCounter;
     IVaultManager public vaultManager;

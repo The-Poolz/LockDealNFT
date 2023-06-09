@@ -5,6 +5,11 @@ import "./TimedProviderState.sol";
 import "../Provider/BasicProvider.sol";
 
 contract TimedDealProvider is BasicProvider, TimedProviderState {
+    /**
+     * @dev Contract constructor.
+     * @param nft The address of the LockDealNFT contract.
+     * @param provider The address of the LockProvider contract.
+     */
     constructor(address nft, address provider) {
         require(
             nft != address(0x0) && provider != address(0x0),
