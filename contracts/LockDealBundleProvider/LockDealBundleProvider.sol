@@ -73,9 +73,8 @@ contract LockDealBundleProvider is
 
         // create a new pool owned by the owner with `totalStartAmount` token trasnfer amount
         poolId = lockDealNFT.mint(owner, token, msg.sender, totalStartAmount);
-        uint256[] memory lockDealBundlePoolParams = new uint256[](2);
-        lockDealBundlePoolParams[0] = totalStartAmount;
-        lockDealBundlePoolParams[1] = firstSubPoolId;
+        uint256[] memory lockDealBundlePoolParams = new uint256[](1);
+        lockDealBundlePoolParams[0] = firstSubPoolId;
         _registerPool(poolId, lockDealBundlePoolParams, providers);
         isLockDealBundlePoolId[poolId] = true;
     }
@@ -111,24 +110,21 @@ contract LockDealBundleProvider is
     ) public onlyProvider {
     }
 
-    ///@param params[0] = totalStartAmount
-    ///@param params[1] = firstSubPoolId
+    ///@param params[0] = firstSubPoolId
     function _registerPool(
         uint256 poolId,
         uint256[] memory params,
         address[] memory providers
     ) internal {
-        poolIdToLockDealBundle[poolId].totalStartAmount = params[0];
-        poolIdToLockDealBundle[poolId].firstSubPoolId = params[1];
+        poolIdToLockDealBundle[poolId].firstSubPoolId = params[0];
         poolIdToLockDealBundle[poolId].providers = providers;
     }
 
     function getBundleData(uint256 poolId) public view onlyBundlePoolId(poolId) returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params, address[] memory providers) {
         address owner = lockDealNFT.ownerOf(poolId);
         poolInfo = IDealProvierEvents.BasePoolInfo(poolId, owner, address(0));
-        params = new uint256[](2);
-        params[0] = poolIdToLockDealBundle[poolId].totalStartAmount; // totalStartAmount
-        params[1] = poolIdToLockDealBundle[poolId].firstSubPoolId; // firstSubPoolId
+        params = new uint256[](1);
+        params[0] = poolIdToLockDealBundle[poolId].firstSubPoolId; // firstSubPoolId
         providers = poolIdToLockDealBundle[poolId].providers;   // providers
     }
 }

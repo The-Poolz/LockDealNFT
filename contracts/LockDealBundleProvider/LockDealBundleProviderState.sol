@@ -10,7 +10,6 @@ contract LockDealBundleProviderState {
     mapping(uint256 => LockDealBundle) public poolIdToLockDealBundle;
 
     struct LockDealBundle {
-        uint256 totalStartAmount;
         uint256 firstSubPoolId;
         address[] providers;
     }
