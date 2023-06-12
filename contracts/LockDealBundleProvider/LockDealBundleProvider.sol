@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "./LockDealBundleProviderModifiers.sol";
 import "../Provider/ProviderModifiers.sol";
 import "../ProviderInterface/IProvider.sol";
+import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 
 interface IProviderExtend {
     function registerPool(uint256 poolId, address owner, address token, uint256[] memory params) external;
@@ -13,20 +14,21 @@ interface IProviderExtend {
 contract LockDealBundleProvider is
     ProviderModifiers,
     LockDealBundleProviderModifiers,
-    IProvider
+    IProvider,
+    ERC721Holder
 {
-    constructor(address nft, address provider) {
+    constructor(address nft) {
         require(
-            nft != address(0x0) && provider != address(0x0),
+            nft != address(0x0),
             "invalid address"
         );
         lockDealNFT = LockDealNFT(nft);
     }
 
-    ///@param providerParams[0] = leftAmount
-    ///@param providerParams[1] = startTime
-    ///@param providerParams[2] = finishTime
-    ///@param providerParams[3] = startAmount
+    ///@param providerParams[][0] = leftAmount
+    ///@param providerParams[][1] = startTime
+    ///@param providerParams[][2] = finishTime
+    ///@param providerParams[][3] = startAmount
     function createNewPool(
         address owner,
         address token,
@@ -120,7 +122,7 @@ contract LockDealBundleProvider is
         poolIdToLockDealBundle[poolId].providers = providers;
     }
 
-    function getBundleData(uint256 poolId) public view onlyBundlePoolId(poolId) returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params, address[] memory providers) {
+    function getData(uint256 poolId) public view onlyBundlePoolId(poolId) returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params, address[] memory providers) {
         address owner = lockDealNFT.ownerOf(poolId);
         poolInfo = IDealProvierEvents.BasePoolInfo(poolId, owner, address(0));
         params = new uint256[](1);
