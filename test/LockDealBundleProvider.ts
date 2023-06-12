@@ -101,7 +101,7 @@ describe("Lock Deal Bundle Provider", function () {
         const dealProviderParams = [amount]
         const lockProviderParams = [amount, startTime]
         const timedDealProviderParams = [amount, startTime, finishTime, amount]
-        let bundleProviders = [dealProvider.address, lockProvider.address, timedDealProvider.address]
+        const bundleProviders = [dealProvider.address, lockProvider.address, timedDealProvider.address]
         const bundleProviderParams = [dealProviderParams, lockProviderParams, timedDealProviderParams]
 
         // zero address
