@@ -72,9 +72,6 @@ describe("Lock Deal Bundle Provider", function () {
         // check the pool data
         expect(poolData.poolInfo).to.deep.equal([bundlePooId, receiver.address, constants.AddressZero]);
         expect(poolData.params[0]).to.equal(poolId);
-        expect(poolData.providers[0]).to.equal(dealProvider.address);
-        expect(poolData.providers[1]).to.equal(lockProvider.address);
-        expect(poolData.providers[2]).to.equal(timedDealProvider.address);
 
         // check the NFT ownership
         expect(await lockDealNFT.ownerOf(poolId)).to.equal(bundleProvider.address); 

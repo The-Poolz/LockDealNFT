@@ -11,6 +11,5 @@ contract LockDealBundleProviderState {
 
     struct LockDealBundle {
         uint256 firstSubPoolId;
-        address[] providers;
     }
 }

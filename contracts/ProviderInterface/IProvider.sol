@@ -15,4 +15,11 @@ interface IProvider {
         uint256 newPoolId,
         uint256 splitAmount
     ) external;
+
+    function getData(
+        uint256 poolId
+    ) external returns (
+        IDealProvierEvents.BasePoolInfo memory poolInfo,
+        uint256[] memory params
+    );
 }
