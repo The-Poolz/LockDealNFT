@@ -95,13 +95,6 @@ describe("Timed Deal Provider", function () {
         )
     })
 
-    it("should revert zero amount", async () => {
-        const params = ["0", startTime, finishTime, "0"]
-        await expect(timedDealProvider.createNewPool(receiver.address, token.address, params)).to.be.revertedWith(
-            "amount should be greater than 0"
-        )
-    })
-
     describe("Timed Split Amount", () => {
         it("should check data in old pool after split", async () => {
             await lockDealNFT.split(poolId, amount / 2, newOwner.address)

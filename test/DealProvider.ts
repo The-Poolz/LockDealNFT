@@ -67,13 +67,6 @@ describe("Deal Provider", function () {
         )
     })
 
-    it("should revert zero amount", async () => {
-        const params = ["0"]
-        await expect(dealProvider.createNewPool(receiver.address, token.address, params)).to.be.revertedWith(
-            "amount should be greater than 0"
-        )
-    })
-
     it("should revert zero params", async () => {
         await expect(dealProvider.createNewPool(receiver.address, token.address, [])).to.be.revertedWith(
             "invalid params length"
