@@ -1,5 +1,5 @@
 import { expect, } from "chai";
-import { BigNumber, constants } from "ethers";
+import { constants } from "ethers";
 import { ethers } from 'hardhat';
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 import { LockDealProvider } from "../typechain-types/contracts/LockProvider";
@@ -23,13 +23,12 @@ describe("Lock Deal Bundle Provider", function () {
     let halfTime: number
     let poolId: number
     let receiver: SignerWithAddress
-    let newOwner: SignerWithAddress
     let token: ERC20Token
     let startTime: number, finishTime: number
     const amount = 100000
 
     before(async () => {
-        [receiver, newOwner] = await ethers.getSigners()
+        [receiver] = await ethers.getSigners()
         const mockVaultManager: MockVaultManager = await deployed("MockVaultManager")
         lockDealNFT = await deployed("LockDealNFT", mockVaultManager.address)
         token = await deployed("ERC20Token", "TEST Token", "TERC20")
