@@ -20,7 +20,6 @@ describe("Lock Deal Bundle Provider", function () {
     let dealProvider: DealProvider
     let lockDealNFT: LockDealNFT
     let mockProvider: MockProvider
-    let halfTime: number
     let poolId: number
     let receiver: SignerWithAddress
     let token: ERC20Token
