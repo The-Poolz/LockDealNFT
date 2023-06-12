@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 import "./LockDealNFTModifiers.sol";
 import "../ProviderInterface/IProvider.sol";
 
+/// @title LockDealNFT contract
+/// @notice Implements a non-fungible token (NFT) contract for locking deals
 contract LockDealNFT is LockDealNFTModifiers {
     using Counters for Counters.Counter;
 
@@ -13,6 +15,9 @@ contract LockDealNFT is LockDealNFTModifiers {
         approvedProviders[address(this)] = true;
     }
 
+    /// @dev Checks if a pool with the given ID exists
+    /// @param poolId The ID of the pool
+    /// @return A boolean indicating whether the pool exists or not
     function exist(uint256 poolId) external view returns (bool) {
         return _exists(poolId);
     }
@@ -34,6 +39,9 @@ contract LockDealNFT is LockDealNFTModifiers {
         poolIdToVaultId[poolId] = vaultManager.DepositByToken(token, from, amount);
     }
 
+    /// @dev Sets the approved status of a provider
+    /// @param provider The address of the provider
+    /// @param status The new approved status (true or false)
     function setApprovedProvider(
         address provider,
         bool status
@@ -41,6 +49,10 @@ contract LockDealNFT is LockDealNFTModifiers {
         approvedProviders[provider] = status;
     }
 
+    /// @dev Withdraws funds from a pool and updates the vault accordingly
+    /// @param poolId The ID of the pool
+    /// @return withdrawnAmount The amount of funds withdrawn from the pool
+    /// @return isFinal A boolean indicating if the withdrawal is the final one
     function withdraw(
         uint256 poolId
     ) external onlyOwnerOrAdmin(poolId) returns (uint256 withdrawnAmount, bool isFinal) {
@@ -55,6 +67,10 @@ contract LockDealNFT is LockDealNFTModifiers {
         }
     }
 
+    /// @dev Splits a pool into two pools with adjusted amounts
+    /// @param poolId The ID of the pool to split
+    /// @param splitAmount The amount of funds to split into the new pool
+    /// @param newOwner The address to assign the new pool to
     function split(
         uint256 poolId,
         uint256 splitAmount,
@@ -68,6 +84,9 @@ contract LockDealNFT is LockDealNFTModifiers {
         );
     }
 
+    /// @param owner The address to assign the token to
+    /// @param provider The address of the provider assigning the token
+    /// @return newPoolId The ID of the pool
     function _mint(
         address owner,
         address provider

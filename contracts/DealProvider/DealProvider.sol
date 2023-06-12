@@ -11,7 +11,12 @@ contract DealProvider is DealProviderModifiers, BasicProvider {
         lockDealNFT = LockDealNFT(_nftContract);
     }
 
-    /// @dev use revert only for permissions
+    /**
+     * @dev used by LockedDealNFT contract to withdraw tokens from a pool.
+     * @param poolId The ID of the pool.
+     * @return withdrawnAmount The amount of tokens withdrawn.
+     * @return isFinal Boolean indicating whether the pool is empty after a withdrawal.
+     */
     function withdraw(
         uint256 poolId
     ) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
@@ -34,7 +39,8 @@ contract DealProvider is DealProviderModifiers, BasicProvider {
             );
         }
     }
-
+    
+    /// @dev Splits a pool into two pools. Used by the LockedDealNFT contract or Provider
     function split(
         uint256 oldPoolId,
         uint256 newPoolId,
@@ -58,7 +64,12 @@ contract DealProvider is DealProviderModifiers, BasicProvider {
         );
     }
 
-    ///@param params[0] = amount
+    /**@dev Providers overrides this function to add additional parameters when creating a pool.
+     * @param poolId The ID of the pool.
+     * @param owner The address of the pool owner.
+     * @param token The address of the token associated with the pool.
+     * @param params An array of additional parameters.
+     */
     function _registerPool(
         uint256 poolId,
         address owner,
