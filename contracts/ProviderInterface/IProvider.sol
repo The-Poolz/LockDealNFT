@@ -18,7 +18,7 @@ interface IProvider {
 
     function getData(
         uint256 poolId
-    ) external returns (
+    ) external view returns (
         IDealProvierEvents.BasePoolInfo memory poolInfo,
         uint256[] memory params
     );

@@ -8,7 +8,6 @@ import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 
 interface IProviderExtend {
     function registerPool(uint256 poolId, address owner, address token, uint256[] memory params) external;
-    function getData(uint256 poolData) external returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params);
 }
 
 contract LockDealBundleProvider is
@@ -53,7 +52,7 @@ contract LockDealBundleProvider is
 
         uint256 firstSubPoolId;
         uint256 totalStartAmount;
-        for (uint256 i; i < providers.length; ++i) {
+        for (uint256 i; i < providerCount; ++i) {
             address provider = providers[i];
             uint256[] memory params = providerParams[i];
 
@@ -75,9 +74,7 @@ contract LockDealBundleProvider is
 
         // create a new pool owned by the owner with `totalStartAmount` token trasnfer amount
         poolId = lockDealNFT.mint(owner, token, msg.sender, totalStartAmount);
-        uint256[] memory lockDealBundlePoolParams = new uint256[](1);
-        lockDealBundlePoolParams[0] = firstSubPoolId;
-        _registerPool(poolId, lockDealBundlePoolParams);
+        poolIdToLockDealBundle[poolId].firstSubPoolId = firstSubPoolId;
         isLockDealBundlePoolId[poolId] = true;
     }
 
@@ -110,14 +107,6 @@ contract LockDealBundleProvider is
         uint256 newPoolId,
         uint256 splitAmount
     ) public onlyProvider {
-    }
-
-    ///@param params[0] = firstSubPoolId
-    function _registerPool(
-        uint256 poolId,
-        uint256[] memory params
-    ) internal {
-        poolIdToLockDealBundle[poolId].firstSubPoolId = params[0];
     }
 
     function getData(uint256 poolId) public view override onlyBundlePoolId(poolId) returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params) {
