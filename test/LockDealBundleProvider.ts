@@ -72,10 +72,10 @@ describe("Lock Deal Bundle Provider", function () {
         expect(poolData.params[0]).to.equal(poolId);
 
         // check the NFT ownership
-        expect(await lockDealNFT.ownerOf(poolId)).to.equal(bundleProvider.address); 
-        expect(await lockDealNFT.ownerOf(poolId + 1)).to.equal(bundleProvider.address); 
-        expect(await lockDealNFT.ownerOf(poolId + 2)).to.equal(bundleProvider.address); 
-        expect(await lockDealNFT.ownerOf(bundlePooId)).to.equal(receiver.address); 
+        expect(await lockDealNFT.ownerOf(poolId)).to.equal(bundleProvider.address);
+        expect(await lockDealNFT.ownerOf(poolId + 1)).to.equal(bundleProvider.address);
+        expect(await lockDealNFT.ownerOf(poolId + 2)).to.equal(bundleProvider.address);
+        expect(await lockDealNFT.ownerOf(bundlePooId)).to.equal(receiver.address);
     })
 
     it("should check cascade NewPoolCreated event", async () => {
