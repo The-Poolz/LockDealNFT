@@ -23,7 +23,7 @@ describe("LockDealNFT", function () {
     const amount: string = "1000"
 
     before(async () => {
-        ;[notOwner, receiver] = await ethers.getSigners()
+        [notOwner, receiver] = await ethers.getSigners()
         mockVaultManager = await deployed("MockVaultManager")
         lockDealNFT = await deployed("LockDealNFT", mockVaultManager.address)
         dealProvider = await deployed("DealProvider", lockDealNFT.address)
@@ -81,7 +81,8 @@ describe("LockDealNFT", function () {
     })
 
     it("should return data from DealProvider using LockedDealNFT", async () => {
-        const poolData = await dealProvider.getData(poolId)
+        const poolData = await lockDealNFT.getData(poolId)
+        expect(poolData.provider).to.deep.equal(dealProvider.address)
         expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token.address])
         expect(poolData.params[0]).to.equal(amount)
     })
@@ -89,7 +90,8 @@ describe("LockDealNFT", function () {
     it("should return data from LockDealProvider using LockedDealNFT", async () => {
         poolId = (await lockDealNFT.totalSupply()).toNumber()
         await lockDealProvider.createNewPool(receiver.address, token.address, [amount, 1])
-        const poolData = await lockDealProvider.getData(poolId)
+        const poolData = await lockDealNFT.getData(poolId)
+        expect(poolData.provider).to.deep.equal(lockDealProvider.address)
         expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token.address])
         expect(poolData.params[0]).to.equal(amount)
         expect(poolData.params[1]).to.equal(1)
@@ -98,7 +100,8 @@ describe("LockDealNFT", function () {
     it("should return data from TimedDealProvider using LockedDealNFT", async () => {
         poolId = (await lockDealNFT.totalSupply()).toNumber()
         await timedDealProvider.createNewPool(receiver.address, token.address, [amount, 1, 1, amount])
-        const poolData = await timedDealProvider.getData(poolId)
+        const poolData = await lockDealNFT.getData(poolId)
+        expect(poolData.provider).to.deep.equal(timedDealProvider.address)
         expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token.address])
         expect(poolData.params[0]).to.equal(amount)
         expect(poolData.params[1]).to.equal(1)
