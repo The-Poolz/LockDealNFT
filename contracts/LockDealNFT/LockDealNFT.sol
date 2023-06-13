@@ -2,10 +2,12 @@
 pragma solidity ^0.8.0;
 
 import "./LockDealNFTModifiers.sol";
+import "./ILockDealNFTEvents.sol";
+import "../ProviderInterface/IProvider.sol";
 
 /// @title LockDealNFT contract
 /// @notice Implements a non-fungible token (NFT) contract for locking deals
-contract LockDealNFT is LockDealNFTModifiers {
+contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
     using Counters for Counters.Counter;
 
     constructor(address _vaultManager) ERC721("LockDealNFT", "LDNFT") {
@@ -46,6 +48,7 @@ contract LockDealNFT is LockDealNFTModifiers {
         bool status
     ) external onlyOwner onlyContract(provider) {
         approvedProviders[provider] = status;
+        emit ProviderApproved(provider, status);
     }
 
     /// @dev Withdraws funds from a pool and updates the vault accordingly
@@ -94,5 +97,6 @@ contract LockDealNFT is LockDealNFTModifiers {
         tokenIdCounter.increment();
         _safeMint(owner, newPoolId);
         poolIdToProvider[newPoolId] = provider;
+        emit MintInitiated(provider);
     }
 }

@@ -58,8 +58,23 @@ describe("LockDealNFT", function () {
         expect(await lockDealNFT.approvedProviders(dealProvider.address)).to.be.true
     })
 
+    it("should return ProviderApproved event", async () => {
+        const tx = await lockDealNFT.setApprovedProvider(dealProvider.address, true)
+        await tx.wait()
+        const events = await lockDealNFT.queryFilter(lockDealNFT.filters.ProviderApproved())
+        expect(events[events.length - 1].args.status).to.equal(true)
+        expect(events[events.length - 1].args.provider).to.equal(dealProvider.address)
+    })
+
     it("should mint new token", async () => {
         expect(await lockDealNFT.totalSupply()).to.equal(poolId + 1)
+    })
+
+    it("should return mintInitiated event", async () => {
+        const tx = await dealProvider.createNewPool(receiver.address, token.address, [amount])
+        await tx.wait()
+        const events = await lockDealNFT.queryFilter(lockDealNFT.filters.MintInitiated())
+        expect(events[events.length - 1].args.provider).to.equal(dealProvider.address)
     })
 
     it("should save provider address", async () => {
