@@ -16,7 +16,7 @@ describe("LockDealNFT", function () {
     let dealProvider: DealProvider
     let receiver: SignerWithAddress
     let notOwner: SignerWithAddress
-
+    const amount: string = "1000"
 
     before(async () => {
         [notOwner, receiver] = await ethers.getSigners()
@@ -31,6 +31,7 @@ describe("LockDealNFT", function () {
 
     beforeEach(async () => {
         poolId = (await lockDealNFT.totalSupply()).toNumber()
+        await dealProvider.createNewPool(receiver.address, token.address, [amount])
     })
 
     it("check NFT name", async () => {
@@ -46,13 +47,26 @@ describe("LockDealNFT", function () {
         expect(await lockDealNFT.approvedProviders(dealProvider.address)).to.be.true
     })
 
+    it("should return ProviderApproved event", async () => {
+        const tx = await lockDealNFT.setApprovedProvider(dealProvider.address, true)
+        await tx.wait()
+        const events = await lockDealNFT.queryFilter(lockDealNFT.filters.ProviderApproved())
+        expect(events[events.length - 1].args.status).to.equal(true)
+        expect(events[events.length - 1].args.provider).to.equal(dealProvider.address)
+    })
+
     it("should mint new token", async () => {
-        await dealProvider.createNewPool(receiver.address, token.address, ["1000"])
         expect(await lockDealNFT.totalSupply()).to.equal(poolId + 1)
     })
 
+    it("should return mintInitiated event", async () => {
+        const tx = await dealProvider.createNewPool(receiver.address, token.address, [amount])
+        await tx.wait()
+        const events = await lockDealNFT.queryFilter(lockDealNFT.filters.MintInitiated())
+        expect(events[events.length - 1].args.provider).to.equal(dealProvider.address)
+    })
+
     it("should save provider address", async () => {
-        await dealProvider.createNewPool(receiver.address, token.address, ["1000"])
         expect(await lockDealNFT.poolIdToProvider(poolId)).to.equal(dealProvider.address)
     })
 
@@ -64,7 +78,7 @@ describe("LockDealNFT", function () {
 
     it("should revert not approved amount", async () => {
         await token.approve(mockVaultManager.address, "0")
-        await expect(dealProvider.createNewPool(receiver.address, token.address, ["1000"])).to.be.revertedWith(
+        await expect(dealProvider.createNewPool(receiver.address, token.address, [amount])).to.be.revertedWith(
             "Sending tokens not approved"
         )
         await token.approve(mockVaultManager.address, constants.MaxUint256)
