@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 contract MockVaultManager {
-    function DepositByToken(
+    function depositByToken(
         address _tokenAddress,
         address from,
         uint _amount
@@ -10,7 +10,7 @@ contract MockVaultManager {
         // do nothing
     }
 
-    function WithdrawByVaultId(
+    function withdrawByVaultId(
         uint _vaultId,
         address to,
         uint _amount
