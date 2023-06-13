@@ -35,7 +35,7 @@ contract LockDealNFT is LockDealNFTModifiers {
         returns (uint256 poolId)
     {
         poolId = _mint(owner, msg.sender);
-        poolIdToVaultId[poolId] = vaultManager.DepositByToken(token, from, amount);
+        poolIdToVaultId[poolId] = vaultManager.depositByToken(token, from, amount);
     }
 
     /// @dev Sets the approved status of a provider
@@ -56,7 +56,7 @@ contract LockDealNFT is LockDealNFTModifiers {
         uint256 poolId
     ) external onlyOwnerOrAdmin(poolId) returns (uint256 withdrawnAmount, bool isFinal) {
         (withdrawnAmount, isFinal) = IProvider(poolIdToProvider[poolId]).withdraw(poolId);
-        vaultManager.WithdrawByVaultId(
+        vaultManager.withdrawByVaultId(
             poolIdToVaultId[poolId],
             ownerOf(poolId),
             withdrawnAmount
