@@ -62,7 +62,7 @@ contract LockDealProvider is BasicProvider, LockDealState {
     * @dev Retrieves the data of the specific pool identified by `poolId`
     * by calling the downstream cascading provider and adding own data.
     */
-    function getData(uint256 poolId) public override view returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params) {
+    function getData(uint256 poolId) public view override returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params) {
         uint256[] memory dealProviderParams;
         (poolInfo, dealProviderParams) = dealProvider.getData(poolId);
 

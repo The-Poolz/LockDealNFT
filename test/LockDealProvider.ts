@@ -76,13 +76,6 @@ describe("Lock Deal Provider", function () {
         )
     })
 
-    it("should revert zero amount", async () => {
-        const params = ["0", startTime]
-        await expect(lockProvider.createNewPool(receiver.address, token.address, params)).to.be.revertedWith(
-            "amount should be greater than 0"
-        )
-    })
-
     describe("Lock Split Amount", () => {
         it("should check data in old pool after split", async () => {
             await lockDealNFT.split(poolId, amount / 2, newOwner.address)

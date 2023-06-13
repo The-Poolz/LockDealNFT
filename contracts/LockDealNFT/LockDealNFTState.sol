@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "poolz-helper-v2/contracts/interfaces/IVaultManager.sol";
+import "../ProviderInterface/IProvider.sol";
 
 /**
  * @title LockDealNFTState
@@ -17,4 +18,19 @@ abstract contract LockDealNFTState is ERC721Enumerable {
     mapping(uint256 => address) public poolIdToProvider;
     mapping(uint256 => uint256) public poolIdToVaultId;
     mapping(address => bool) public approvedProviders;
+
+    function getData(uint256 poolId)
+        external
+        view
+        returns (
+            address provider,
+            IDealProvierEvents.BasePoolInfo memory poolInfo,
+            uint256[] memory params
+        )
+    {
+        if (_exists(poolId)) {
+            provider = poolIdToProvider[poolId];
+            (poolInfo, params) = IProvider(poolIdToProvider[poolId]).getData(poolId);
+        }
+    }
 }
