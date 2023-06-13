@@ -84,13 +84,13 @@ contract TimedDealProvider is BasicProvider, TimedProviderState {
         dealProvider.registerPool(poolId, owner, token, params);
     }
 
-    function getData(uint256 poolId) public override view returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params) {
-        uint256[] memory baseLockDealProviderParams;
-        (poolInfo, baseLockDealProviderParams) = dealProvider.getData(poolId);
+    function getData(uint256 poolId) public view override returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params) {
+        uint256[] memory lockDealProviderParams;
+        (poolInfo, lockDealProviderParams) = dealProvider.getData(poolId);
 
         params = new uint256[](4);
-        params[0] = baseLockDealProviderParams[0];  // leftAmount
-        params[1] = baseLockDealProviderParams[1];  // startTime
+        params[0] = lockDealProviderParams[0];  // leftAmount
+        params[1] = lockDealProviderParams[1];  // startTime
         params[2] = poolIdToTimedDeal[poolId].finishTime; // finishTime
         params[3] = poolIdToTimedDeal[poolId].startAmount; // startAmount
     }
