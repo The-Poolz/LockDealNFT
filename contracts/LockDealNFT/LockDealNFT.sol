@@ -38,7 +38,6 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
     {
         poolId = _mint(owner, msg.sender);
         poolIdToVaultId[poolId] = vaultManager.DepositByToken(token, from, amount);
-        emit MintInitiated(msg.sender);
     }
 
     /// @dev Sets the approved status of a provider
@@ -98,5 +97,6 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
         tokenIdCounter.increment();
         _safeMint(owner, newPoolId);
         poolIdToProvider[newPoolId] = provider;
+        emit MintInitiated(provider);
     }
 }
