@@ -18,7 +18,7 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
 
     /// @dev Checks if a pool with the given ID exists
     /// @param poolId The ID of the pool
-    /// @return A boolean indicating whether the pool exists or not
+    /// @return boolean indicating whether the pool exists or not
     function exist(uint256 poolId) external view returns (bool) {
         return _exists(poolId);
     }
@@ -58,12 +58,19 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
     function withdraw(
         uint256 poolId
     ) external onlyOwnerOrAdmin(poolId) returns (uint256 withdrawnAmount, bool isFinal) {
-        (withdrawnAmount, isFinal) = IProvider(poolIdToProvider[poolId]).withdraw(poolId);
-        vaultManager.withdrawByVaultId(
-            poolIdToVaultId[poolId],
-            ownerOf(poolId),
-            withdrawnAmount
-        );
+        address provider = poolIdToProvider[poolId];
+        (withdrawnAmount, isFinal) = IProvider(provider).withdraw(poolId);
+        
+        // In case of the bundle pool, skip the withdrawal step
+        (IDealProvierEvents.BasePoolInfo memory poolInfo, ) = IProvider(provider).getData(poolId);
+        if (poolInfo.token != address(0)) {
+            vaultManager.withdrawByVaultId(
+                poolIdToVaultId[poolId],
+                ownerOf(poolId),
+                withdrawnAmount
+            );
+        }
+
         if (isFinal) {
             _burn(poolId);
         }
