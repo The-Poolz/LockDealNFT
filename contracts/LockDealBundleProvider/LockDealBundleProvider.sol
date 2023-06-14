@@ -4,10 +4,11 @@ pragma solidity ^0.8.0;
 import "./LockDealBundleProviderModifiers.sol";
 import "../Provider/ProviderModifiers.sol";
 import "../ProviderInterface/IProvider.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 
 interface IProviderExtend {
-    function registerPool(uint256 poolId, address owner, address token, uint256[] memory params) external;
+    function createNewPool(address owner, address token, uint256[] memory params) external returns (uint256 poolId);
 }
 
 contract LockDealBundleProvider is
@@ -16,6 +17,8 @@ contract LockDealBundleProvider is
     IProvider,
     ERC721Holder
 {
+    using SafeERC20 for IERC20;
+
     constructor(address nft) {
         require(
             nft != address(0x0),
@@ -51,7 +54,6 @@ contract LockDealBundleProvider is
         require(providerCount > 1, "providers length must be greater than 1");
 
         uint256 firstSubPoolId;
-        uint256 totalStartAmount;
         for (uint256 i; i < providerCount; ++i) {
             address provider = providers[i];
             uint256[] memory params = providerParams[i];
@@ -65,41 +67,49 @@ contract LockDealBundleProvider is
 
             // create the pool and store the first sub poolId
             // mint the NFT owned by the BunderDealProvider with 0 token transfer amount
-            uint256 subPoolId = _createNewPool(address(this), token, msg.sender, 0, provider, params);
+            uint256 subPoolId = _createNewSubPool(address(this), token, msg.sender, params, provider);
             if (i == 0) firstSubPoolId = subPoolId;
-
-            // increase the `totalStartAmount`
-            totalStartAmount += params[0];
         }
 
-        // create a new pool owned by the owner with `totalStartAmount` token trasnfer amount
-        poolId = lockDealNFT.mint(owner, token, msg.sender, totalStartAmount);
+        // create a new pool owned by the owner with 0 token trasnfer amount
+        poolId = lockDealNFT.mint(owner, token, msg.sender, 0);
         poolIdToLockDealBundle[poolId].firstSubPoolId = firstSubPoolId;
         isLockDealBundlePoolId[poolId] = true;
     }
 
-    function _createNewPool(
+    function _createNewSubPool(
         address owner,
         address token,
         address from,
-        uint256 amount,
-        address provider,
-        uint256[] memory params
+        uint256[] memory params,
+        address provider
     ) internal returns (uint256 poolId) {
-        poolId = lockDealNFT.mint(owner, token, from, amount);
-        IProviderExtend(provider).registerPool(poolId, owner, token, params);
+        IERC20(token).safeTransferFrom(from, address(this), params[0]);
+        IERC20(token).safeIncreaseAllowance(address(lockDealNFT.vaultManager()), params[0]);
+        poolId = IProviderExtend(provider).createNewPool(owner, token, params);
     }
 
-    /// @dev use revert only for permissions
     function withdraw(
         uint256 poolId
     ) public override onlyNFT onlyBundlePoolId(poolId) returns (uint256 withdrawnAmount, bool isFinal) {
-    }
+        // withdraw the sub pools
+        uint256 firstSubPoolId = poolIdToLockDealBundle[poolId].firstSubPoolId;
+        isFinal = true;
+        for (uint256 i = firstSubPoolId; i < poolId; ++i) {
+            // if the sub pool was already withdrawn and burnt, skip it
+            if (lockDealNFT.exist(i)) {
+                (uint256 subPoolWithdrawnAmount, bool subPoolIsFinal) = lockDealNFT.withdraw(i);
+                withdrawnAmount += subPoolWithdrawnAmount;
+                isFinal = isFinal && subPoolIsFinal;
+            }
+        }
 
-    function _withdraw(
-        uint256 provider,
-        uint256 poolId
-    ) internal returns (uint256 withdrawnAmount, bool isFinal) {
+        // transfer the payment token to the owner
+        address firstSubPoolProvider = lockDealNFT.poolIdToProvider(firstSubPoolId);
+        (IDealProvierEvents.BasePoolInfo memory firstSubPoolInfolInfo, ) = IProvider(firstSubPoolProvider).getData(firstSubPoolId);
+        address token = firstSubPoolInfolInfo.token;
+        address owner = lockDealNFT.ownerOf(poolId);
+        IERC20(token).safeTransfer(owner, withdrawnAmount);
     }
 
     function split(
