@@ -29,7 +29,7 @@ contract RefundProvider is RefundState {
         refundPoolId = lockDealNFT.mint(owner, token, msg.sender, leftAmount[0]);
 
         IProviderExtend(provider).registerPool(poolId, owner, mainCoin, params);
-        IProviderExtend(dealProvider).registerPool(refundPoolId, address(this), owner, params);
+        IProviderExtend(dealProvider).registerPool(refundPoolId, address(this), mainCoin, params);
     }
 
     function getMainCoinAmount(
