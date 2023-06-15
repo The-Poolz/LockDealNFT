@@ -1,5 +1,5 @@
 import { expect, } from "chai";
-import { constants } from "ethers";
+import { BigNumber, constants } from "ethers";
 import { ethers } from 'hardhat';
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 import { LockDealProvider } from "../typechain-types/contracts/LockProvider";
@@ -24,7 +24,8 @@ describe("Lock Deal Bundle Provider", function () {
     let receiver: SignerWithAddress
     let token: ERC20Token
     let startTime: number, finishTime: number
-    const amount = 100000
+    const amount = BigNumber.from(100000)
+    const ONE_DAY = 86400
 
     before(async () => {
         [receiver] = await ethers.getSigners()
@@ -36,7 +37,6 @@ describe("Lock Deal Bundle Provider", function () {
         timedDealProvider = await deployed("TimedDealProvider", lockDealNFT.address, lockProvider.address)
         bundleProvider = await deployed("LockDealBundleProvider", lockDealNFT.address)
         mockProvider = await deployed("MockProvider", timedDealProvider.address)
-        await token.approve(timedDealProvider.address, constants.MaxUint256)
         await token.approve(mockVaultManager.address, constants.MaxUint256)
         await lockDealNFT.setApprovedProvider(dealProvider.address, true)
         await lockDealNFT.setApprovedProvider(lockProvider.address, true)
@@ -46,7 +46,6 @@ describe("Lock Deal Bundle Provider", function () {
     })
 
     beforeEach(async () => {
-        const ONE_DAY = 86400
         startTime = await time.latest() + ONE_DAY   // plus 1 day
         finishTime = startTime + 7 * ONE_DAY   // plus 7 days from `startTime`
         const dealProviderParams = [amount]
@@ -133,5 +132,32 @@ describe("Lock Deal Bundle Provider", function () {
         await expect(bundleProvider.createNewPool(receiver.address, constants.AddressZero, bundleProviders, bundleProviderParams)).to.be.revertedWith(
             "Zero Address is not allowed"
         )
+    })
+
+    describe("Lock Deal Bundle Withdraw", () => {
+        it("should withdraw all tokens from bundle", async () => {
+            const bundlePooId = (await lockDealNFT.totalSupply()).toNumber() - 1;
+            const ownerBalanceBefore = await token.balanceOf(receiver.address);
+
+            await time.setNextBlockTimestamp(startTime - 1)
+            await lockDealNFT.withdraw(bundlePooId)
+            expect(await token.balanceOf(receiver.address)).to.equal(ownerBalanceBefore.add(amount))    // from DealProvider
+            
+            await time.setNextBlockTimestamp(startTime)
+            await lockDealNFT.withdraw(bundlePooId)
+            expect(await token.balanceOf(receiver.address)).to.equal(ownerBalanceBefore.add(amount.mul(2))) // from DealProvider + LockDealProvider
+            
+            await time.setNextBlockTimestamp(startTime + ONE_DAY)   // from TimedDealProvider
+            await lockDealNFT.withdraw(bundlePooId)
+            expect(await token.balanceOf(receiver.address)).to.equal(ownerBalanceBefore.add(BigNumber.from(amount.mul(2))).add(amount.div(7)))  // from DealProvider + LockDealProvider
+
+            await time.setNextBlockTimestamp(finishTime)
+            await lockDealNFT.withdraw(bundlePooId)
+            expect(await token.balanceOf(receiver.address)).to.equal(ownerBalanceBefore.add(amount.mul(3))) // from DealProvider + LockDealProvider + TimedDealProvider
+        })
+
+        it("should revert if not called from the lockDealNFT contract", async () => {
+            await expect(bundleProvider.withdraw(100)).to.be.revertedWith("only NFT contract can call this function")
+        })
     })
 })
