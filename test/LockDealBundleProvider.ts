@@ -136,24 +136,24 @@ describe("Lock Deal Bundle Provider", function () {
 
     describe("Lock Deal Bundle Withdraw", () => {
         it("should withdraw all tokens from bundle", async () => {
-            const bundlePooId = (await lockDealNFT.totalSupply()).toNumber() - 1;
-            const ownerBalanceBefore = await token.balanceOf(receiver.address);
+            const bundlePooId = (await lockDealNFT.totalSupply()).toNumber() - 1
+            let withdrawnAmount
 
-            await time.setNextBlockTimestamp(startTime - 1)
-            await lockDealNFT.withdraw(bundlePooId)
-            expect(await token.balanceOf(receiver.address)).to.equal(ownerBalanceBefore.add(amount))    // from DealProvider
+            await time.increaseTo(startTime - 1)
+            withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePooId)).withdrawnAmount
+            expect(withdrawnAmount).to.equal(amount)    // from DealProvider
             
-            await time.setNextBlockTimestamp(startTime)
-            await lockDealNFT.withdraw(bundlePooId)
-            expect(await token.balanceOf(receiver.address)).to.equal(ownerBalanceBefore.add(amount.mul(2))) // from DealProvider + LockDealProvider
+            await time.increaseTo(startTime)
+            withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePooId)).withdrawnAmount
+            expect(withdrawnAmount).to.equal(amount.mul(2)) // from DealProvider + LockDealProvider
             
-            await time.setNextBlockTimestamp(startTime + ONE_DAY)   // from TimedDealProvider
-            await lockDealNFT.withdraw(bundlePooId)
-            expect(await token.balanceOf(receiver.address)).to.equal(ownerBalanceBefore.add(BigNumber.from(amount.mul(2))).add(amount.div(7)))  // from DealProvider + LockDealProvider
+            await time.increaseTo(startTime + ONE_DAY)
+            withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePooId)).withdrawnAmount
+            expect(withdrawnAmount).to.equal(BigNumber.from(amount.mul(2)).add(amount.div(7)))  // from DealProvider + LockDealProvider
 
-            await time.setNextBlockTimestamp(finishTime)
-            await lockDealNFT.withdraw(bundlePooId)
-            expect(await token.balanceOf(receiver.address)).to.equal(ownerBalanceBefore.add(amount.mul(3))) // from DealProvider + LockDealProvider + TimedDealProvider
+            await time.increaseTo(finishTime)
+            withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePooId)).withdrawnAmount
+            expect(withdrawnAmount).to.equal(amount.mul(3)) // from DealProvider + LockDealProvider + TimedDealProvider
         })
 
         it("should revert if not called from the lockDealNFT contract", async () => {
