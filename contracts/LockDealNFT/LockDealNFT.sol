@@ -62,7 +62,7 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
         address provider = poolIdToProvider[poolId];
         (withdrawnAmount, isFinal) = IProvider(provider).withdraw(poolId);
         
-        // In case of the bundle pool, skip the withdrawal step
+        // in case of the sub-provider, the main provider will sum the data
         if (!approvedProviders[ownerOf(poolId)]) {
             vaultManager.withdrawByVaultId(
                 poolIdToVaultId[poolId],

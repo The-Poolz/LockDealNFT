@@ -135,24 +135,35 @@ describe("Lock Deal Bundle Provider", function () {
     })
 
     describe("Lock Deal Bundle Withdraw", () => {
-        it("should withdraw all tokens from bundle", async () => {
+        it("should withdraw all tokens before the startTime", async () => {
             const bundlePooId = (await lockDealNFT.totalSupply()).toNumber() - 1
-            let withdrawnAmount
 
             await time.increaseTo(startTime - 1)
-            withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePooId)).withdrawnAmount
+            let withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePooId)).withdrawnAmount
             expect(withdrawnAmount).to.equal(amount)    // from DealProvider
-            
+        })
+
+        it("should withdraw all tokens from bundle at the startTime", async () => {
+            const bundlePooId = (await lockDealNFT.totalSupply()).toNumber() - 1
+
             await time.increaseTo(startTime)
-            withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePooId)).withdrawnAmount
+            let withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePooId)).withdrawnAmount
             expect(withdrawnAmount).to.equal(amount.mul(2)) // from DealProvider + LockDealProvider
-            
+        })
+
+        it("should withdraw all tokens from bundle at the startTime + 1 day", async () => {
+            const bundlePooId = (await lockDealNFT.totalSupply()).toNumber() - 1
+
             await time.increaseTo(startTime + ONE_DAY)
-            withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePooId)).withdrawnAmount
+            let withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePooId)).withdrawnAmount
             expect(withdrawnAmount).to.equal(BigNumber.from(amount.mul(2)).add(amount.div(7)))  // from DealProvider + LockDealProvider
+        })
+
+        it("should withdraw all tokens after the finishTime", async () => {
+            const bundlePooId = (await lockDealNFT.totalSupply()).toNumber() - 1
 
             await time.increaseTo(finishTime)
-            withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePooId)).withdrawnAmount
+            let withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePooId)).withdrawnAmount
             expect(withdrawnAmount).to.equal(amount.mul(3)) // from DealProvider + LockDealProvider + TimedDealProvider
         })
 
