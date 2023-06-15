@@ -21,6 +21,7 @@ describe("Lock Deal Bundle Provider", function () {
     let lockDealNFT: LockDealNFT
     let mockProvider: MockProvider
     let poolId: number
+    let bundlePoolId: number
     let receiver: SignerWithAddress
     let token: ERC20Token
     let startTime: number, finishTime: number
@@ -55,6 +56,7 @@ describe("Lock Deal Bundle Provider", function () {
         const bundleProviderParams = [dealProviderParams, lockProviderParams, timedDealProviderParams]
         poolId = (await lockDealNFT.totalSupply()).toNumber()
         await bundleProvider.createNewPool(receiver.address, token.address, bundleProviders, bundleProviderParams)
+        bundlePoolId = (await lockDealNFT.totalSupply()).toNumber() - 1
     })
 
     it("should check lock deal NFT address", async () => {
@@ -63,18 +65,17 @@ describe("Lock Deal Bundle Provider", function () {
     })
 
     it("should get bundle provider data after creation", async () => {
-        const bundlePooId = (await lockDealNFT.totalSupply()).toNumber() - 1;
-        const poolData = await bundleProvider.getData(bundlePooId);
+        const poolData = await bundleProvider.getData(bundlePoolId);
 
         // check the pool data
-        expect(poolData.poolInfo).to.deep.equal([bundlePooId, receiver.address, constants.AddressZero]);
+        expect(poolData.poolInfo).to.deep.equal([bundlePoolId, receiver.address, constants.AddressZero]);
         expect(poolData.params[0]).to.equal(poolId);
 
         // check the NFT ownership
         expect(await lockDealNFT.ownerOf(poolId)).to.equal(bundleProvider.address);
         expect(await lockDealNFT.ownerOf(poolId + 1)).to.equal(bundleProvider.address);
         expect(await lockDealNFT.ownerOf(poolId + 2)).to.equal(bundleProvider.address);
-        expect(await lockDealNFT.ownerOf(bundlePooId)).to.equal(receiver.address);
+        expect(await lockDealNFT.ownerOf(bundlePoolId)).to.equal(receiver.address);
     })
 
     it("should check cascade NewPoolCreated event", async () => {
@@ -88,9 +89,9 @@ describe("Lock Deal Bundle Provider", function () {
         await tx.wait()
         const event = await dealProvider.queryFilter(dealProvider.filters.NewPoolCreated())
         const data = event[event.length - 1].args
-        const bundlePooId = (await lockDealNFT.totalSupply()).toNumber() - 1;
+        const bundlePoolId = (await lockDealNFT.totalSupply()).toNumber() - 1;
 
-        expect(data.poolInfo.poolId).to.equal(bundlePooId - 1)
+        expect(data.poolInfo.poolId).to.equal(bundlePoolId - 1)
         expect(data.poolInfo.token).to.equal(token.address)
         expect(data.poolInfo.owner).to.equal(bundleProvider.address)
         expect(data.params[0]).to.equal(amount)
@@ -136,34 +137,26 @@ describe("Lock Deal Bundle Provider", function () {
 
     describe("Lock Deal Bundle Withdraw", () => {
         it("should withdraw all tokens before the startTime", async () => {
-            const bundlePooId = (await lockDealNFT.totalSupply()).toNumber() - 1
-
             await time.increaseTo(startTime - 1)
-            const withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePooId)).withdrawnAmount
+            const withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePoolId)).withdrawnAmount
             expect(withdrawnAmount).to.equal(amount)    // from DealProvider
         })
 
         it("should withdraw all tokens from bundle at the startTime", async () => {
-            const bundlePooId = (await lockDealNFT.totalSupply()).toNumber() - 1
-
             await time.increaseTo(startTime)
-            const withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePooId)).withdrawnAmount
+            const withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePoolId)).withdrawnAmount
             expect(withdrawnAmount).to.equal(amount.mul(2)) // from DealProvider + LockDealProvider
         })
 
         it("should withdraw all tokens from bundle at the startTime + 1 day", async () => {
-            const bundlePooId = (await lockDealNFT.totalSupply()).toNumber() - 1
-
             await time.increaseTo(startTime + ONE_DAY)
-            const withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePooId)).withdrawnAmount
+            const withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePoolId)).withdrawnAmount
             expect(withdrawnAmount).to.equal(BigNumber.from(amount.mul(2)).add(amount.div(7)))  // from DealProvider + LockDealProvider
         })
 
         it("should withdraw all tokens after the finishTime", async () => {
-            const bundlePooId = (await lockDealNFT.totalSupply()).toNumber() - 1
-
             await time.increaseTo(finishTime)
-            const withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePooId)).withdrawnAmount
+            const withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePoolId)).withdrawnAmount
             expect(withdrawnAmount).to.equal(amount.mul(3)) // from DealProvider + LockDealProvider + TimedDealProvider
         })
 
