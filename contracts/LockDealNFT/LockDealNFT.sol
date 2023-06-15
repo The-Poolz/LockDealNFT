@@ -27,7 +27,8 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
         address owner,
         address token,
         address from,
-        uint256 amount
+        uint256 amount,
+        address provider
     )
         public
         onlyApprovedProvider
@@ -36,7 +37,7 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
         approvedAmount(token, from, amount)
         returns (uint256 poolId)
     {
-        poolId = _mint(owner, msg.sender);
+        poolId = _mint(owner, provider);
         poolIdToVaultId[poolId] = vaultManager.depositByToken(token, from, amount);
     }
 
@@ -62,8 +63,7 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
         (withdrawnAmount, isFinal) = IProvider(provider).withdraw(poolId);
         
         // In case of the bundle pool, skip the withdrawal step
-        (IDealProvierEvents.BasePoolInfo memory poolInfo, ) = IProvider(provider).getData(poolId);
-        if (poolInfo.token != address(0)) {
+        if (!approvedProviders[ownerOf(poolId)]) {
             vaultManager.withdrawByVaultId(
                 poolIdToVaultId[poolId],
                 ownerOf(poolId),
