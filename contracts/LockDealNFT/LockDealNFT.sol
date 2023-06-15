@@ -18,7 +18,7 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
 
     /// @dev Checks if a pool with the given ID exists
     /// @param poolId The ID of the pool
-    /// @return A boolean indicating whether the pool exists or not
+    /// @return boolean indicating whether the pool exists or not
     function exist(uint256 poolId) external view returns (bool) {
         return _exists(poolId);
     }
@@ -27,7 +27,8 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
         address owner,
         address token,
         address from,
-        uint256 amount
+        uint256 amount,
+        address provider
     )
         public
         onlyApprovedProvider
@@ -36,7 +37,7 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
         approvedAmount(token, from, amount)
         returns (uint256 poolId)
     {
-        poolId = _mint(owner, msg.sender);
+        poolId = _mint(owner, provider);
         poolIdToVaultId[poolId] = vaultManager.depositByToken(token, from, amount);
     }
 
@@ -58,12 +59,18 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
     function withdraw(
         uint256 poolId
     ) external onlyOwnerOrAdmin(poolId) returns (uint256 withdrawnAmount, bool isFinal) {
-        (withdrawnAmount, isFinal) = IProvider(poolIdToProvider[poolId]).withdraw(poolId);
-        vaultManager.withdrawByVaultId(
-            poolIdToVaultId[poolId],
-            ownerOf(poolId),
-            withdrawnAmount
-        );
+        address provider = poolIdToProvider[poolId];
+        (withdrawnAmount, isFinal) = IProvider(provider).withdraw(poolId);
+        
+        // in case of the sub-provider, the main provider will sum the data
+        if (!approvedProviders[ownerOf(poolId)]) {
+            vaultManager.withdrawByVaultId(
+                poolIdToVaultId[poolId],
+                ownerOf(poolId),
+                withdrawnAmount
+            );
+        }
+
         if (isFinal) {
             _burn(poolId);
         }
