@@ -62,7 +62,7 @@ contract LockDealBundleProvider is
 
             // create the pool and store the first sub poolId
             // mint the NFT owned by the BunderDealProvider with 0 token transfer amount
-            uint256 subPoolId = _createNewPool(address(this), token, msg.sender, 0, provider, params);
+            uint256 subPoolId = _createNewSubPool(address(this), token, msg.sender, 0, provider, params);
             if (i == 0) firstSubPoolId = subPoolId;
 
             // increase the `totalStartAmount`
@@ -70,12 +70,12 @@ contract LockDealBundleProvider is
         }
 
         // create a new pool owned by the owner with `totalStartAmount` token trasnfer amount
-        poolId = lockDealNFT.mint(owner, token, msg.sender, totalStartAmount);
+        poolId = lockDealNFT.mint(owner, token, msg.sender, totalStartAmount, address(this));
         poolIdToLockDealBundle[poolId].firstSubPoolId = firstSubPoolId;
         isLockDealBundlePoolId[poolId] = true;
     }
 
-    function _createNewPool(
+    function _createNewSubPool(
         address owner,
         address token,
         address from,
@@ -83,20 +83,24 @@ contract LockDealBundleProvider is
         address provider,
         uint256[] memory params
     ) internal returns (uint256 poolId) {
-        poolId = lockDealNFT.mint(owner, token, from, amount);
+        poolId = lockDealNFT.mint(owner, token, from, amount, provider);
         IProviderExtend(provider).registerPool(poolId, owner, token, params);
     }
 
-    /// @dev use revert only for permissions
     function withdraw(
         uint256 poolId
     ) public override onlyNFT onlyBundlePoolId(poolId) returns (uint256 withdrawnAmount, bool isFinal) {
-    }
-
-    function _withdraw(
-        uint256 provider,
-        uint256 poolId
-    ) internal returns (uint256 withdrawnAmount, bool isFinal) {
+        // withdraw the sub pools
+        uint256 firstSubPoolId = poolIdToLockDealBundle[poolId].firstSubPoolId;
+        isFinal = true;
+        for (uint256 i = firstSubPoolId; i < poolId; ++i) {
+            // if the sub pool was already withdrawn and burnt, skip it
+            if (lockDealNFT.exist(i)) {
+                (uint256 subPoolWithdrawnAmount, bool subPoolIsFinal) = lockDealNFT.withdraw(i);
+                withdrawnAmount += subPoolWithdrawnAmount;
+                isFinal = isFinal && subPoolIsFinal;
+            }
+        }
     }
 
     function split(

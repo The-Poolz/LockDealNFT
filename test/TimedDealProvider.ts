@@ -40,7 +40,6 @@ describe("Timed Deal Provider", function () {
         lockProvider = await deployed("LockDealProvider", lockDealNFT.address, dealProvider.address)
         timedDealProvider = await deployed("TimedDealProvider", lockDealNFT.address, lockProvider.address)
         mockProvider = await deployed("MockProvider", timedDealProvider.address)
-        await token.approve(timedDealProvider.address, constants.MaxUint256)
         await token.approve(mockVaultManager.address, constants.MaxUint256)
         await lockDealNFT.setApprovedProvider(dealProvider.address, true)
         await lockDealNFT.setApprovedProvider(lockProvider.address, true)
