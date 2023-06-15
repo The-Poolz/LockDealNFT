@@ -139,7 +139,7 @@ describe("Lock Deal Bundle Provider", function () {
             const bundlePooId = (await lockDealNFT.totalSupply()).toNumber() - 1
 
             await time.increaseTo(startTime - 1)
-            let withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePooId)).withdrawnAmount
+            const withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePooId)).withdrawnAmount
             expect(withdrawnAmount).to.equal(amount)    // from DealProvider
         })
 
@@ -147,7 +147,7 @@ describe("Lock Deal Bundle Provider", function () {
             const bundlePooId = (await lockDealNFT.totalSupply()).toNumber() - 1
 
             await time.increaseTo(startTime)
-            let withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePooId)).withdrawnAmount
+            const withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePooId)).withdrawnAmount
             expect(withdrawnAmount).to.equal(amount.mul(2)) // from DealProvider + LockDealProvider
         })
 
@@ -155,7 +155,7 @@ describe("Lock Deal Bundle Provider", function () {
             const bundlePooId = (await lockDealNFT.totalSupply()).toNumber() - 1
 
             await time.increaseTo(startTime + ONE_DAY)
-            let withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePooId)).withdrawnAmount
+            const withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePooId)).withdrawnAmount
             expect(withdrawnAmount).to.equal(BigNumber.from(amount.mul(2)).add(amount.div(7)))  // from DealProvider + LockDealProvider
         })
 
@@ -163,7 +163,7 @@ describe("Lock Deal Bundle Provider", function () {
             const bundlePooId = (await lockDealNFT.totalSupply()).toNumber() - 1
 
             await time.increaseTo(finishTime)
-            let withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePooId)).withdrawnAmount
+            const withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePooId)).withdrawnAmount
             expect(withdrawnAmount).to.equal(amount.mul(3)) // from DealProvider + LockDealProvider + TimedDealProvider
         })
 
