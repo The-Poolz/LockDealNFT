@@ -17,7 +17,7 @@ describe("Refund Provider", function () {
     let newOwner: SignerWithAddress
     let token: ERC20Token
     let BUSD: ERC20Token
-    let params: [number]
+    let params: [number, number, number]
     let poolData: [IDealProvierEvents.BasePoolInfoStructOutput, BigNumber[]] & {
         poolInfo: IDealProvierEvents.BasePoolInfoStructOutput
         params: BigNumber[]
@@ -35,18 +35,18 @@ describe("Refund Provider", function () {
         await token.approve(mockVaultManager.address, constants.MaxUint256)
         await BUSD.approve(mockVaultManager.address, constants.MaxUint256)
         await lockDealNFT.setApprovedProvider(refundProvider.address, true)
+        await lockDealNFT.setApprovedProvider(dealProvider.address, true)
     })
 
     beforeEach(async () => {
         // poolId = (await lockDealNFT.totalSupply()).toNumber()
-         params = [amount]
+         params = [amount, amount, amount]
         // const rate = 2
         // await refundProvider.createNewRefundPool(token.address, receiver.address, BUSD.address, rate, params)
     })
 
     it("should create single refund pool", async () => {
         poolId = (await lockDealNFT.totalSupply()).toNumber()
-        const rate = 2
-        await refundProvider.createNewRefundPool(token.address, receiver.address, BUSD.address, rate, dealProvider.address, params)
+        await refundProvider.createNewRefundPool(token.address, receiver.address, BUSD.address, dealProvider.address, params)
     })
 })

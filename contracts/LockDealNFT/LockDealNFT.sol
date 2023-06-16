@@ -34,9 +34,11 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
         onlyApprovedProvider
         notZeroAddress(owner)
         notZeroAddress(token)
+        notZeroAddress(provider)
         approvedAmount(token, from, amount)
         returns (uint256 poolId)
     {
+        require(approvedProviders[provider], "provider not approved");
         poolId = _mint(owner, provider);
         poolIdToVaultId[poolId] = vaultManager.depositByToken(token, from, amount);
     }
@@ -61,7 +63,7 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
     ) external onlyOwnerOrAdmin(poolId) returns (uint256 withdrawnAmount, bool isFinal) {
         address provider = poolIdToProvider[poolId];
         (withdrawnAmount, isFinal) = IProvider(provider).withdraw(poolId);
-        
+
         // in case of the sub-provider, the main provider will sum the data
         if (!approvedProviders[ownerOf(poolId)]) {
             vaultManager.withdrawByVaultId(

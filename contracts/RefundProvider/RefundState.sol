@@ -3,10 +3,14 @@ pragma solidity ^0.8.0;
 
 import "../ProviderInterface/IProvider.sol";
 import "../LockDealNFT/LockDealNFT.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "poolz-helper-v2/contracts/GovManager.sol";
 
-contract RefundState is Ownable {
-    LockDealNFT public lockDealNFT;
+contract RefundState is GovManager {
     address public dealProvider;
-    mapping(uint256 => address) public poolIdToProvider;
+    mapping(uint256 => RefundDeal) public poolIdtoRefundDeal;
+
+    struct RefundDeal {
+        uint256 refundAmount;
+        uint256 finishTime; // after this time, the owner can return the funds back
+    }
 }
