@@ -120,7 +120,7 @@ describe("Lock Deal Bundle Provider", function () {
         bundleProviders[0] = bundleProvider.address
         await expect(
             bundleProvider.createNewPool(receiver.address, token.address, bundleProviders, bundleProviderParams)
-        ).to.be.reverted
+            ).to.be.revertedWith("invalid provider address")
     })
 
     it("should revert zero token address", async () => {
