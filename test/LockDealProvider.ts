@@ -29,7 +29,6 @@ describe("Lock Deal Provider", function () {
         dealProvider = await deployed("DealProvider", lockDealNFT.address)
         token = await deployed("ERC20Token", "TEST Token", "TERC20")
         lockProvider = await deployed("LockDealProvider", lockDealNFT.address, dealProvider.address)
-        await token.approve(lockProvider.address, constants.MaxUint256)
         await token.approve(mockVaultManager.address, constants.MaxUint256)
         await lockDealNFT.setApprovedProvider(lockProvider.address, true)
         await lockDealNFT.setApprovedProvider(dealProvider.address, true)
