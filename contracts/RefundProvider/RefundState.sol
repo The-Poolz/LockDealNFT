@@ -8,6 +8,7 @@ import "poolz-helper-v2/contracts/GovManager.sol";
 contract RefundState is GovManager {
     address public dealProvider;
     mapping(uint256 => RefundDeal) public poolIdtoRefundDeal;
+    //mapping(uint256 => address) public poolIdToProvider;
 
     struct RefundDeal {
         uint256 refundAmount;

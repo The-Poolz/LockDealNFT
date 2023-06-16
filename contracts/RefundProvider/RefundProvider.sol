@@ -31,9 +31,9 @@ contract RefundProvider is RefundState, ProviderModifiers, IProvider {
         IProviderExtend(provider).registerPool(dataPoolID, address(this), token, params);
 
         /// dealProvider    | Owner Refund  | Hold main coin
-        uint256 dealProviderPoolId = lockDealNFT.mint(address(this), mainCoin, msg.sender, 0, dealProvider);
         uint256 [] memory mainCoinAmount = new uint256[](1);
         mainCoinAmount[0] = params[providerLength - 2];
+        uint256 dealProviderPoolId = lockDealNFT.mint(address(this), mainCoin, msg.sender, mainCoinAmount[0], dealProvider);
         IProviderExtend(dealProvider).registerPool(dealProviderPoolId, address(this), mainCoin, mainCoinAmount);
 
         /// refundProvider  | owner(user)   | real owner poolId
@@ -43,12 +43,15 @@ contract RefundProvider is RefundState, ProviderModifiers, IProvider {
         // store data to refund provider
         poolIdtoRefundDeal[poolId].refundAmount = params[providerLength - 2];
         poolIdtoRefundDeal[poolId].finishTime = params[providerLength - 1];
+        //poolIdToProvider[poolId] = provider;
     }
 
     function withdraw(
         uint256 poolId
     ) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
-
+        // withdraw tokens 
+        // 
+        //IProvider(provider).withdraw(poolId);
     }
 
     function split(
@@ -66,10 +69,10 @@ contract RefundProvider is RefundState, ProviderModifiers, IProvider {
         uint256 poolId,
         address to
     ) external onlyOwnerOrGov {
-        if (poolIdtoRefundDeal[poolId].finishTime >= block.timestamp) {
-            lockDealNFT.transferFrom(address(this), to, poolId);
-            lockDealNFT.withdraw(poolId);
-        }
+        // if (poolIdtoRefundDeal[poolId].finishTime >= block.timestamp) {
+        //     lockDealNFT.transferFrom(address(this), to, poolId);
+        //     lockDealNFT.withdraw(poolId);
+        // }
     }
 
     function getData(
