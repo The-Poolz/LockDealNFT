@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 abstract contract LockDealNFTModifiers is LockDealNFTState, Ownable {
     modifier onlyApprovedProvider() {
-        _onlyApprovedProvider();
+        _onlyApprovedProvider(msg.sender);
         _;
     }
 
@@ -54,8 +54,8 @@ abstract contract LockDealNFTModifiers is LockDealNFTState, Ownable {
         );
     }
 
-    function _onlyApprovedProvider() internal view {
-        require(approvedProviders[msg.sender], "Provider not approved");
+    function _onlyApprovedProvider(address provider) internal view {
+        require(approvedProviders[provider], "Provider not approved");
     }
 
     function _notZeroAmount(uint256 amount) private pure {
