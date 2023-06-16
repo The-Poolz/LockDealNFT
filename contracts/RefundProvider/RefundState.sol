@@ -9,9 +9,4 @@ contract RefundState is Ownable {
     LockDealNFT public lockDealNFT;
     address public dealProvider;
     mapping(uint256 => address) public poolIdToProvider;
-    // uint256 public decimalsRate;
-
-    // function setDecimalRate(uint256 decimals) external onlyOwner {
-    //     decimalsRate = decimals;
-    // }
 }
