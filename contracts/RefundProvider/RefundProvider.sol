@@ -27,11 +27,11 @@ contract RefundProvider is RefundState, ProviderModifiers, IProvider {
         require(providerLength > 2, "invalid params length");
 
         /// XProvider       | Owner Refund  | Hold token (data)
-        uint256 dataPoolID = lockDealNFT.mint(address(this), token, msg.sender, params[providerLength - 2], provider);
+        uint256 dataPoolID = lockDealNFT.mint(address(this), token, msg.sender, 0, provider);
         IProviderExtend(provider).registerPool(dataPoolID, address(this), token, params);
 
         /// dealProvider    | Owner Refund  | Hold main coin
-        uint256 dealProviderPoolId = lockDealNFT.mint(address(this), mainCoin, msg.sender, params[providerLength - 2], dealProvider);
+        uint256 dealProviderPoolId = lockDealNFT.mint(address(this), mainCoin, msg.sender, 0, dealProvider);
         uint256 [] memory mainCoinAmount = new uint256[](1);
         mainCoinAmount[0] = params[providerLength - 2];
         IProviderExtend(dealProvider).registerPool(dealProviderPoolId, address(this), mainCoin, mainCoinAmount);
