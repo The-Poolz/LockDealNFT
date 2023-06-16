@@ -4,11 +4,8 @@ pragma solidity ^0.8.0;
 import "./LockDealBundleProviderModifiers.sol";
 import "../Provider/ProviderModifiers.sol";
 import "../ProviderInterface/IProvider.sol";
+import "../ProviderInterface/IProviderExtend.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
-
-interface IProviderExtend {
-    function registerPool(uint256 poolId, address owner, address token, uint256[] memory params) external;
-}
 
 contract LockDealBundleProvider is
     ProviderModifiers,
