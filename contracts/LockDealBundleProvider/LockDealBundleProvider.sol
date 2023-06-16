@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./LockDealBundleProviderModifiers.sol";
+import "./LockDealBundleProviderState.sol";
 import "../Provider/ProviderModifiers.sol";
 import "../ProviderInterface/IProvider.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
@@ -11,8 +11,8 @@ interface IProviderExtend {
 }
 
 contract LockDealBundleProvider is
+    LockDealBundleProviderState,
     ProviderModifiers,
-    LockDealBundleProviderModifiers,
     IProvider,
     ERC721Holder
 {
@@ -91,7 +91,12 @@ contract LockDealBundleProvider is
 
     function withdraw(
         uint256 poolId
-    ) public override onlyNFT onlyBundlePoolId(poolId) returns (uint256 withdrawnAmount, bool isFinal) {
+    ) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
+        require(
+            poolIdToLockDealBundle[poolId].firstSubPoolId > 0,
+            "Pool is not a bundle pool"
+        );
+
         // withdraw the sub pools
         uint256 firstSubPoolId = poolIdToLockDealBundle[poolId].firstSubPoolId;
         isFinal = true;
@@ -112,7 +117,12 @@ contract LockDealBundleProvider is
     ) public onlyProvider {
     }
 
-    function getData(uint256 poolId) public view override onlyBundlePoolId(poolId) returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params) {
+    function getData(uint256 poolId) public view override returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params) {
+        require(
+            poolIdToLockDealBundle[poolId].firstSubPoolId > 0,
+            "Pool is not a bundle pool"
+        );
+
         address owner = lockDealNFT.ownerOf(poolId);
         poolInfo = IDealProvierEvents.BasePoolInfo(poolId, owner, address(0));
         params = new uint256[](1);
