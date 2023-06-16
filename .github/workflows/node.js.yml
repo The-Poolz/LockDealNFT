@@ -1,20 +1,32 @@
-name: Node.js CI
+name: Build and Test
 
 on:
   push:
-    branches: [ "master" ]
+    branches:
+      - master
   pull_request:
-    branches: [ "master" ]
+    branches:
+      - master
 
 jobs:
-  build:
+  test_and_coverage:
+    name: Run Tests and Generate Coverage
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
-      - run: yarn install
-      - run: npx hardhat coverage
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.15.0'  # Specify your Node.js version here
+
+      - name: Install dependencies
+        run: yarn
+
+      - name: Run tests and generate coverage
+        run: npx hardhat coverage
+
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
