@@ -13,7 +13,7 @@ contract LockDealBundleProviderModifiers is LockDealBundleProviderState {
         uint256 poolId
     ) internal view {
         require(
-            isLockDealBundlePoolId[poolId],
+            poolIdToLockDealBundle[poolId].firstSubPoolId > 0,
             "Pool is not a bundle pool"
         );
     }

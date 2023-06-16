@@ -75,7 +75,6 @@ contract LockDealBundleProvider is
         // create a new pool owned by the owner with `totalStartAmount` token trasnfer amount
         poolId = lockDealNFT.mint(owner, token, msg.sender, totalStartAmount, address(this));
         poolIdToLockDealBundle[poolId].firstSubPoolId = firstSubPoolId;
-        isLockDealBundlePoolId[poolId] = true;
     }
 
     function _createNewSubPool(
