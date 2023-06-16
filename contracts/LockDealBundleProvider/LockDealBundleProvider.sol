@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "./LockDealBundleProviderModifiers.sol";
 import "../Provider/ProviderModifiers.sol";
 import "../ProviderInterface/IProvider.sol";
-import "../ProviderInterface/IProviderExtend.sol";
+import "../ProviderInterface/IProviderSingleIdRegistrar.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 
 contract LockDealBundleProvider is
@@ -80,7 +80,7 @@ contract LockDealBundleProvider is
         uint256[] memory params
     ) internal returns (uint256 poolId) {
         poolId = lockDealNFT.mint(owner, token, from, amount, provider);
-        IProviderExtend(provider).registerPool(poolId, owner, token, params);
+        IProviderSingleIdRegistrar(provider).registerPool(poolId, owner, token, params);
     }
 
     function withdraw(
