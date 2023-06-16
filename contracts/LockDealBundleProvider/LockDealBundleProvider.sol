@@ -88,11 +88,6 @@ contract LockDealBundleProvider is
     function withdraw(
         uint256 poolId
     ) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
-        require(
-            poolIdToLockDealBundle[poolId].firstSubPoolId > 0,
-            "Pool is not a bundle pool"
-        );
-
         // withdraw the sub pools
         uint256 firstSubPoolId = poolIdToLockDealBundle[poolId].firstSubPoolId;
         isFinal = true;
@@ -114,11 +109,6 @@ contract LockDealBundleProvider is
     }
 
     function getData(uint256 poolId) public view override returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params) {
-        require(
-            poolIdToLockDealBundle[poolId].firstSubPoolId > 0,
-            "Pool is not a bundle pool"
-        );
-
         address owner = lockDealNFT.ownerOf(poolId);
         poolInfo = IDealProvierEvents.BasePoolInfo(poolId, owner, address(0));
         params = new uint256[](1);
