@@ -67,7 +67,7 @@ contract LockDealBundleProvider is
 
         // create a new pool owned by the owner with `totalStartAmount` token trasnfer amount
         poolId = lockDealNFT.mint(owner, token, msg.sender, totalStartAmount, address(this));
-        poolIdToLockDealBundle[poolId].firstSubPoolId = firstSubPoolId;
+        bundlePoolIdToFirstPoolId[poolId] = firstSubPoolId;
     }
 
     function _createNewSubPool(
@@ -86,7 +86,7 @@ contract LockDealBundleProvider is
         uint256 poolId
     ) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
         // withdraw the sub pools
-        uint256 firstSubPoolId = poolIdToLockDealBundle[poolId].firstSubPoolId;
+        uint256 firstSubPoolId = bundlePoolIdToFirstPoolId[poolId];
         isFinal = true;
         for (uint256 i = firstSubPoolId; i < poolId; ++i) {
             // if the sub pool was already withdrawn and burnt, skip it
@@ -109,6 +109,6 @@ contract LockDealBundleProvider is
         address owner = lockDealNFT.ownerOf(poolId);
         poolInfo = IDealProvierEvents.BasePoolInfo(poolId, owner, address(0));
         params = new uint256[](1);
-        params[0] = poolIdToLockDealBundle[poolId].firstSubPoolId; // firstSubPoolId
+        params[0] = bundlePoolIdToFirstPoolId[poolId]; // firstSubPoolId
     }
 }
