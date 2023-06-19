@@ -6,9 +6,5 @@ import "../LockDealNFT/LockDealNFT.sol";
 /// @title LockDealBundleProviderState contract
 /// @notice Contains storage variables
 contract LockDealBundleProviderState {
-    mapping(uint256 => LockDealBundle) public poolIdToLockDealBundle;
-
-    struct LockDealBundle {
-        uint256 firstSubPoolId;
-    }
+    mapping(uint256 => uint256) public bundlePoolIdToFirstPoolId;
 }
