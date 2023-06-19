@@ -2,11 +2,12 @@
 pragma solidity ^0.8.0;
 
 import "./RefundState.sol";
-import "../ProviderInterface/IProviderExtend.sol";
+import "../ProviderInterface/IProviderSingleIdRegistrar.sol";
 import "../ProviderInterface/IProvider.sol";
 import "../Provider/ProviderModifiers.sol";
+import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 
-contract RefundProvider is RefundState, ProviderModifiers, IProvider {
+contract RefundProvider is RefundState, ProviderModifiers, IProvider, ERC721Holder {
     constructor(address nftContract, address provider) {
         require(nftContract != address(0x0) && provider != address(0x0), "invalid address");
         lockDealNFT = LockDealNFT(nftContract);
@@ -28,22 +29,21 @@ contract RefundProvider is RefundState, ProviderModifiers, IProvider {
 
         /// XProvider       | Owner Refund  | Hold token (data)
         uint256 dataPoolID = lockDealNFT.mint(address(this), token, msg.sender, 0, provider);
-        IProviderExtend(provider).registerPool(dataPoolID, address(this), token, params);
+        IProviderSingleIdRegistrar(provider).registerPool(dataPoolID, address(this), token, params);
 
         /// dealProvider    | Owner Refund  | Hold main coin
         uint256 [] memory mainCoinAmount = new uint256[](1);
         mainCoinAmount[0] = params[providerLength - 2];
         uint256 dealProviderPoolId = lockDealNFT.mint(address(this), mainCoin, msg.sender, mainCoinAmount[0], dealProvider);
-        IProviderExtend(dealProvider).registerPool(dealProviderPoolId, address(this), mainCoin, mainCoinAmount);
+        IProviderSingleIdRegistrar(dealProvider).registerPool(dealProviderPoolId, address(this), mainCoin, mainCoinAmount);
 
         /// refundProvider  | owner(user)   | real owner poolId
         poolId = lockDealNFT.mint(owner, token, msg.sender, params[0], address(this));
-        IProviderExtend(provider).registerPool(poolId, owner, token, params);
+        IProviderSingleIdRegistrar(provider).registerPool(poolId, owner, token, params);
 
         // store data to refund provider
         poolIdtoRefundDeal[poolId].refundAmount = params[providerLength - 2];
         poolIdtoRefundDeal[poolId].finishTime = params[providerLength - 1];
-        //poolIdToProvider[poolId] = provider;
     }
 
     function withdraw(

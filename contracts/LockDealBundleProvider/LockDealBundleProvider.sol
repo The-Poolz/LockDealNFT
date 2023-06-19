@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "./LockDealBundleProviderState.sol";
 import "../Provider/ProviderModifiers.sol";
 import "../ProviderInterface/IProvider.sol";
-import "../ProviderInterface/IProviderExtend.sol";
+import "../ProviderInterface/IProviderSingleIdRegistrar.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 
 contract LockDealBundleProvider is
@@ -54,7 +54,7 @@ contract LockDealBundleProvider is
             uint256[] memory params = providerParams[i];
 
             // check if the provider address is valid
-            require(provider != address(lockDealNFT), "invalid provider address");
+            require(provider != address(lockDealNFT) && provider != address(this), "invalid provider address");
 
             // create the pool and store the first sub poolId
             // mint the NFT owned by the BunderDealProvider with 0 token transfer amount
@@ -79,7 +79,7 @@ contract LockDealBundleProvider is
         uint256[] memory params
     ) internal returns (uint256 poolId) {
         poolId = lockDealNFT.mint(owner, token, from, amount, provider);
-        IProviderExtend(provider).registerPool(poolId, owner, token, params);
+        IProviderSingleIdRegistrar(provider).registerPool(poolId, owner, token, params);
     }
 
     function withdraw(
