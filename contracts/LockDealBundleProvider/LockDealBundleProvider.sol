@@ -118,12 +118,10 @@ contract LockDealBundleProvider is
         uint256 newFirstSubPoolId;
         
         // split the sub pools
+        newFirstSubPoolId = lockDealNFT.totalSupply();
         for (uint256 i = 0; i < splitAmountsCount; ++i) {
             // mint the NFT owned by the BunderDealProvider, no token transfer
-            uint256 newSubPoolId = lockDealNFT.split(oldFirstSubPoolId + i, splitAmounts[i], address(this));
-            if (i == 0) {
-                newFirstSubPoolId = newSubPoolId;
-            }
+            lockDealNFT.split(oldFirstSubPoolId + i, splitAmounts[i], address(this));
         }
 
         // create a new bundle pool owned by the `newOwner, no token transfer
