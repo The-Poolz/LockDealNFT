@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "./LockDealNFTModifiers.sol";
 import "./ILockDealNFTEvents.sol";
 import "../ProviderInterface/IProvider.sol";
+import "../LockDealBundleProvider/ILockDealBundleProvider.sol";
 
 /// @title LockDealNFT contract
 /// @notice Implements a non-fungible token (NFT) contract for locking deals
@@ -95,6 +96,17 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
             newPoolId,
             splitAmount
         );
+    }
+
+    function splitBundle(
+        uint256 poolId,
+        uint256[] memory splitAmounts,
+        address newOwner
+    ) external onlyOwnerOrAdmin(poolId) {
+        ( , IDealProvierEvents.BasePoolInfo memory poolInfo, ) = getData(poolId);
+        address token = poolInfo.token;
+
+        ILockDealBundleProvider(poolIdToProvider[poolId]).split(poolId, token, splitAmounts, newOwner);
     }
 
     /// @param owner The address to assign the token to

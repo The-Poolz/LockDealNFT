@@ -65,7 +65,7 @@ contract LockDealBundleProvider is
             totalStartAmount += params[0];
         }
 
-        // create a new pool owned by the owner with `totalStartAmount` token trasnfer amount
+        // create a new bundle pool owned by the owner with `totalStartAmount` token trasnfer amount
         poolId = lockDealNFT.mint(owner, token, msg.sender, totalStartAmount, address(this));
         bundlePoolIdToFirstPoolId[poolId] = firstSubPoolId;
     }
@@ -102,7 +102,33 @@ contract LockDealBundleProvider is
         uint256 oldPoolId,
         uint256 newPoolId,
         uint256 splitAmount
+    ) public override onlyProvider {
+    }
+
+    function split(
+        uint256 bundlePoolId,
+        address token,
+        uint256[] memory splitAmounts,
+        address newOwner
     ) public onlyProvider {
+        uint256 splitAmountsCount = splitAmounts.length;
+        require(splitAmountsCount > 1, "splitAmount length must be greater than 1");
+
+        uint256 oldFirstSubPoolId = bundlePoolIdToFirstPoolId[bundlePoolId];
+        uint256 newFirstSubPoolId;
+        
+        // split the sub pools
+        for (uint256 i = 0; i < splitAmountsCount; ++i) {
+            // mint the NFT owned by the BunderDealProvider, no token transfer
+            uint256 newSubPoolId = lockDealNFT.split(oldFirstSubPoolId + i, splitAmounts[i], address(this));
+            if (i == 0) {
+                newFirstSubPoolId = newSubPoolId;
+            }
+        }
+
+        // create a new bundle pool owned by the `newOwner, no token transfer
+        uint256 newBundlePoolId = lockDealNFT.mint(newOwner, token, msg.sender, 0, address(this));
+        bundlePoolIdToFirstPoolId[newBundlePoolId] = newFirstSubPoolId;
     }
 
     function getData(uint256 poolId) public view override returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params) {
