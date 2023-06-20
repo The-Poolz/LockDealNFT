@@ -6,6 +6,8 @@ import "./ILockDealNFTEvents.sol";
 import "../ProviderInterface/IProvider.sol";
 import "../LockDealBundleProvider/ILockDealBundleProvider.sol";
 
+import "hardhat/console.sol";
+
 /// @title LockDealNFT contract
 /// @notice Implements a non-fungible token (NFT) contract for locking deals
 contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
@@ -103,7 +105,9 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
         uint256[] memory splitAmounts,
         address newOwner
     ) external onlyOwnerOrAdmin(poolId) {
-        ( , IDealProvierEvents.BasePoolInfo memory poolInfo, ) = getData(poolId);
+        (,, uint256[] memory params) = getData(poolId);
+        uint256 firstSubPoolId = params[0];
+        (, IDealProvierEvents.BasePoolInfo memory poolInfo, ) = getData(firstSubPoolId);
         address token = poolInfo.token;
 
         ILockDealBundleProvider(poolIdToProvider[poolId]).split(poolId, token, splitAmounts, newOwner);
