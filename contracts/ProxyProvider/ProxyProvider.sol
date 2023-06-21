@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 import "../LockDealNFT/LockDealNFT.sol";
 import "./ProxyState.sol";
 import "../Provider/BasicProvider.sol";
+import "../Provider/ProviderState.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 contract ProxyProvider is ProxyState, ProviderState, BasicProvider, IERC721Receiver {
     constructor(address _nftContract) {
@@ -12,7 +14,7 @@ contract ProxyProvider is ProxyState, ProviderState, BasicProvider, IERC721Recei
     }
 
  function onERC721Received(
-        address,
+        address operator,
         address from,
         uint256 poolId,
         bytes calldata
