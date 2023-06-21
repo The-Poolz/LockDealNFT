@@ -42,15 +42,17 @@ contract BundleFactory is IERC721Receiver {
     ) internal view returns (bool valid) {
         uint256[] memory bundles = userToBundles[user];
         if (bundles.length == 0) return true;
-        address newToken = lockDealNFT.getTokenAddress(poolId);
-        uint firstToken = lockDealNFT.getTokenAddress(bundles[0]);
+        //address newToken = lockDealNFT.tokenOf(poolId); // will be after #116
+        //uint firstToken = lockDealNFT.tokenOf(bundles[0]); // will be after #116
+        address newToken = address(0); // TODO remove after #116
+        address firstToken = address(0); // TODO remove after #116
         valid = newToken == firstToken;
     }
 
     function build() external {
         uint256[] memory bundles = userToBundles[msg.sender];
         require(bundles.length > 1, "no bundles"); //need 2+ pools to build a bundle
-        uint256 firstId = lockDealNFT.tokenIdCounter.current();
+        uint256 firstId = lockDealNFT.totalSupply();
         uint256[] memory params = new uint256[](bundles.length);
         for (uint256 i = 0; i < bundles.length; i++) {
             lockDealNFT.safeTransferFrom(
@@ -65,15 +67,16 @@ contract BundleFactory is IERC721Receiver {
                 firstId + i
             );
         }
-        address token = lockDealNFT.getTokenAddress(bundles[0]);
+        //address token = lockDealNFT.tokenOf(bundles[0]); // will be after #116
+        address token = address(0); // TODO remove after #116
         uint256 poolId = lockDealNFT.mint(
             msg.sender,
             token,
             msg.sender,
             0,
-            lockDealBundleProvider
+            address(lockDealBundleProvider)
         );
-        lockDealBundleProvider._registerPool(poolId, msg.sender, token, params);
+        //lockDealBundleProvider.registerPool(poolId, msg.sender, token, params); //TODO uncomment after add registerPool to LockDealBundleProvider
         userToBundles[msg.sender] = new uint256[](0);
     }
 
@@ -92,10 +95,10 @@ contract BundleFactory is IERC721Receiver {
     ) internal {
         bool valid = false;
         uint256 index = 0;
-        uint256[] memory bundles = userToBundles[msg.sender];
+        uint256[] storage bundles = userToBundles[msg.sender];
         require(bundles.length > 0, "no bundles");
         for (index = 0; index < bundles.length; index++) {
-            if (bundles[i] == poolId)
+            if (bundles[index] == poolId)
             {
                 valid = true;
                 break;

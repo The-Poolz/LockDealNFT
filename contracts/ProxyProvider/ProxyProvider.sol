@@ -20,7 +20,8 @@ contract ProxyProvider is
     function pack(address from, uint256 poolId) internal {
         uint256[] memory params = new uint256[](1);
         params[0] = poolId;
-        address token = lockDealNFT.tokenOf(poolId); // will be after #116
+        //address token = lockDealNFT.tokenOf(poolId); // will be after #116
+        address token = address(0); // TODO remove after #116
         lockDealNFT.mint(from, token, from, 0, address(this));
         _registerPool(poolId, from, token, params);
     }
@@ -40,10 +41,8 @@ contract ProxyProvider is
     }
 
     function unpack(address to, uint256 poolId) internal {
-        require(lockDealNFT.ownerOf(tokenId) == address(this), "not owner");
-        (BasicProvider provider, ProxyData memory proxyData) = getThisData(
-            poolId
-        );
+        require(lockDealNFT.ownerOf(poolId) == address(this), "not owner");
+        ProxyData memory proxyData = getThisData(poolId);
         lockDealNFT.safeTransferFrom(address(this), to, proxyData.PoolId);
         lockDealNFT.overrideVaultId(poolId, proxyData.PoolId);
     }
@@ -62,7 +61,7 @@ contract ProxyProvider is
         address provider = lockDealNFT.poolIdToProvider(poolId);
         require(provider != address(this), "cannot proxy a proxy");
         PoolIdtoProxyData[poolId] = ProxyData({
-            Provider: provider,
+            Provider: BasicProvider(provider),
             PoolId: params[0]
         });
         lockDealNFT.overrideVaultId(poolId, params[0]);
@@ -72,9 +71,7 @@ contract ProxyProvider is
         uint256 poolId
     ) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
         ProxyData memory proxyData = getThisData(poolId);
-        (withdrawnAmount, isFinal) = proxyData.Provider.withdraw(
-            proxyData.PoolId
-        );
+        (withdrawnAmount, isFinal) = proxyData.Provider.withdraw(proxyData.PoolId);
     }
 
     function split(
@@ -82,7 +79,7 @@ contract ProxyProvider is
         uint256 newPoolId,
         uint256 splitAmount
     ) public override onlyNFT {
-        ProxyData memory proxyData = getThisData(poolId);
+        ProxyData memory proxyData = getThisData(oldPoolId);
         proxyData.Provider.split(proxyData.PoolId, newPoolId, splitAmount);
     }
 

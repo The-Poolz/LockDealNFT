@@ -19,10 +19,6 @@ abstract contract LockDealNFTState is ERC721Enumerable {
     mapping(uint256 => uint256) public poolIdToVaultId;
     mapping(address => bool) public approvedProviders;
 
-    function getTokenAddress(uint256 poolId) external view returns (address token) {
-        return vaultManager.vaultIdToTokenAddress(poolIdToVaultId[poolId]);
-    }
-
     function getData(uint256 poolId)
         public
         view
