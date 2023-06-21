@@ -106,7 +106,7 @@ contract LockDealBundleProvider is
     ) public override onlyProvider {
         uint256 oldPoolTotalRemainingAmount = getTotalRemainingAmount(oldPoolId);
         uint256 rate = _calcRate(oldPoolTotalRemainingAmount, splitAmount);
-        require(rate > 1, "splitAmount exceeded");
+        require(rate > 1e18, "split amount exceeded");
 
         // split the sub pools
         uint256[] memory oldSubPoolIds = bundlePoolIdToSubPoolIds[oldPoolId];
@@ -133,6 +133,9 @@ contract LockDealBundleProvider is
     }
 
     function getTotalRemainingAmount(uint256 poolId) public view returns (uint256 totalRemainingAmount) {
+        (address provider,,) = lockDealNFT.getData(poolId);
+        require(provider == address(this), "not bundle poolId");
+
         uint256[] memory subPoolIds = bundlePoolIdToSubPoolIds[poolId];
         for (uint256 i; i < subPoolIds.length; ++i) {
             uint256 subPoolId = subPoolIds[i];
