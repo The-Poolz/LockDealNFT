@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import "./LockDealNFTModifiers.sol";
 import "./ILockDealNFTEvents.sol";
-import "../ProviderInterface/IProvider.sol";
 
 /// @title LockDealNFT contract
 /// @notice Implements a non-fungible token (NFT) contract for locking deals
@@ -111,5 +110,11 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
         _safeMint(owner, newPoolId);
         poolIdToProvider[newPoolId] = provider;
         emit MintInitiated(provider);
+    }
+    
+    function setPoolIdToProvider(address provider, uint256 poolId) external onlyApprovedProvider {
+        require(_exists(poolId), "pool does not exist");
+        _onlyApprovedProvider(provider);
+        poolIdToProvider[poolId] = provider;
     }
 }

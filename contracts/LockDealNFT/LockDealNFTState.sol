@@ -30,7 +30,7 @@ abstract contract LockDealNFTState is ERC721Enumerable {
     {
         if (_exists(poolId)) {
             provider = poolIdToProvider[poolId];
-            (poolInfo, params) = IProvider(poolIdToProvider[poolId]).getData(poolId);
+            (poolInfo, params) = IProvider(provider).getData(poolId);
         }
     }
 }
