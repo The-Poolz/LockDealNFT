@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 import "./LockDealNFTModifiers.sol";
 import "./ILockDealNFTEvents.sol";
 import "../ProviderInterface/IProvider.sol";
-import "../LockDealBundleProvider/ILockDealBundleProvider.sol";
 
 /// @title LockDealNFT contract
 /// @notice Implements a non-fungible token (NFT) contract for locking deals
