@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import "../LockDealNFT/LockDealNFT.sol";
 import "./ProxyState.sol";
-import "../Provider/BasicProvider.sol";
 import "../Provider/ProviderState.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
@@ -18,18 +17,35 @@ contract ProxyProvider is
         lockDealNFT = LockDealNFT(_nftContract);
     }
 
+    function pack(address from, uint256 poolId) internal {
+        uint256[] memory params = new uint256[](1);
+        params[0] = poolId;
+        address token = lockDealNFT.tokenOf(poolId); // will be after #116
+        lockDealNFT.mint(from, token, from, 0, address(this));
+        _registerPool(poolId, from, token, params);
+    }
+
     function onERC721Received(
         address operator,
         address from,
         uint256 poolId,
         bytes calldata
     ) external override returns (bytes4) {
-        uint256[] memory params = new uint256[](1);
-        params[0] = poolId;
-        address token = lockDealNFT.poolIdToToken(poolId);
-        lockDealNFT.mint(from, token, from, 0, address(this));
-        _registerPool(poolId, from, token, params);
+        if (lockDealNFT.poolIdToProvider(poolId) == address(this)) {
+            unpack(from, poolId);
+        } else {
+            pack(from, poolId);
+        }
         return IERC721Receiver.onERC721Received.selector;
+    }
+
+    function unpack(address to, uint256 poolId) internal {
+        require(lockDealNFT.ownerOf(tokenId) == address(this), "not owner");
+        (BasicProvider provider, ProxyData memory proxyData) = getThisData(
+            poolId
+        );
+        lockDealNFT.safeTransferFrom(address(this), to, proxyData.PoolId);
+        lockDealNFT.overrideVaultId(poolId, proxyData.PoolId);
     }
 
     /// @dev Registers a new pool in the proxy
@@ -55,10 +71,10 @@ contract ProxyProvider is
     function withdraw(
         uint256 poolId
     ) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
-        (BasicProvider provider, ProxyData memory proxyData) = getBasicProvider(
-            poolId
+        ProxyData memory proxyData = getThisData(poolId);
+        (withdrawnAmount, isFinal) = proxyData.Provider.withdraw(
+            proxyData.PoolId
         );
-        (withdrawnAmount, isFinal) = provider.withdraw(proxyData.PoolId);
     }
 
     function split(
@@ -66,10 +82,8 @@ contract ProxyProvider is
         uint256 newPoolId,
         uint256 splitAmount
     ) public override onlyNFT {
-        (BasicProvider provider, ProxyData memory proxyData) = getBasicProvider(
-            oldPoolId
-        );
-        provider.split(proxyData.PoolId, newPoolId, splitAmount);
+        ProxyData memory proxyData = getThisData(poolId);
+        proxyData.Provider.split(proxyData.PoolId, newPoolId, splitAmount);
     }
 
     function getData(
@@ -83,16 +97,13 @@ contract ProxyProvider is
             uint256[] memory params
         )
     {
-        (BasicProvider provider, ProxyData memory proxyData) = getBasicProvider(
-            poolId
-        );
-        (poolInfo, params) = provider.getData(proxyData.PoolId);
+        ProxyData memory proxyData = getThisData(poolId);
+        (poolInfo, params) = proxyData.Provider.getData(proxyData.PoolId);
     }
 
-    function getBasicProvider(
+    function getThisData(
         uint256 poolId
-    ) public view returns (BasicProvider provider, ProxyData memory proxyData) {
+    ) public view returns (ProxyData memory proxyData) {
         ProxyData memory proxyData = PoolIdtoProxyData[poolId];
-        provider = BasicProvider(proxyData.Provider);
     }
 }
