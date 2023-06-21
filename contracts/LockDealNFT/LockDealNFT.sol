@@ -110,4 +110,13 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
         poolIdToProvider[newPoolId] = provider;
         emit MintInitiated(provider);
     }
+  
+    function overrideVaultId(uint256 oldPoolId, uint256 newPoolId)
+    onlyApprovedProvider external
+    {
+        require(exist(oldPoolId), "Pool does not exist");
+        require(exist(newPoolId), "Pool does not exist");
+        poolIdToVaultId[newPoolId] = poolIdToVaultId[oldPoolId];
+        poolIdToVaultId[oldPoolId] = 0;
+    }
 }
