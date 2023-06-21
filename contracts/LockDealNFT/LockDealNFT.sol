@@ -6,8 +6,6 @@ import "./ILockDealNFTEvents.sol";
 import "../ProviderInterface/IProvider.sol";
 import "../LockDealBundleProvider/ILockDealBundleProvider.sol";
 
-import "hardhat/console.sol";
-
 /// @title LockDealNFT contract
 /// @notice Implements a non-fungible token (NFT) contract for locking deals
 contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
