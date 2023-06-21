@@ -100,19 +100,6 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
         );
     }
 
-    function splitBundle(
-        uint256 poolId,
-        uint256[] memory splitAmounts,
-        address newOwner
-    ) external onlyOwnerOrAdmin(poolId) {
-        (,, uint256[] memory params) = getData(poolId);
-        uint256 firstSubPoolId = params[0];
-        (, IDealProvierEvents.BasePoolInfo memory poolInfo, ) = getData(firstSubPoolId);
-        address token = poolInfo.token;
-
-        ILockDealBundleProvider(poolIdToProvider[poolId]).split(poolId, token, splitAmounts, newOwner);
-    }
-
     /// @param owner The address to assign the token to
     /// @param provider The address of the provider assigning the token
     /// @return newPoolId The ID of the pool
