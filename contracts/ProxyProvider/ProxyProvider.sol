@@ -49,17 +49,17 @@ contract ProxyProvider is ProxyState, ProviderState, BasicProvider, IERC721Recei
         (withdrawnAmount, isFinal) = provider.withdraw(proxyData.PoolId);
     }
 
-    function split(oldPoolId, newPoolId, splitAmount) public override onlyNFT {
-        BasicProvider provider = getBasicProvider(poolId);
+    function split(uint256 oldPoolId,uint256 newPoolId,uint256 splitAmount) public override onlyNFT {
+        BasicProvider provider = getBasicProvider(oldPoolId);
         provider.split(proxyData.PoolId, newPoolId, splitAmount);
     }
 
-    function getData(poolId) public view override returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params) {
+    function getData(uint256 poolId) public view override returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params) {
         BasicProvider provider = getBasicProvider(poolId);
         (poolInfo, params) = provider.getData(proxyData.PoolId);
     }
 
-    function getBasicProvider(poolId) public view returns(BasicProvider provider)
+    function getBasicProvider(uint256 poolId) public view returns(BasicProvider provider)
     {
         ProxyData memory proxyData = PoolIdtoProxyData[poolId];
         provider = BasicProvider(proxyData.Provider);
