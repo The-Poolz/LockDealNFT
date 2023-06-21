@@ -127,7 +127,7 @@ describe("Lock Deal Bundle Provider", function () {
     it("should revert if the provider count is mismatched with the params count", async () => {
         const dealProviderParams = [amount]
         const lockProviderParams = [amount, startTime]
-        const timedDealProviderParams = [amount, startTime, finishTime, amount]
+        // const timedDealProviderParams = [amount, startTime, finishTime, amount]
         const bundleProviders = [dealProvider.address, lockProvider.address, timedDealProvider.address]
         const bundleProviderParams = [dealProviderParams, lockProviderParams]
 
@@ -139,8 +139,8 @@ describe("Lock Deal Bundle Provider", function () {
 
     it("should revert if the provider count is not greater than 1", async () => {
         const dealProviderParams = [amount]
-        const lockProviderParams = [amount, startTime]
-        const timedDealProviderParams = [amount, startTime, finishTime, amount]
+        // const lockProviderParams = [amount, startTime]
+        // const timedDealProviderParams = [amount, startTime, finishTime, amount]
         const bundleProviders = [dealProvider.address,]
         const bundleProviderParams = [dealProviderParams]
 
