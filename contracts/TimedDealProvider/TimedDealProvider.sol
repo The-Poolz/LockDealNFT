@@ -67,8 +67,6 @@ contract TimedDealProvider is BasicProvider, TimedProviderState {
     ///@param params[3] = startAmount
     function _registerPool(
         uint256 poolId,
-        address owner,
-        address token,
         uint256[] memory params
     ) internal override {
         require(
@@ -81,7 +79,7 @@ contract TimedDealProvider is BasicProvider, TimedProviderState {
         );
         poolIdToTimedDeal[poolId].finishTime = params[2];
         poolIdToTimedDeal[poolId].startAmount = params[3];
-        dealProvider.registerPool(poolId, owner, token, params);
+        dealProvider.registerPool(poolId, params);
     }
 
     function getData(uint256 poolId) public view override returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params) {

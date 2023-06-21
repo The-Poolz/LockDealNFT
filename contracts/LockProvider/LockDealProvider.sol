@@ -50,12 +50,10 @@ contract LockDealProvider is BasicProvider, LockDealState {
     ///@param params[1] = startTime
     function _registerPool(
         uint256 poolId,
-        address owner,
-        address token,
         uint256[] memory params
     ) internal override {
         startTimes[poolId] = params[1];
-        dealProvider.registerPool(poolId, owner, token, params);
+        dealProvider.registerPool(poolId, params);
     }
     
     /**
