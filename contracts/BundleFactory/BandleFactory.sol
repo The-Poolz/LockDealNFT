@@ -76,7 +76,7 @@ contract BundleFactory is IERC721Receiver {
             0,
             address(lockDealBundleProvider)
         );
-        //lockDealBundleProvider.registerPool(poolId, msg.sender, token, params); //TODO uncomment after add registerPool to LockDealBundleProvider
+        //lockDealBundleProvider.registerPool(poolId, msg.sender, token, params); //TODO uncomment #119
         userToBundles[msg.sender] = new uint256[](0);
     }
 
