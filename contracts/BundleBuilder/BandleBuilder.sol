@@ -6,7 +6,7 @@ import "../LockDealBundleProvider/LockDealBundleProvider.sol";
 import "../LockDealNFT/LockDealNFT.sol";
 import "../ProxyProvider/ProxyProvider.sol";
 
-contract BundleFactory is IERC721Receiver {
+contract BundleBuilder is IERC721Receiver {
     LockDealBundleProvider public lockDealBundleProvider;
     ProxyProvider public proxyProvider;
     LockDealNFT public lockDealNFT;
