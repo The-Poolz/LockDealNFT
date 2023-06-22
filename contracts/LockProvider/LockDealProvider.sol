@@ -52,6 +52,8 @@ contract LockDealProvider is BasicProvider, LockDealState {
         uint256 poolId,
         uint256[] memory params
     ) internal override {
+        require(block.timestamp <= params[1], "invalid startTime");
+        
         startTimes[poolId] = params[1];
         dealProvider.registerPool(poolId, params);
     }
