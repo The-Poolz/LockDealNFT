@@ -7,5 +7,5 @@ import "./IDealProvierEvents.sol";
 /// @title DealProviderState contract
 /// @notice Contains storage variables, structures
 contract DealProviderState is IDealProvierEvents {
-    mapping(uint256 => Deal) public poolIdToDeal;
+    mapping(uint256 => uint256) public poolIdToleftAmount;
 }

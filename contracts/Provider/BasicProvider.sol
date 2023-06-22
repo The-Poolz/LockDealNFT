@@ -18,18 +18,16 @@ abstract contract BasicProvider is IProvider, ProviderModifiers {
         uint256[] memory params
     ) public virtual validParamsLength(params.length, currentParamsTargetLenght()) returns (uint256 poolId) {
         poolId = lockDealNFT.mint(owner, token, msg.sender, params[0], address(this));
-        _registerPool(poolId, owner, token, params);
+        _registerPool(poolId, params);
     }
 
     
     /// @dev used by providers to implement cascading pool creation logic.
     function registerPool(
         uint256 poolId,
-        address owner,
-        address token,
         uint256[] memory params
     ) public virtual onlyProvider {
-        _registerPool(poolId, owner, token, params);
+        _registerPool(poolId, params);
     }
 
     /// @dev used by providers to implement cascading withdraw logic from the pool.
@@ -47,8 +45,6 @@ abstract contract BasicProvider is IProvider, ProviderModifiers {
 
     function _registerPool(
         uint256 poolId,
-        address owner,
-        address token,
         uint256[] memory params
     ) internal virtual {}
 

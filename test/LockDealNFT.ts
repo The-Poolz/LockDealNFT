@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { constants } from "ethers";
 import { ethers } from 'hardhat';
+import { time } from "@nomicfoundation/hardhat-network-helpers";
 import { LockDealNFT } from "../typechain-types/contracts/LockDealNFT";
 import { DealProvider } from "../typechain-types/contracts/DealProvider";
 import { LockDealProvider } from "../typechain-types/contracts/LockProvider";
@@ -20,6 +21,7 @@ describe("LockDealNFT", function () {
     let timedDealProvider: TimedDealProvider
     let receiver: SignerWithAddress
     let notOwner: SignerWithAddress
+    let startTime: number, finishTime: number;
     const amount: string = "1000"
 
     before(async () => {
@@ -41,6 +43,8 @@ describe("LockDealNFT", function () {
     })
 
     beforeEach(async () => {
+        startTime = await time.latest() + 100
+        finishTime = startTime + 100
         poolId = (await lockDealNFT.totalSupply()).toNumber()
         await dealProvider.createNewPool(receiver.address, token.address, [amount])
     })
@@ -104,23 +108,23 @@ describe("LockDealNFT", function () {
 
     it("should return data from LockDealProvider using LockedDealNFT", async () => {
         poolId = (await lockDealNFT.totalSupply()).toNumber()
-        await lockDealProvider.createNewPool(receiver.address, token.address, [amount, 1])
+        await lockDealProvider.createNewPool(receiver.address, token.address, [amount, startTime])
         const poolData = await lockDealNFT.getData(poolId)
         expect(poolData.provider).to.deep.equal(lockDealProvider.address)
         expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token.address])
         expect(poolData.params[0]).to.equal(amount)
-        expect(poolData.params[1]).to.equal(1)
+        expect(poolData.params[1]).to.equal(startTime)
     })
 
     it("should return data from TimedDealProvider using LockedDealNFT", async () => {
         poolId = (await lockDealNFT.totalSupply()).toNumber()
-        await timedDealProvider.createNewPool(receiver.address, token.address, [amount, 1, 1, amount])
+        await timedDealProvider.createNewPool(receiver.address, token.address, [amount, startTime, finishTime, amount])
         const poolData = await lockDealNFT.getData(poolId)
         expect(poolData.provider).to.deep.equal(timedDealProvider.address)
         expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token.address])
         expect(poolData.params[0]).to.equal(amount)
-        expect(poolData.params[1]).to.equal(1)
-        expect(poolData.params[2]).to.equal(1)
+        expect(poolData.params[1]).to.equal(startTime)
+        expect(poolData.params[2]).to.equal(finishTime)
         expect(poolData.params[3]).to.equal(amount)
     })
 })

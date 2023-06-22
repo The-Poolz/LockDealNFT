@@ -35,7 +35,7 @@ describe("Lock Deal Provider", function () {
     })
 
     beforeEach(async () => {
-        startTime = await time.latest()
+        startTime = await time.latest() + 100
         params = [amount, startTime]
         poolId = (await lockDealNFT.totalSupply()).toNumber()
         await lockProvider.createNewPool(receiver.address, token.address, params)
@@ -61,6 +61,13 @@ describe("Lock Deal Provider", function () {
         expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token.address]);
         expect(poolData.params[0]).to.equal(amount);
         expect(poolData.params[1]).to.equal(startTime);
+    })
+
+    it("should revert if the start time is invalid", async () => {
+        const invalidParams = [amount, startTime - 100]
+        await expect(
+            lockProvider.createNewPool(receiver.address, token.address, invalidParams)
+        ).to.be.revertedWith("Invalid start time")
     })
 
     it("should revert zero owner address", async () => {

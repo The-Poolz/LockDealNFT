@@ -15,11 +15,11 @@ contract MockProvider {
     }
 
     function createNewPool(
-        address owner,
-        address token,
+        address /** owner **/,
+        address /** token **/,
         uint256[] memory params
     ) public returns (uint256 poolId) {
-        TimedDealProvider(provider).registerPool(poolId, owner, token, params);
+        TimedDealProvider(provider).registerPool(poolId, params);
     }
 
     function getData(
