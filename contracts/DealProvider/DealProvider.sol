@@ -20,22 +20,22 @@ contract DealProvider is DealProviderModifiers, BasicProvider {
     function withdraw(
         uint256 poolId
     ) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
-        (withdrawnAmount, isFinal) = _withdraw(poolId, poolIdToDeal[poolId].leftAmount);
+        (withdrawnAmount, isFinal) = _withdraw(poolId, poolIdToleftAmount[poolId]);
     }
 
     function _withdraw(
         uint256 poolId,
         uint256 amount
     ) internal override returns (uint256 withdrawnAmount, bool isFinal) {
-        if (poolIdToDeal[poolId].leftAmount >= amount) {
-            poolIdToDeal[poolId].leftAmount -= amount;
+        if (poolIdToleftAmount[poolId] >= amount) {
+            poolIdToleftAmount[poolId] -= amount;
             withdrawnAmount = amount;
-            isFinal = poolIdToDeal[poolId].leftAmount == 0;
+            isFinal = poolIdToleftAmount[poolId] == 0;
             emit TokenWithdrawn(
                 poolId,
                 lockDealNFT.ownerOf(poolId),
                 withdrawnAmount,
-                poolIdToDeal[poolId].leftAmount
+                poolIdToleftAmount[poolId]
             );
         }
     }
@@ -49,41 +49,37 @@ contract DealProvider is DealProviderModifiers, BasicProvider {
         public
         override
         onlyProvider
-        invalidSplitAmount(poolIdToDeal[oldPoolId].leftAmount, splitAmount)
+        invalidSplitAmount(poolIdToleftAmount[oldPoolId], splitAmount)
     {
-        poolIdToDeal[oldPoolId].leftAmount -= splitAmount;
-        poolIdToDeal[newPoolId].leftAmount = splitAmount;
-        poolIdToDeal[newPoolId].token = poolIdToDeal[oldPoolId].token;
+        poolIdToleftAmount[oldPoolId] -= splitAmount;
+        poolIdToleftAmount[newPoolId] = splitAmount;
         emit PoolSplit(
             oldPoolId,
             lockDealNFT.ownerOf(oldPoolId),
             newPoolId,
             lockDealNFT.ownerOf(newPoolId),
-            poolIdToDeal[oldPoolId].leftAmount,
-            poolIdToDeal[newPoolId].leftAmount
+            poolIdToleftAmount[oldPoolId],
+            poolIdToleftAmount[newPoolId]
         );
     }
 
     /**@dev Providers overrides this function to add additional parameters when creating a pool.
      * @param poolId The ID of the pool.
-     * @param owner The address of the pool owner.
-     * @param token The address of the token associated with the pool.
      * @param params An array of additional parameters.
      */
     function _registerPool(
         uint256 poolId,
-        address owner,
-        address token,
         uint256[] memory params
     ) internal override {
-        poolIdToDeal[poolId].leftAmount = params[0];
-        poolIdToDeal[poolId].token = token;
+        poolIdToleftAmount[poolId] = params[0];
+        address owner = lockDealNFT.ownerOf(poolId);
+        address token = lockDealNFT.tokenOf(poolId);
         emit NewPoolCreated(BasePoolInfo(poolId, owner, token), params);
     }
 
     function getData(uint256 poolId) external view override returns (BasePoolInfo memory poolInfo, uint256[] memory params) {
-        address token = poolIdToDeal[poolId].token;
-        uint256 leftAmount = poolIdToDeal[poolId].leftAmount;
+        address token = lockDealNFT.tokenOf(poolId);
+        uint256 leftAmount = poolIdToleftAmount[poolId];
         address owner = lockDealNFT.exist(poolId) ? lockDealNFT.ownerOf(poolId) : address(0);
         poolInfo = BasePoolInfo(poolId, owner, token);
         params = new uint256[](1);

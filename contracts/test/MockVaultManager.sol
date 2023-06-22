@@ -2,12 +2,16 @@
 pragma solidity ^0.8.0;
 
 contract MockVaultManager {
+    mapping(uint256 => address) vaultIdtoToken;
+    uint Id = 0;
+
     function depositByToken(
         address _tokenAddress,
         address from,
         uint _amount
     ) external returns (uint vaultId) {
-        // do nothing
+        vaultId = Id++;
+        vaultIdtoToken[vaultId] = _tokenAddress;
     }
 
     function withdrawByVaultId(
@@ -16,5 +20,11 @@ contract MockVaultManager {
         uint _amount
     ) external {
         // do nothing
+    }
+
+    function vaultIdToTokenAddress(
+        uint _vaultId
+    ) external view returns (address) {
+        return vaultIdtoToken[_vaultId];
     }
 }
