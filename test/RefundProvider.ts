@@ -49,9 +49,9 @@ describe("Refund Provider", function () {
     //  \_______________________________/_____/
     beforeEach(async () => {
         const ONE_DAY = 86400
-        startTime = await time.latest() + ONE_DAY
+        startTime = (await time.latest()) + ONE_DAY
         params = [amount, startTime, amount / 2, startTime]
-        poolId = (await lockDealNFT.totalSupply()).toNumber()
+        poolId = (await lockDealNFT.tokenIdCounter()).toNumber()
         await refundProvider
             .connect(projectOwner)
             .createNewRefundPool(token.address, receiver.address, BUSD.address, lockProvider.address, params)
@@ -74,7 +74,7 @@ describe("Refund Provider", function () {
 
         it("should return currect data for user after creation", async () => {
             const poolData = await lockDealNFT.getData(poolId + 2)
-            expect(poolData.poolInfo).to.deep.equal([poolId + 2, refundProvider.address, token.address])
+            expect(poolData.poolInfo).to.deep.equal([poolId + 2, receiver.address, token.address])
             expect(poolData.params[0]).to.equal(amount)
             expect(poolData.params[1]).to.equal(startTime)
         })
@@ -103,7 +103,34 @@ describe("Refund Provider", function () {
             await lockDealNFT.split(poolId + 2, amount / 2, receiver.address)
 
             const poolData = await lockDealNFT.getData(poolId + 2)
-            expect(poolData.poolInfo).to.deep.equal([poolId + 2, refundProvider.address, token.address])
+            expect(poolData.poolInfo).to.deep.equal([poolId + 2, receiver.address, token.address])
+            expect(poolData.params[0]).to.equal(amount / 2)
+            expect(poolData.params[1]).to.equal(startTime)
+        })
+
+        it("should return currect new pool data after split", async () => {
+            await lockDealNFT.split(poolId + 2, amount / 2, receiver.address)
+
+            const poolData = await lockDealNFT.getData(poolId + 3)
+            expect(poolData.poolInfo).to.deep.equal([poolId + 3, refundProvider.address, token.address])
+            expect(poolData.params[0]).to.equal(amount / 2)
+            expect(poolData.params[1]).to.equal(startTime)
+        })
+
+        it("should return currect pool main coin data after split", async () => {
+            await lockDealNFT.split(poolId + 2, amount / 2, receiver.address)
+
+            const poolData = await lockDealNFT.getData(poolId + 4)
+            expect(poolData.poolInfo).to.deep.equal([poolId + 4, projectOwner.address, BUSD.address])
+            expect(poolData.params[0]).to.equal(amount / 4)
+            expect(poolData.params[1]).to.equal(startTime)
+        })
+
+        it("should return currect data for user after split", async () => {
+            await lockDealNFT.split(poolId + 2, amount / 2, receiver.address)
+
+            const poolData = await lockDealNFT.getData(poolId + 5)
+            expect(poolData.poolInfo).to.deep.equal([poolId + 5, receiver.address, token.address])
             expect(poolData.params[0]).to.equal(amount / 2)
             expect(poolData.params[1]).to.equal(startTime)
         })

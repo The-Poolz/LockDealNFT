@@ -8,10 +8,11 @@ abstract contract RefundState is ProviderModifiers, IProvider {
 
     function getData(uint256 poolId) external view override returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params){
         // underflow check
-        if (poolId > 2) {
+        if (poolId > 1) {
             (poolInfo, params) = IProvider(lockDealNFT.poolIdToProvider(poolId - 2)).getData(poolId - 2);
             // (poolId - 2) store data for user poolId :)
             poolInfo.poolId = poolId;
+            poolInfo.owner = lockDealNFT.ownerOf(poolId);
         }
     }
 }
