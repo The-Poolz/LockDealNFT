@@ -76,9 +76,9 @@ describe("Timed Deal Provider", function () {
         await tx.wait()
         const event = await dealProvider.queryFilter(dealProvider.filters.NewPoolCreated())
         const data = event[event.length - 1].args
-        expect(data.poolInfo.poolId).to.equal(poolId + 1)
-        expect(data.poolInfo.token).to.equal(token.address)
-        expect(data.poolInfo.owner).to.equal(receiver.address)
+        expect(data.poolId).to.equal(poolId + 1)
+        expect(data.token).to.equal(token.address)
+        expect(data.owner).to.equal(receiver.address)
         expect(data.params[0]).to.equal(amount)
     })
 

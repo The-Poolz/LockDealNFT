@@ -50,9 +50,9 @@ describe("Lock Deal Provider", function () {
         const tx = await lockProvider.createNewPool(receiver.address, token.address, params)
         await tx.wait()
         const event = await dealProvider.queryFilter(dealProvider.filters.NewPoolCreated())
-        expect(event[event.length - 1].args.poolInfo.poolId).to.equal(poolId + 1)
-        expect(event[event.length - 1].args.poolInfo.token).to.equal(token.address)
-        expect(event[event.length - 1].args.poolInfo.owner).to.equal(receiver.address)
+        expect(event[event.length - 1].args.poolId).to.equal(poolId + 1)
+        expect(event[event.length - 1].args.token).to.equal(token.address)
+        expect(event[event.length - 1].args.owner).to.equal(receiver.address)
         expect(event[event.length - 1].args.params[0]).to.equal(amount)
     })
 
