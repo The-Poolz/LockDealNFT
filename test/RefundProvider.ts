@@ -1,5 +1,5 @@
 import { MockVaultManager } from "../typechain-types"
-import { DealProvider, IDealProvierEvents } from "../typechain-types/contracts/DealProvider"
+import { DealProvider } from "../typechain-types/contracts/DealProvider"
 import { LockDealNFT } from "../typechain-types/contracts/LockDealNFT"
 import { LockDealProvider } from "../typechain-types/contracts/LockProvider"
 import { RefundProvider } from "../typechain-types/contracts/RefundProvider/RefundProvider.sol"
@@ -8,7 +8,7 @@ import { deployed } from "./helper"
 import { time } from "@nomicfoundation/hardhat-network-helpers"
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 import { expect } from "chai"
-import { constants, BigNumber } from "ethers"
+import { constants } from "ethers"
 
 describe("Refund Provider", function () {
     let lockProvider: LockDealProvider
@@ -195,24 +195,16 @@ describe("Refund Provider", function () {
         })
 
         it("user withdraw the main coins", async () => {
-            await refundProvider
-                .connect(projectOwner)
-                .createNewRefundPool(token.address, receiver.address, BUSD.address, lockProvider.address, params)
-            await lockDealNFT
-                .connect(receiver)
-                ["safeTransferFrom(address,address,uint256)"](receiver.address, refundProvider.address, poolId + 2)
+            await refundProvider.connect(projectOwner).createNewRefundPool(token.address, receiver.address, BUSD.address, lockProvider.address, params)
+            await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, refundProvider.address, poolId + 2)
             const [withdrawnAmount, isFinal] = await lockDealNFT.callStatic.withdraw(poolId + 1)
             expect(withdrawnAmount).to.equal(amount / 2)
             expect(isFinal).to.equal(true)
         })
 
         it("project owner withdraw tokens", async () => {
-            await refundProvider
-                .connect(projectOwner)
-                .createNewRefundPool(token.address, receiver.address, BUSD.address, lockProvider.address, params)
-            await lockDealNFT
-                .connect(receiver)
-                ["safeTransferFrom(address,address,uint256)"](receiver.address, refundProvider.address, poolId + 2)
+            await refundProvider.connect(projectOwner).createNewRefundPool(token.address, receiver.address, BUSD.address, lockProvider.address, params)
+            await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, refundProvider.address, poolId + 2)
             const [withdrawnAmount, isFinal] = await lockDealNFT.callStatic.withdraw(poolId)
             expect(withdrawnAmount).to.equal(amount)
             expect(isFinal).to.equal(true)
