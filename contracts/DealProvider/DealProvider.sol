@@ -74,7 +74,7 @@ contract DealProvider is DealProviderModifiers, BasicProvider {
         poolIdToleftAmount[poolId] = params[0];
         address owner = lockDealNFT.ownerOf(poolId);
         address token = lockDealNFT.tokenOf(poolId);
-        emit NewPoolCreated(BasePoolInfo(poolId, owner, token), params);
+        emit NewPoolCreated(poolId, owner, token, params);
     }
 
     function getData(uint256 poolId) external view override returns (BasePoolInfo memory poolInfo, uint256[] memory params) {
