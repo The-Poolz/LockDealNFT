@@ -168,6 +168,14 @@ describe("Refund Provider", function () {
     })
 
     describe("Refund Pool", async () => {
-        
+        it("should refund tokens from pool after time", async () => {
+            //await lockDealNFT.safeTransferFrom(receiver.address, refundProvider.address, poolId + 2)
+            //await lockDealNFT.connect(receiver.address).transferFrom(receiver.address, refundProvider.address, poolId + 2)
+            await lockDealNFT["safeTransferFrom(address,address,uint256)"]
+            await lockDealNFT.connect(receiver.address).safeTransferFrom(receiver.address, refundProvider.address, poolId + 2)
+            //await lockDealNFT["safeTransferFrom(address,address,uint256)"].connect(receiver.address).(receiver.address, refundProvider.address, poolId + 2)
+            console.log(receiver.address)
+            console.log(projectOwner.address)
+        })
     })
 })

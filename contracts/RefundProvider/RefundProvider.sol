@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "./RefundState.sol";
 import "../ProviderInterface/IProviderSingleIdRegistrar.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "hardhat/console.sol";
 
 contract RefundProvider is RefundState, IERC721Receiver {
     constructor(address nftContract, address provider) {
@@ -14,20 +15,25 @@ contract RefundProvider is RefundState, IERC721Receiver {
 
     ///@dev refund implementation
     function onERC721Received(
-        address,
         address from,
+        address to,
         uint256 poolId,
-        bytes calldata
+        bytes calldata data
     ) external override returns (bytes4) {
-        if (lockDealNFT.poolIdToProvider(poolId) == address(this)) {
+        require(msg.sender == address(lockDealNFT), "invalid nft contract");
+        //if (lockDealNFT.poolIdToProvider(poolId) == address(this)) {
+            console.log(from);
+            console.log(to);
+            console.log(lockDealNFT.ownerOf(poolId));
+            console.log(poolId);
+            if(from == lockDealNFT.ownerOf(poolId) && to == address(this)) {
             require(lockProvider.startTimes(poolId - 1) > block.timestamp, "too late");
             DealProvider dealProvider = lockProvider.dealProvider();
             lockDealNFT.setPoolIdToProvider(address(dealProvider), poolId - 2);
-            lockDealNFT.safeTransferFrom(address(this), lockDealNFT.ownerOf(poolId - 1), poolId - 2); // add approve on create
-
             lockDealNFT.setPoolIdToProvider(address(dealProvider), poolId - 1);
-            lockDealNFT.safeTransferFrom(lockDealNFT.ownerOf(poolId - 1), from, poolId - 1); // add approve on create
-        }
+            }
+        //}
+        //console.log("onERC721Received");
         return IERC721Receiver.onERC721Received.selector;
     }
 

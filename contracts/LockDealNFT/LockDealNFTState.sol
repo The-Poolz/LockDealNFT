@@ -33,4 +33,10 @@ abstract contract LockDealNFTState is ERC721Enumerable {
             (poolInfo, params) = IProvider(provider).getData(poolId);
         }
     }
+
+    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public override {
+        super.safeTransferFrom(from, to, tokenId, data);
+    }
+
+    //function _safe
 }
