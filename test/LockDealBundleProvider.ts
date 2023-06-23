@@ -92,9 +92,9 @@ describe("Lock Deal Bundle Provider", function () {
         const data = event[event.length - 1].args
         const bundlePoolId = (await lockDealNFT.totalSupply()).toNumber() - 1;
 
-        expect(data.poolInfo.poolId).to.equal(bundlePoolId - 1)
-        expect(data.poolInfo.token).to.equal(token.address)
-        expect(data.poolInfo.owner).to.equal(bundleProvider.address)
+        expect(data.poolId).to.equal(bundlePoolId - 1)
+        expect(data.token).to.equal(token.address)
+        expect(data.owner).to.equal(bundleProvider.address)
         expect(data.params[0]).to.equal(amount)
     })
 

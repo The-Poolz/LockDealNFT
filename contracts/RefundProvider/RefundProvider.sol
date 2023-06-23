@@ -15,25 +15,24 @@ contract RefundProvider is RefundState, IERC721Receiver {
 
     ///@dev refund implementation
     function onERC721Received(
-        address from,
-        address to,
+        address provider,
+        address receiver,
         uint256 poolId,
-        bytes calldata data
+        bytes calldata
     ) external override returns (bytes4) {
         require(msg.sender == address(lockDealNFT), "invalid nft contract");
-        //if (lockDealNFT.poolIdToProvider(poolId) == address(this)) {
-            console.log(from);
-            console.log(to);
-            console.log(lockDealNFT.ownerOf(poolId));
-            console.log(poolId);
-            if(from == lockDealNFT.ownerOf(poolId) && to == address(this)) {
-            require(lockProvider.startTimes(poolId - 1) > block.timestamp, "too late");
+        if (provider == receiver) {
+            require(
+                lockProvider.startTimes(poolId - 1) > block.timestamp,
+                "too late"
+            );
             DealProvider dealProvider = lockProvider.dealProvider();
+            lockDealNFT.transferFrom(address(this), lockDealNFT.ownerOf(poolId - 1), poolId - 2);
+            lockDealNFT.transferFrom(lockDealNFT.ownerOf(poolId - 1), receiver, poolId - 1);
+
             lockDealNFT.setPoolIdToProvider(address(dealProvider), poolId - 2);
             lockDealNFT.setPoolIdToProvider(address(dealProvider), poolId - 1);
-            }
-        //}
-        //console.log("onERC721Received");
+        }
         return IERC721Receiver.onERC721Received.selector;
     }
 
@@ -49,7 +48,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
     ) external returns (uint256 poolId) {
         uint256 paramsLength = params.length;
         require(paramsLength > 2, "invalid params length");
-
+        require(lockDealNFT.isApprovedForAll(msg.sender, address(this)), "invalid approval");
         /// Hold token (data) | Owner Refund
         uint256 dataPoolID = lockDealNFT.mint(address(this), token, msg.sender, params[0], provider);
         IProviderSingleIdRegistrar(provider).registerPool(dataPoolID, params);
@@ -66,7 +65,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
     }
 
     ///@dev split tokens and main coins into new pools
-    function split( 
+    function split(
         uint256 poolId,
         uint256,
         uint256 splitAmount

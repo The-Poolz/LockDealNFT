@@ -10,7 +10,7 @@ interface IDealProvierEvents {
         address token;
     }
 
-    event NewPoolCreated(BasePoolInfo poolInfo, uint256[] params);
+    event NewPoolCreated(uint256 indexed poolId, address indexed owner, address indexed token, uint256[] params);
 
     event TokenWithdrawn(
         uint256 poolId,
