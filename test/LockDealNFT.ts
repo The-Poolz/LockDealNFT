@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import { constants } from "ethers";
 import { ethers } from 'hardhat';
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 import { LockDealNFT } from "../typechain-types/contracts/LockDealNFT";
