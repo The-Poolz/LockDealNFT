@@ -2,11 +2,10 @@ import { expect } from "chai";
 import { constants, BigNumber } from "ethers";
 import { ethers } from 'hardhat';
 import { LockDealNFT } from "../typechain-types/contracts/LockDealNFT";
-import { DealProvider, IDealProvierEvents } from "../typechain-types/contracts/DealProvider";
-import { ERC20Token } from '../typechain-types/poolz-helper-v2/contracts/token';
+import { DealProvider } from "../typechain-types/contracts/DealProvider";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { MockVaultManager } from "../typechain-types";
-import { deployed } from "./helper";
+import { deployed, token } from "./helper";
 
 describe("Deal Provider", function () {
     let dealProvider: DealProvider
@@ -14,7 +13,6 @@ describe("Deal Provider", function () {
     let poolId: number
     let receiver: SignerWithAddress
     let newOwner: SignerWithAddress
-    let token: ERC20Token
     let params: [number]
     let poolData: [IDealProvierEvents.BasePoolInfoStructOutput, BigNumber[]] & {
         poolInfo: IDealProvierEvents.BasePoolInfoStructOutput;
@@ -26,30 +24,28 @@ describe("Deal Provider", function () {
         [receiver, newOwner] = await ethers.getSigners()
         const mockVaultManager: MockVaultManager = await deployed("MockVaultManager")
         lockDealNFT = await deployed("LockDealNFT", mockVaultManager.address)
-        token = await deployed("ERC20Token", "TEST Token", "TERC20")
         dealProvider = await deployed("DealProvider", lockDealNFT.address)
-        await token.approve(mockVaultManager.address, constants.MaxUint256)
         await lockDealNFT.setApprovedProvider(dealProvider.address, true)
     })
 
     beforeEach(async () => {
         poolId = (await lockDealNFT.totalSupply()).toNumber()
         params = [amount]
-        await dealProvider.createNewPool(receiver.address, token.address, params)
+        await dealProvider.createNewPool(receiver.address, token, params)
     })
 
     it("should get pool data", async () => {
         poolData = await dealProvider.getData(poolId);
-        expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token.address]);
+        expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token]);
         expect(poolData.params[0]).to.equal(amount);
     })
 
     it("should check pool creation events", async () => {
-        const tx = await dealProvider.createNewPool(receiver.address, token.address, params)
+        const tx = await dealProvider.createNewPool(receiver.address, token, params)
         await tx.wait()
         const events = await dealProvider.queryFilter(dealProvider.filters.NewPoolCreated())
         expect(events[events.length - 1].args.poolId).to.equal(poolId + 1)
-        expect(events[events.length - 1].args.token).to.equal(token.address)
+        expect(events[events.length - 1].args.token).to.equal(token)
         expect(events[events.length - 1].args.owner).to.equal(receiver.address)
         expect(events[events.length - 1].args.params[0]).to.equal(amount) //assuming amount is at index 0 in the params array
     })
@@ -61,13 +57,13 @@ describe("Deal Provider", function () {
     })
 
     it("should revert zero token address", async () => {
-        await expect(dealProvider.createNewPool(constants.AddressZero, token.address, params)).to.be.revertedWith(
+        await expect(dealProvider.createNewPool(constants.AddressZero, token, params)).to.be.revertedWith(
             "Zero Address is not allowed"
         )
     })
 
     it("should revert zero params", async () => {
-        await expect(dealProvider.createNewPool(receiver.address, token.address, [])).to.be.revertedWith(
+        await expect(dealProvider.createNewPool(receiver.address, token, [])).to.be.revertedWith(
             "invalid params length"
         )
     })
@@ -77,7 +73,7 @@ describe("Deal Provider", function () {
             await lockDealNFT.split(poolId, amount / 2, newOwner.address)
 
             poolData = await dealProvider.getData(poolId);
-            expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token.address]);
+            expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token]);
             expect(poolData.params[0]).to.equal(amount / 2);
         })
 
@@ -85,7 +81,7 @@ describe("Deal Provider", function () {
             await lockDealNFT.split(poolId, amount / 2, newOwner.address)
 
             poolData = await dealProvider.getData(poolId + 1);
-            expect(poolData.poolInfo).to.deep.equal([poolId + 1, newOwner.address, token.address]);
+            expect(poolData.poolInfo).to.deep.equal([poolId + 1, newOwner.address, token]);
             expect(poolData.params[0]).to.equal(amount / 2);
         })
     })
@@ -101,7 +97,7 @@ describe("Deal Provider", function () {
             await lockDealNFT.withdraw(poolId)
             
             poolData = await dealProvider.getData(poolId);
-            expect(poolData.poolInfo).to.deep.equal([poolId, constants.AddressZero, token.address]);
+            expect(poolData.poolInfo).to.deep.equal([poolId, constants.AddressZero, token]);
             expect(poolData.params[0]).to.equal(0);
         })
 
