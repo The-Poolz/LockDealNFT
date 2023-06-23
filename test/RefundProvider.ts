@@ -173,9 +173,7 @@ describe("Refund Provider", function () {
             await refundProvider
                 .connect(projectOwner)
                 .createNewRefundPool(token.address, receiver.address, BUSD.address, lockProvider.address, params)
-            await lockDealNFT
-                .connect(receiver)
-                ["safeTransferFrom(address,address,uint256)"](receiver.address, refundProvider.address, poolId + 2)
+            await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, refundProvider.address, poolId + 2)
             const poolData = await lockDealNFT.getData(poolId + 1)
             expect(poolData.poolInfo).to.deep.equal([poolId + 1, receiver.address, BUSD.address])
             expect(poolData.params[0]).to.equal(amount / 2)
@@ -185,9 +183,7 @@ describe("Refund Provider", function () {
             await refundProvider
                 .connect(projectOwner)
                 .createNewRefundPool(token.address, receiver.address, BUSD.address, lockProvider.address, params)
-            await lockDealNFT
-                .connect(receiver)
-                ["safeTransferFrom(address,address,uint256)"](receiver.address, refundProvider.address, poolId + 2)
+            await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, refundProvider.address, poolId + 2)
             const poolData = await lockDealNFT.getData(poolId)
             expect(poolData.provider).to.equal(dealProvider.address)
             expect(poolData.poolInfo).to.deep.equal([poolId, projectOwner.address, token.address])
