@@ -12,7 +12,8 @@ abstract contract RefundState is ProviderModifiers, IProvider {
             (poolInfo, params) = IProvider(lockDealNFT.poolIdToProvider(poolId - 2)).getData(poolId - 2);
             // (poolId - 2) store data for user poolId :)
             poolInfo.poolId = poolId;
-            poolInfo.owner = lockDealNFT.ownerOf(poolId);
+            if (lockDealNFT.exist(poolId))
+                poolInfo.owner = lockDealNFT.ownerOf(poolId);
         }
     }
 }

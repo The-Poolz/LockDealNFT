@@ -48,6 +48,9 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
         if (amount > 0) {
             poolIdToVaultId[poolId] = vaultManager.depositByToken(token, from, amount);
         }
+        else {
+            poolIdToVaultId[poolId] = vaultManager.tokenToVaultId(token);
+        }
     }
 
     /// @dev Sets the approved status of a provider

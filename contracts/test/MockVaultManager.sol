@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 contract MockVaultManager {
+    mapping(address => uint) public tokenToVaultId;
     mapping(uint256 => address) vaultIdtoToken;
     uint Id = 0;
 
@@ -12,6 +13,7 @@ contract MockVaultManager {
     ) external returns (uint vaultId) {
         vaultId = Id++;
         vaultIdtoToken[vaultId] = _tokenAddress;
+        tokenToVaultId[_tokenAddress] = vaultId;
     }
 
     function withdrawByVaultId(

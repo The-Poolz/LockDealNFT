@@ -69,15 +69,15 @@ contract RefundProvider is RefundState, IERC721Receiver {
         uint256 tokenLeftAmount = lockProvider.dealProvider().poolIdToleftAmount(poolId - 2);
         address mainCoin = lockDealNFT.tokenOf(poolId - 1);
         uint256 mainCoinAmount = lockProvider.dealProvider().poolIdToleftAmount(poolId - 1);
+        uint256 mainCoinSplitAmount = _calcAmount(splitAmount, _calcRate(tokenLeftAmount, mainCoinAmount));
 
         uint256 newPoolId = lockDealNFT.mint(address(this), lockDealNFT.tokenOf(poolId - 2), msg.sender, 0, provider);
         IProvider(provider).split(poolId - 2, newPoolId, splitAmount);
 
-        uint256 mainCoinSplitAmount = _calcAmount(splitAmount, _calcRate(tokenLeftAmount, mainCoinAmount));
         uint256 lockProviderPoolId = lockDealNFT.mint(lockDealNFT.ownerOf(poolId - 1), mainCoin, msg.sender, 0, address(lockProvider));
-        IProvider(provider).split(poolId - 1, lockProviderPoolId, mainCoinSplitAmount);
+        lockProvider.split(poolId - 1, lockProviderPoolId, mainCoinSplitAmount);
 
-        lockDealNFT.mint(lockDealNFT.ownerOf(poolId), lockDealNFT.tokenOf(poolId - 2), msg.sender, 0, address(this));
+        lockDealNFT.mint(lockDealNFT.ownerOf(poolId), lockDealNFT.tokenOf(poolId), msg.sender, 0, address(this));
     }
 
     function _calcRate(uint256 tokenAValue, uint256 tokenBValue) internal pure returns (uint256) {

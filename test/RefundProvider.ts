@@ -108,29 +108,29 @@ describe("Refund Provider", function () {
             expect(poolData.params[1]).to.equal(startTime)
         })
 
-        it("should return currect new pool data after split", async () => {
+        it("should return new pool data after split", async () => {
             await lockDealNFT.split(poolId + 2, amount / 2, receiver.address)
-
-            const poolData = await lockDealNFT.getData(poolId + 3)
-            expect(poolData.poolInfo).to.deep.equal([poolId + 3, refundProvider.address, token.address])
+            
+            const poolData = await lockDealNFT.getData(poolId + 4)
+            expect(poolData.poolInfo).to.deep.equal([poolId + 4, refundProvider.address, token.address])
             expect(poolData.params[0]).to.equal(amount / 2)
             expect(poolData.params[1]).to.equal(startTime)
         })
 
-        it("should return currect pool main coin data after split", async () => {
+        it("should return new pool main coin data after split", async () => {
             await lockDealNFT.split(poolId + 2, amount / 2, receiver.address)
 
-            const poolData = await lockDealNFT.getData(poolId + 4)
-            expect(poolData.poolInfo).to.deep.equal([poolId + 4, projectOwner.address, BUSD.address])
+            const poolData = await lockDealNFT.getData(poolId + 5)
+            expect(poolData.poolInfo).to.deep.equal([poolId + 5, projectOwner.address, BUSD.address])
             expect(poolData.params[0]).to.equal(amount / 4)
             expect(poolData.params[1]).to.equal(startTime)
         })
 
-        it("should return currect data for user after split", async () => {
+        it("should return new data for user after split", async () => {
             await lockDealNFT.split(poolId + 2, amount / 2, receiver.address)
 
-            const poolData = await lockDealNFT.getData(poolId + 5)
-            expect(poolData.poolInfo).to.deep.equal([poolId + 5, receiver.address, token.address])
+            const poolData = await lockDealNFT.getData(poolId + 6)
+            expect(poolData.poolInfo).to.deep.equal([poolId + 6, receiver.address, token.address])
             expect(poolData.params[0]).to.equal(amount / 2)
             expect(poolData.params[1]).to.equal(startTime)
         })
@@ -140,11 +140,34 @@ describe("Refund Provider", function () {
         it("should withdraw tokens from pool after time", async () => {
             await time.setNextBlockTimestamp(startTime + 1)
             await lockDealNFT.withdraw(poolId + 2)
+            const poolData = await refundProvider.getData(poolId + 2)
 
-            // const poolData = await refundProvider.getData(poolId + 2)
-            // expect(poolData.poolInfo).to.deep.equal([poolId + 2, refundProvider.address, token.address])
-            // expect(poolData.params[0]).to.equal(0)
-            // expect(poolData.params[1]).to.equal(startTime)
+            expect(poolData.poolInfo).to.deep.equal([poolId + 2, constants.AddressZero, token.address])
+            expect(poolData.params[0]).to.equal(0)
+            expect(poolData.params[1]).to.equal(startTime)
         })
+
+        it("should create new main coin pool after withdraw with zero startTime", async () => {
+            await time.setNextBlockTimestamp(startTime + 1)
+            await lockDealNFT.withdraw(poolId + 2)
+            const poolData = await lockDealNFT.getData(poolId + 3)
+
+            expect(poolData.poolInfo).to.deep.equal([poolId + 3, projectOwner.address, BUSD.address])
+            expect(poolData.params[0]).to.equal(amount / 2)
+        })
+
+        it("should refresh old main coin pool left amount after withdraw", async () => {
+            await time.setNextBlockTimestamp(startTime + 1)
+            await lockDealNFT.withdraw(poolId + 2)
+            const poolData = await lockDealNFT.getData(poolId + 1)
+
+            expect(poolData.poolInfo).to.deep.equal([poolId + 1, projectOwner.address, BUSD.address])
+            expect(poolData.params[0]).to.equal(0)
+            expect(poolData.params[1]).to.equal(startTime)
+        })
+    })
+
+    describe("Refund Pool", async () => {
+        
     })
 })
