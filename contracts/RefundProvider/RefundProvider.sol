@@ -46,37 +46,38 @@ contract RefundProvider is RefundState, IERC721Receiver {
 
         /// Hold token (data) | Owner Refund
         uint256 dataPoolID = lockDealNFT.mint(address(this), token, msg.sender, params[0], provider);
-        IProviderSingleIdRegistrar(provider).registerPool(dataPoolID, address(this), token, params);
+        IProviderSingleIdRegistrar(provider).registerPool(dataPoolID, params);
 
         /// Hold main coin | Owner Refund
         uint256 [] memory mainCoinParams = new uint256[](2);
         mainCoinParams[0] = params[paramsLength - 2];
         mainCoinParams[1] = params[paramsLength - 1];
         uint256 lockProviderPoolId = lockDealNFT.mint(msg.sender, mainCoin, msg.sender, mainCoinParams[0], address(lockProvider));
-        lockProvider.registerPool(lockProviderPoolId, address(this), mainCoin, mainCoinParams);
+        lockProvider.registerPool(lockProviderPoolId, mainCoinParams);
 
         /// real owner poolId
         poolId = lockDealNFT.mint(owner, token, msg.sender, 0, address(this));
     }
 
     ///@dev split tokens and main coins into new pools
-    function split(
+    function split( 
         uint256 poolId,
         uint256,
         uint256 splitAmount
     ) external onlyNFT {
         address provider = lockDealNFT.poolIdToProvider(poolId - 2);
+        uint256 tokenLeftAmount = lockProvider.dealProvider().poolIdToleftAmount(poolId - 2);
+        address mainCoin = lockDealNFT.tokenOf(poolId - 1);
+        uint256 mainCoinAmount = lockProvider.dealProvider().poolIdToleftAmount(poolId - 1);
 
-        (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256 [] memory params) = IProvider(provider).getData(poolId - 2);
-        uint256 newPoolId = lockDealNFT.mint(address(this), poolInfo.token, msg.sender, 0, provider);
+        uint256 newPoolId = lockDealNFT.mint(address(this), lockDealNFT.tokenOf(poolId - 2), msg.sender, 0, provider);
         IProvider(provider).split(poolId - 2, newPoolId, splitAmount);
 
-        (address mainCoin, uint256 mainCoinAmount) = lockProvider.dealProvider().poolIdToDeal(poolId - 1);
-        uint256 mainCoinSplitAmount = _calcAmount(splitAmount, _calcRate(params[0], mainCoinAmount));
+        uint256 mainCoinSplitAmount = _calcAmount(splitAmount, _calcRate(tokenLeftAmount, mainCoinAmount));
         uint256 lockProviderPoolId = lockDealNFT.mint(lockDealNFT.ownerOf(poolId - 1), mainCoin, msg.sender, 0, address(lockProvider));
         IProvider(provider).split(poolId - 1, lockProviderPoolId, mainCoinSplitAmount);
 
-        lockDealNFT.mint(lockDealNFT.ownerOf(poolId), poolInfo.token, msg.sender, 0, address(this));
+        lockDealNFT.mint(lockDealNFT.ownerOf(poolId), lockDealNFT.tokenOf(poolId - 2), msg.sender, 0, address(this));
     }
 
     function _calcRate(uint256 tokenAValue, uint256 tokenBValue) internal pure returns (uint256) {
@@ -92,11 +93,12 @@ contract RefundProvider is RefundState, IERC721Receiver {
     ) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
         // user withdraws his token from the provider by cascading providers params
         DealProvider dealProvider = lockProvider.dealProvider();
-        (, uint256 tokenAmount) = dealProvider.poolIdToDeal(poolId - 2);
+        uint256 tokenAmount = dealProvider.poolIdToleftAmount(poolId - 2);
         (withdrawnAmount, isFinal) = lockDealNFT.withdraw(poolId - 2);
 
         if (withdrawnAmount > 0 && lockProvider.startTimes(poolId - 1) <= block.timestamp) {
-            (address mainCoin, uint256 mainCoinAmount) = dealProvider.poolIdToDeal(poolId - 1);
+            address mainCoin = lockDealNFT.tokenOf(poolId - 1);
+            uint256 mainCoinAmount = lockProvider.dealProvider().poolIdToleftAmount(poolId - 1);
             uint256 withdrawMainCoinAmount = _calcAmount(withdrawnAmount, _calcRate(tokenAmount, mainCoinAmount));
             // create new pool for the main withdrawn coins
             uint256 mainCoinPoolId = lockDealNFT.mint(lockDealNFT.ownerOf(poolId - 1), mainCoin, msg.sender, 0, address(dealProvider));

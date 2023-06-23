@@ -79,7 +79,7 @@ contract LockDealBundleProvider is
         uint256[] memory params
     ) internal returns (uint256 poolId) {
         poolId = lockDealNFT.mint(owner, token, from, amount, provider);
-        IProviderSingleIdRegistrar(provider).registerPool(poolId, owner, token, params);
+        IProviderSingleIdRegistrar(provider).registerPool(poolId, params);
     }
 
     function withdraw(
