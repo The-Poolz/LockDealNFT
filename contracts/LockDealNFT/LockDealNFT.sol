@@ -41,11 +41,15 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
         notZeroAddress(provider)
         returns (uint256 poolId)
     {
-        if(provider != msg.sender) {
+        if (provider != msg.sender) {
             _onlyApprovedProvider(provider);
         }
         poolId = _mint(owner, provider);
-        poolIdToVaultId[poolId] = vaultManager.depositByToken(token, from, amount);
+        poolIdToVaultId[poolId] = vaultManager.depositByToken(
+            token,
+            from,
+            amount
+        );
     }
 
     /// @dev Sets the approved status of a provider
@@ -65,10 +69,14 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
     /// @return isFinal A boolean indicating if the withdrawal is the final one
     function withdraw(
         uint256 poolId
-    ) external onlyOwnerOrAdmin(poolId) returns (uint256 withdrawnAmount, bool isFinal) {
+    )
+        external
+        onlyOwnerOrAdmin(poolId)
+        returns (uint256 withdrawnAmount, bool isFinal)
+    {
         address provider = poolIdToProvider[poolId];
         (withdrawnAmount, isFinal) = IProvider(provider).withdraw(poolId);
-        
+
         // in case of the sub-provider, the main provider will sum the data
         if (!approvedProviders[ownerOf(poolId)]) {
             vaultManager.withdrawByVaultId(
@@ -112,5 +120,15 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
         _safeMint(owner, newPoolId);
         poolIdToProvider[newPoolId] = provider;
         emit MintInitiated(provider);
+    }
+
+    function overrideVaultId(
+        uint256 oldPoolId,
+        uint256 newPoolId
+    ) external onlyApprovedProvider {
+        require(_exists(oldPoolId), "Pool does not exist");
+        require(_exists(newPoolId), "Pool does not exist");
+        poolIdToVaultId[newPoolId] = poolIdToVaultId[oldPoolId];
+        poolIdToVaultId[oldPoolId] = 0;
     }
 }
