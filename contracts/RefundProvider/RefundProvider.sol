@@ -32,8 +32,6 @@ contract RefundProvider is RefundState, IERC721Receiver {
 
             lockDealNFT.setPoolIdToProvider(address(dealProvider), poolId - 2);
             lockDealNFT.setPoolIdToProvider(address(dealProvider), poolId - 1);
-            lockDealNFT.setPoolIdToProvider(address(dealProvider), 0);
-            lockDealNFT.setPoolIdToProvider(address(dealProvider), 0);
         }
         return IERC721Receiver.onERC721Received.selector;
     }
@@ -80,11 +78,11 @@ contract RefundProvider is RefundState, IERC721Receiver {
 
         uint256 newPoolId = lockDealNFT.mint(lockDealNFT.ownerOf(poolId - 2), lockDealNFT.tokenOf(poolId - 2), msg.sender, 0, provider);
         IProvider(provider).split(poolId - 2, newPoolId, splitAmount);
-        lockDealNFT.setPoolIdToVaultId(newPoolId, poolId - 2);
+        lockDealNFT.setPoolIdToVaultId(newPoolId, lockDealNFT.poolIdToVaultId(poolId - 2));
 
         uint256 lockProviderPoolId = lockDealNFT.mint(lockDealNFT.ownerOf(poolId - 1), mainCoin, msg.sender, 0, address(lockProvider));
         lockProvider.split(poolId - 1, lockProviderPoolId, mainCoinSplitAmount);
-        lockDealNFT.setPoolIdToVaultId(lockProviderPoolId, poolId - 1);
+        lockDealNFT.setPoolIdToVaultId(lockProviderPoolId, lockDealNFT.poolIdToVaultId(poolId - 1));
 
         lockDealNFT.mint(lockDealNFT.ownerOf(poolId), lockDealNFT.tokenOf(poolId), msg.sender, 0, address(this));
     }
@@ -111,7 +109,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
             uint256 withdrawMainCoinAmount = _calcAmount(withdrawnAmount, _calcRate(tokenAmount, mainCoinAmount));
             // create new pool for the main withdrawn coins
             uint256 mainCoinPoolId = lockDealNFT.mint(lockDealNFT.ownerOf(poolId - 1), mainCoin, msg.sender, 0, address(dealProvider));
-            lockDealNFT.setPoolIdToVaultId(mainCoinPoolId, poolId - 1);
+            lockDealNFT.setPoolIdToVaultId(mainCoinPoolId, lockDealNFT.poolIdToVaultId(poolId - 1));
             dealProvider.split(poolId - 1, mainCoinPoolId, withdrawMainCoinAmount);
         }
     }
