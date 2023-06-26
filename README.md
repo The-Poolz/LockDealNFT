@@ -1,5 +1,10 @@
 # LockDealNFT
 
+[![Build and Test](https://github.com/The-Poolz/LockDealNFT/actions/workflows/node.js.yml/badge.svg)](https://github.com/The-Poolz/LockDealNFT/actions/workflows/node.js.yml)
+[![codecov](https://codecov.io/gh/The-Poolz/LockDealNFT/branch/master/graph/badge.svg?token=s2B22Bif9x)](https://codecov.io/gh/The-Poolz/LockDealNFT)
+[![CodeFactor](https://www.codefactor.io/repository/github/the-poolz/lockdealnft/badge)](https://www.codefactor.io/repository/github/the-poolz/lockdealnft)
+
+
 Basic data:
 ![image](https://github.com/The-Poolz/LockDealNFT/assets/48094744/7616eb4e-970b-4984-9da9-350e4d6f05dc)
 
