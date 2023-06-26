@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 import "./RefundState.sol";
 import "../ProviderInterface/IProviderSingleIdRegistrar.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "hardhat/console.sol";
 
 contract RefundProvider is RefundState, IERC721Receiver {
     constructor(address nftContract, address provider) {
