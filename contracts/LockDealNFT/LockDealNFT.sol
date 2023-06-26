@@ -48,9 +48,6 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
         if (amount > 0) {
             poolIdToVaultId[poolId] = vaultManager.depositByToken(token, from, amount);
         }
-        else {
-            poolIdToVaultId[poolId] = vaultManager.tokenToVaultId(token);
-        }
     }
 
     /// @dev Sets the approved status of a provider
@@ -98,9 +95,17 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
         address newOwner
     ) external onlyOwnerOrAdmin(poolId) {
         address provider = poolIdToProvider[poolId];
-        uint256 newPoolId = _mint(newOwner, provider);
-        poolIdToVaultId[newPoolId] = vaultManager.tokenToVaultId(vaultManager.vaultIdToTokenAddress(poolIdToVaultId[poolId]));
-        IProvider(provider).split(poolId, newPoolId, splitAmount);
+        uint256 newPoolId;
+        if(poolIdToVaultId[poolId] == 0 && !approvedProviders[msg.sender] && poolId > 1){
+            IProvider(provider).split(poolId, 0, splitAmount);
+            // newPoolId = _mint(provider, poolIdToProvider[poolId - 2]);
+            // poolIdToVaultId[newPoolId] = poolIdToVaultId[poolId - 2];
+            // poolIdToVaultId[newPoolId + 1] = poolIdToVaultId[poolId - 1];
+        }
+        else{
+            newPoolId = _mint(newOwner, provider);
+            IProvider(provider).split(poolId, newPoolId, splitAmount);
+        }
     }
 
     /// @param owner The address to assign the token to
@@ -117,9 +122,12 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
         emit MintInitiated(provider);
     }
     
-    function setPoolIdToProvider(address provider, uint256 poolId) external onlyApprovedProvider {
-        require(_exists(poolId), "pool does not exist");
+    function setPoolIdToProvider(address provider, uint256 poolId) external onlyApprovedProvider validPoolId(poolId) {
         _onlyApprovedProvider(provider);
         poolIdToProvider[poolId] = provider;
+    }
+
+    function setPoolIdToVaultId(uint256 poolId, uint256 vaultId) external onlyApprovedProvider validPoolId(poolId) {
+        poolIdToVaultId[poolId] = vaultId;
     }
 }
