@@ -31,11 +31,6 @@ abstract contract LockDealNFTModifiers is LockDealNFTState, Ownable {
         _;
     }
 
-    modifier approvedAmount(address token, address from, uint256 amount) {
-        _approvedAmount(token, from, amount);
-        _;
-    }
-
     function _notZeroAddress(address _address) private pure {
         require(_address != address(0x0), "Zero Address is not allowed");
     }
@@ -60,12 +55,5 @@ abstract contract LockDealNFTModifiers is LockDealNFTState, Ownable {
 
     function _notZeroAmount(uint256 amount) private pure {
         require(amount > 0, "amount should be greater than 0");
-    }
-
-    function _approvedAmount(address token, address from, uint256 amount) internal view {
-        require(
-            IERC20(token).allowance(from, address(vaultManager)) >= amount,
-            "Sending tokens not approved"
-        );
     }
 }
