@@ -7,10 +7,9 @@ import { TimedDealProvider } from "../typechain-types/contracts/TimedDealProvide
 import { LockDealBundleProvider } from "../typechain-types/";
 import { LockDealNFT } from "../typechain-types/contracts/LockDealNFT";
 import { DealProvider } from "../typechain-types/contracts/DealProvider";
-import { ERC20Token } from '../typechain-types/poolz-helper-v2/contracts/token';
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { MockProvider } from "../typechain-types/contracts/test/MockProvider";
-import { deployed } from "./helper";
+import { deployed, token } from "./helper";
 import { MockVaultManager } from "../typechain-types";
 
 describe("Lock Deal Bundle Provider", function () {
@@ -24,7 +23,6 @@ describe("Lock Deal Bundle Provider", function () {
     let bundlePoolId: number
     let receiver: SignerWithAddress
     let newOwner: SignerWithAddress
-    let token: ERC20Token
     let startTime: number, finishTime: number
     const amount = BigNumber.from(100000)
     const ONE_DAY = 86400
@@ -33,13 +31,11 @@ describe("Lock Deal Bundle Provider", function () {
         [receiver, newOwner] = await ethers.getSigners()
         const mockVaultManager: MockVaultManager = await deployed("MockVaultManager")
         lockDealNFT = await deployed("LockDealNFT", mockVaultManager.address)
-        token = await deployed("ERC20Token", "TEST Token", "TERC20")
         dealProvider = await deployed("DealProvider", lockDealNFT.address)
         lockProvider = await deployed("LockDealProvider", lockDealNFT.address, dealProvider.address)
         timedDealProvider = await deployed("TimedDealProvider", lockDealNFT.address, lockProvider.address)
         bundleProvider = await deployed("LockDealBundleProvider", lockDealNFT.address)
         mockProvider = await deployed("MockProvider", timedDealProvider.address)
-        await token.approve(mockVaultManager.address, constants.MaxUint256)
         await lockDealNFT.setApprovedProvider(dealProvider.address, true)
         await lockDealNFT.setApprovedProvider(lockProvider.address, true)
         await lockDealNFT.setApprovedProvider(timedDealProvider.address, true)
@@ -56,7 +52,7 @@ describe("Lock Deal Bundle Provider", function () {
         const bundleProviders = [dealProvider.address, lockProvider.address, timedDealProvider.address]
         const bundleProviderParams = [dealProviderParams, lockProviderParams, timedDealProviderParams]
         poolId = (await lockDealNFT.totalSupply()).toNumber()
-        await bundleProvider.createNewPool(receiver.address, token.address, bundleProviders, bundleProviderParams)
+        await bundleProvider.createNewPool(receiver.address, token, bundleProviders, bundleProviderParams)
         bundlePoolId = (await lockDealNFT.totalSupply()).toNumber() - 1
     })
 
@@ -86,14 +82,14 @@ describe("Lock Deal Bundle Provider", function () {
         const bundleProviders = [dealProvider.address, lockProvider.address, timedDealProvider.address]
         const bundleProviderParams = [dealProviderParams, lockProviderParams, timedDealProviderParams]
 
-        const tx = await bundleProvider.createNewPool(receiver.address, token.address, bundleProviders, bundleProviderParams)
+        const tx = await bundleProvider.createNewPool(receiver.address, token, bundleProviders, bundleProviderParams)
         await tx.wait()
         const event = await dealProvider.queryFilter(dealProvider.filters.NewPoolCreated())
         const data = event[event.length - 1].args
         const bundlePoolId = (await lockDealNFT.totalSupply()).toNumber() - 1;
 
         expect(data.poolId).to.equal(bundlePoolId - 1)
-        expect(data.token).to.equal(token.address)
+        expect(data.token).to.equal(token)
         expect(data.owner).to.equal(bundleProvider.address)
         expect(data.params[0]).to.equal(amount)
     })
@@ -108,19 +104,19 @@ describe("Lock Deal Bundle Provider", function () {
         // zero address
         bundleProviders[0] = constants.AddressZero
         await expect(
-            bundleProvider.createNewPool(receiver.address, token.address, bundleProviders, bundleProviderParams)
+            bundleProvider.createNewPool(receiver.address, token, bundleProviders, bundleProviderParams)
         ).to.be.revertedWith("Zero Address is not allowed")
 
         // lockDealNFT address
         bundleProviders[0] = lockDealNFT.address
         await expect(
-            bundleProvider.createNewPool(receiver.address, token.address, bundleProviders, bundleProviderParams)
+            bundleProvider.createNewPool(receiver.address, token, bundleProviders, bundleProviderParams)
         ).to.be.revertedWith("invalid provider address")
 
         // bundleProvider address
         bundleProviders[0] = bundleProvider.address
         await expect(
-            bundleProvider.createNewPool(receiver.address, token.address, bundleProviders, bundleProviderParams)
+            bundleProvider.createNewPool(receiver.address, token, bundleProviders, bundleProviderParams)
             ).to.be.revertedWith("invalid provider address")
     })
 
@@ -132,7 +128,7 @@ describe("Lock Deal Bundle Provider", function () {
         const bundleProviderParams = [dealProviderParams, lockProviderParams]
 
         await expect(
-            bundleProvider.createNewPool(receiver.address, token.address, bundleProviders, bundleProviderParams)).to.be.revertedWith(
+            bundleProvider.createNewPool(receiver.address, token, bundleProviders, bundleProviderParams)).to.be.revertedWith(
                 "providers and params length mismatch"
             )
     })
@@ -145,7 +141,7 @@ describe("Lock Deal Bundle Provider", function () {
         const bundleProviderParams = [dealProviderParams]
 
         await expect(
-            bundleProvider.createNewPool(receiver.address, token.address, bundleProviders, bundleProviderParams)).to.be.revertedWith(
+            bundleProvider.createNewPool(receiver.address, token, bundleProviders, bundleProviderParams)).to.be.revertedWith(
                 "providers length must be greater than 1"
             )
     })

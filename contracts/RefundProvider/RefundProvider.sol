@@ -32,6 +32,8 @@ contract RefundProvider is RefundState, IERC721Receiver {
 
             lockDealNFT.setPoolIdToProvider(address(dealProvider), poolId - 2);
             lockDealNFT.setPoolIdToProvider(address(dealProvider), poolId - 1);
+            lockDealNFT.setPoolIdToProvider(address(dealProvider), 0);
+            lockDealNFT.setPoolIdToProvider(address(dealProvider), 0);
         }
         return IERC721Receiver.onERC721Received.selector;
     }

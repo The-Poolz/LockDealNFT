@@ -1,20 +1,17 @@
 import { expect } from "chai";
-import { constants } from "ethers";
 import { ethers } from 'hardhat';
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 import { LockDealNFT } from "../typechain-types/contracts/LockDealNFT";
 import { DealProvider } from "../typechain-types/contracts/DealProvider";
 import { LockDealProvider } from "../typechain-types/contracts/LockProvider";
 import { TimedDealProvider } from "../typechain-types/contracts/TimedDealProvider";
-import { ERC20Token } from '../typechain-types/poolz-helper-v2/contracts/token';
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { MockVaultManager } from "../typechain-types/contracts/test/MockVaultManager";
-import { deployed } from "./helper";
+import { deployed, token } from "./helper";
 
 describe("LockDealNFT", function () {
     let lockDealNFT: LockDealNFT
     let poolId: number
-    let token: ERC20Token
     let mockVaultManager: MockVaultManager
     let dealProvider: DealProvider
     let lockDealProvider: LockDealProvider
@@ -31,11 +28,6 @@ describe("LockDealNFT", function () {
         dealProvider = await deployed("DealProvider", lockDealNFT.address)
         lockDealProvider = await deployed("LockDealProvider", lockDealNFT.address, dealProvider.address)
         timedDealProvider = await deployed("TimedDealProvider", lockDealNFT.address, lockDealProvider.address)
-        token = await deployed("ERC20Token", "TEST Token", "TERC20")
-        await token.approve(dealProvider.address, constants.MaxUint256)
-        await token.approve(mockVaultManager.address, constants.MaxUint256)
-        await token.approve(lockDealProvider.address, constants.MaxUint256)
-        await token.approve(timedDealProvider.address, constants.MaxUint256)
         await lockDealNFT.setApprovedProvider(dealProvider.address, true)
         await lockDealNFT.setApprovedProvider(lockDealProvider.address, true)
         await lockDealNFT.setApprovedProvider(timedDealProvider.address, true)
@@ -46,7 +38,7 @@ describe("LockDealNFT", function () {
         startTime = await time.latest() + 100
         finishTime = startTime + 100
         poolId = (await lockDealNFT.totalSupply()).toNumber()
-        await dealProvider.createNewPool(receiver.address, token.address, [amount])
+        await dealProvider.createNewPool(receiver.address, token, [amount])
     })
 
     it("check NFT name", async () => {
@@ -75,7 +67,7 @@ describe("LockDealNFT", function () {
     })
 
     it("should return mintInitiated event", async () => {
-        const tx = await dealProvider.createNewPool(receiver.address, token.address, [amount])
+        const tx = await dealProvider.createNewPool(receiver.address, token, [amount])
         await tx.wait()
         const events = await lockDealNFT.queryFilter(lockDealNFT.filters.MintInitiated())
         expect(events[events.length - 1].args.provider).to.equal(dealProvider.address)
@@ -87,41 +79,33 @@ describe("LockDealNFT", function () {
 
     it("only provider can mint", async () => {
         await expect(
-            lockDealNFT.connect(notOwner).mint(receiver.address, notOwner.address, token.address, 10, dealProvider.address)
+            lockDealNFT.connect(notOwner).mint(receiver.address, notOwner.address, token, 10, dealProvider.address)
         ).to.be.revertedWith("Provider not approved")
-    })
-
-    it("should revert not approved amount", async () => {
-        await token.approve(mockVaultManager.address, "0")
-        await expect(dealProvider.createNewPool(receiver.address, token.address, [amount])).to.be.revertedWith(
-            "Sending tokens not approved"
-        )
-        await token.approve(mockVaultManager.address, constants.MaxUint256)
     })
 
     it("should return data from DealProvider using LockedDealNFT", async () => {
         const poolData = await lockDealNFT.getData(poolId)
         expect(poolData.provider).to.deep.equal(dealProvider.address)
-        expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token.address])
+        expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token])
         expect(poolData.params[0]).to.equal(amount)
     })
 
     it("should return data from LockDealProvider using LockedDealNFT", async () => {
         poolId = (await lockDealNFT.totalSupply()).toNumber()
-        await lockDealProvider.createNewPool(receiver.address, token.address, [amount, startTime])
+        await lockDealProvider.createNewPool(receiver.address, token, [amount, startTime])
         const poolData = await lockDealNFT.getData(poolId)
         expect(poolData.provider).to.deep.equal(lockDealProvider.address)
-        expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token.address])
+        expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token])
         expect(poolData.params[0]).to.equal(amount)
         expect(poolData.params[1]).to.equal(startTime)
     })
 
     it("should return data from TimedDealProvider using LockedDealNFT", async () => {
         poolId = (await lockDealNFT.totalSupply()).toNumber()
-        await timedDealProvider.createNewPool(receiver.address, token.address, [amount, startTime, finishTime, amount])
+        await timedDealProvider.createNewPool(receiver.address, token, [amount, startTime, finishTime, amount])
         const poolData = await lockDealNFT.getData(poolId)
         expect(poolData.provider).to.deep.equal(timedDealProvider.address)
-        expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token.address])
+        expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token])
         expect(poolData.params[0]).to.equal(amount)
         expect(poolData.params[1]).to.equal(startTime)
         expect(poolData.params[2]).to.equal(finishTime)

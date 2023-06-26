@@ -38,7 +38,6 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
         notZeroAddress(owner)
         notZeroAddress(token)
         notZeroAddress(provider)
-        approvedAmount(token, from, amount)
         returns (uint256 poolId)
     {
         if(provider != msg.sender) {
