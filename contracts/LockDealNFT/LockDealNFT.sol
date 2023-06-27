@@ -94,15 +94,18 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
         address newOwner
     ) external onlyOwnerOrAdmin(poolId) {
         address provider = poolIdToProvider[poolId];
-        uint256 newPoolId;
+        uint256 dataPoolId;        
         // refund provider case
         if(poolIdToVaultId[poolId] == 0 && !approvedProviders[msg.sender]) {
-            IProvider(provider).split(poolId, 0, splitAmount);
+            newOwner = provider;
+            dataPoolId = poolId - 2;
         }
-        else{
-            newPoolId = _mint(newOwner, provider);
-            IProvider(provider).split(poolId, newPoolId, splitAmount);
+        else {
+            dataPoolId = poolId;
         }
+        uint256 newPoolId = _mint(newOwner, poolIdToProvider[dataPoolId]);
+        poolIdToVaultId[newPoolId] = poolIdToVaultId[dataPoolId];
+        IProvider(provider).split(poolId, newPoolId, splitAmount);
     }
 
     /// @param owner The address to assign the token to

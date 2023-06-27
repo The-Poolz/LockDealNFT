@@ -5,6 +5,7 @@ import "../LockProvider/LockDealProvider.sol";
 
 abstract contract RefundState is ProviderModifiers, IProvider {
     LockDealProvider public lockProvider;
+    mapping(uint256 => address) public poolIdToProjectOwner;
 
     function getData(uint256 poolId) external view override returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params){
         if (lockDealNFT.exist(poolId - 2)) {

@@ -68,7 +68,8 @@ describe("Refund Provider", function () {
 
         it("should return currect main coin data after creation", async () => {
             const poolData = await lockDealNFT.getData(poolId + 1)
-            expect(poolData.poolInfo).to.deep.equal([poolId + 1, projectOwner.address, BUSD])
+            expect(poolData.provider).to.equal(lockProvider.address)
+            expect(poolData.poolInfo).to.deep.equal([poolId + 1, refundProvider.address, BUSD])
             expect(poolData.params[0]).to.equal(amount / 2)
             expect(poolData.params[1]).to.equal(finishTime)
         })
@@ -95,7 +96,7 @@ describe("Refund Provider", function () {
             await lockDealNFT.split(poolId + 2, amount / 2, receiver.address)
 
             const poolData = await lockDealNFT.getData(poolId + 1)
-            expect(poolData.poolInfo).to.deep.equal([poolId + 1, projectOwner.address, BUSD])
+            expect(poolData.poolInfo).to.deep.equal([poolId + 1, refundProvider.address, BUSD])
             expect(poolData.params[0]).to.equal(amount / 4)
             expect(poolData.params[1]).to.equal(finishTime)
         })
@@ -122,7 +123,7 @@ describe("Refund Provider", function () {
             await lockDealNFT.split(poolId + 2, amount / 2, receiver.address)
 
             const poolData = await lockDealNFT.getData(poolId + 4)
-            expect(poolData.poolInfo).to.deep.equal([poolId + 4, projectOwner.address, BUSD])
+            expect(poolData.poolInfo).to.deep.equal([poolId + 4, refundProvider.address, BUSD])
             expect(poolData.params[0]).to.equal(amount / 4)
             expect(poolData.params[1]).to.equal(finishTime)
         })
@@ -161,7 +162,7 @@ describe("Refund Provider", function () {
             await lockDealNFT.withdraw(poolId + 2)
             const poolData = await lockDealNFT.getData(poolId + 1)
 
-            expect(poolData.poolInfo).to.deep.equal([poolId + 1, projectOwner.address, BUSD])
+            expect(poolData.poolInfo).to.deep.equal([poolId + 1, refundProvider.address, BUSD])
             expect(poolData.params[0]).to.equal(0)
             expect(poolData.params[1]).to.equal(finishTime)
         })
