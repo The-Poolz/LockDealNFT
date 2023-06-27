@@ -24,7 +24,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
             uint256 refundPoolId = poolId - 1;
             uint256 userPoolId = poolId - 2;
             require(
-                lockProvider.startTimes(poolId - 1) > block.timestamp,
+                lockProvider.startTimes(refundPoolId) > block.timestamp,
                 "too late"
             );
             DealProvider dealProvider = lockProvider.dealProvider();
@@ -112,7 +112,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
             // create new pool for the main withdrawn coins
             uint256 mainCoinPoolId = lockDealNFT.mint(poolIdToProjectOwner[refundPoolId], lockDealNFT.tokenOf(refundPoolId), msg.sender, 0, address(dealProvider));
             lockDealNFT.setPoolIdToVaultId(mainCoinPoolId, lockDealNFT.poolIdToVaultId(refundPoolId));
-            dealProvider.split(poolId - 1, mainCoinPoolId, withdrawMainCoinAmount);
+            dealProvider.split(refundPoolId, mainCoinPoolId, withdrawMainCoinAmount);
         }
     }
 }
