@@ -52,7 +52,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
         uint256 dataPoolID = lockDealNFT.mint(address(this), token, msg.sender, params[0], provider);
         IProviderSingleIdRegistrar(provider).registerPool(dataPoolID, params);
 
-        /// Hold main coin | Owner Refund
+        /// Hold main coin | Owned by the project owner
         uint256 [] memory mainCoinParams = new uint256[](2);
         mainCoinParams[0] = params[paramsLength - 2];
         mainCoinParams[1] = params[paramsLength - 1];
@@ -101,8 +101,8 @@ contract RefundProvider is RefundState, IERC721Receiver {
         DealProvider dealProvider = lockProvider.dealProvider();
         uint256 tokenAmount = dealProvider.poolIdToleftAmount(poolId - 2);
         (withdrawnAmount, isFinal) = lockDealNFT.withdraw(poolId - 2);
-
-        if (withdrawnAmount > 0 && lockProvider.startTimes(poolId - 1) <= block.timestamp) {
+        // lockProvider.startTimes(poolId - 1) is time limit when the main coin pool is active
+        if (withdrawnAmount > 0 && lockProvider.startTimes(poolId - 1) >= block.timestamp) {
             address mainCoin = lockDealNFT.tokenOf(poolId - 1);
             uint256 mainCoinAmount = lockProvider.dealProvider().poolIdToleftAmount(poolId - 1);
             uint256 withdrawMainCoinAmount = _calcAmount(withdrawnAmount, _calcRate(tokenAmount, mainCoinAmount));
