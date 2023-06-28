@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import "./LockDealNFTModifiers.sol";
 import "./ILockDealNFTEvents.sol";
-import "../ProviderInterface/IProvider.sol";
 
 /// @title LockDealNFT contract
 /// @notice Implements a non-fungible token (NFT) contract for locking deals
@@ -45,7 +44,9 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
             _onlyApprovedProvider(provider);
         }
         poolId = _mint(owner, provider);
-        poolIdToVaultId[poolId] = vaultManager.depositByToken(token, from, amount);
+        if (amount > 0) {
+            poolIdToVaultId[poolId] = vaultManager.depositByToken(token, from, amount);
+        }
     }
 
     /// @dev Sets the approved status of a provider
@@ -92,12 +93,19 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
         uint256 splitAmount,
         address newOwner
     ) external onlyOwnerOrAdmin(poolId) {
-        uint256 newPoolId = _mint(newOwner, poolIdToProvider[poolId]);
-        IProvider(poolIdToProvider[poolId]).split(
-            poolId,
-            newPoolId,
-            splitAmount
-        );
+        address provider = poolIdToProvider[poolId];
+        uint256 dataPoolId;        
+        // refund provider case
+        if(poolIdToVaultId[poolId] == 0 && !approvedProviders[msg.sender]) {
+            newOwner = provider;
+            dataPoolId = poolId - 2;
+        }
+        else {
+            dataPoolId = poolId;
+        }
+        uint256 newPoolId = _mint(newOwner, poolIdToProvider[dataPoolId]);
+        poolIdToVaultId[newPoolId] = poolIdToVaultId[dataPoolId];
+        IProvider(provider).split(poolId, newPoolId, splitAmount);
     }
 
     /// @param owner The address to assign the token to
@@ -112,5 +120,14 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
         _safeMint(owner, newPoolId);
         poolIdToProvider[newPoolId] = provider;
         emit MintInitiated(provider);
+    }
+    
+    function setPoolIdToProvider(address provider, uint256 poolId) external onlyApprovedProvider validPoolId(poolId) {
+        _onlyApprovedProvider(provider);
+        poolIdToProvider[poolId] = provider;
+    }
+
+    function setPoolIdToVaultId(uint256 poolId, uint256 vaultId) external onlyApprovedProvider validPoolId(poolId) {
+        poolIdToVaultId[poolId] = vaultId;
     }
 }

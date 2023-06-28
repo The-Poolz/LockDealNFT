@@ -31,6 +31,11 @@ abstract contract LockDealNFTModifiers is LockDealNFTState, Ownable {
         _;
     }
 
+    modifier validPoolId(uint256 poolId){
+        _validPoolId(poolId);
+        _;
+    }
+
     function _notZeroAddress(address _address) private pure {
         require(_address != address(0x0), "Zero Address is not allowed");
     }
@@ -55,5 +60,9 @@ abstract contract LockDealNFTModifiers is LockDealNFTState, Ownable {
 
     function _notZeroAmount(uint256 amount) private pure {
         require(amount > 0, "amount should be greater than 0");
+    }
+
+    function _validPoolId(uint256 poolId) internal view {
+        require(_exists(poolId), "Pool does not exist");
     }
 }
