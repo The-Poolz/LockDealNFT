@@ -26,7 +26,23 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
         token = vaultManager.vaultIdToTokenAddress(poolIdToVaultId[poolId]);
     }
 
-    function mint(
+    function mintForProvider(
+        address owner,
+        address provider
+    )
+        external
+        onlyApprovedProvider
+        notZeroAddress(owner)
+        notZeroAddress(provider)
+        returns (uint256 poolId)
+    {
+        if(provider != msg.sender) {
+            _onlyApprovedProvider(provider);
+        }
+        poolId = _mint(owner, provider);
+    }
+
+    function mintAndTransfer(
         address owner,
         address token,
         address from,
@@ -40,13 +56,12 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
         notZeroAddress(provider)
         returns (uint256 poolId)
     {
+        require(amount > 0, "amount must be greater than 0");
         if(provider != msg.sender) {
             _onlyApprovedProvider(provider);
         }
         poolId = _mint(owner, provider);
-        if (amount > 0) {
-            poolIdToVaultId[poolId] = vaultManager.depositByToken(token, from, amount);
-        }
+        poolIdToVaultId[poolId] = vaultManager.depositByToken(token, from, amount);       
     }
 
     /// @dev Sets the approved status of a provider
