@@ -77,9 +77,9 @@ describe("LockDealNFT", function () {
         expect(await lockDealNFT.poolIdToProvider(poolId)).to.equal(dealProvider.address)
     })
 
-    it("only provider can mint", async () => {
+    it("only provider can mintAndTransfer", async () => {
         await expect(
-            lockDealNFT.connect(notOwner).mint(receiver.address, notOwner.address, token, 10, dealProvider.address)
+            lockDealNFT.connect(notOwner).mintAndTransfer(receiver.address, notOwner.address, token, 10, dealProvider.address)
         ).to.be.revertedWith("Provider not approved")
     })
 
