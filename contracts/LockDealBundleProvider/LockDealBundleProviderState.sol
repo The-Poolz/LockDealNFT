@@ -7,4 +7,11 @@ import "../LockDealNFT/LockDealNFT.sol";
 /// @notice Contains storage variables
 contract LockDealBundleProviderState {
     mapping(uint256 => uint256) public bundlePoolIdToLastSubPoolId;
+
+    function _calcTotalAmount(uint256[][] memory params) internal pure returns (uint256 totalAmount) {
+        uint length = params.length;
+        for (uint256 i = 0; i < length; i++) {
+            totalAmount += params[i][0];
+        }
+    }
 }

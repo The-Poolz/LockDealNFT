@@ -35,29 +35,18 @@ contract LockDealBundleProvider is
         require(providerCount == providerParams.length, "providers and params length mismatch");
         require(providerCount > 1, "providers length must be greater than 1");
 
-        // create a new bundle pool owned by the owner with `0` token trasnfer amount
-        poolId = lockDealNFT.mint(owner, token, msg.sender, 0, address(this));
+        uint256 totalAmount = _calcTotalAmount(providerParams);
+        // create a new bundle pool owned by the owner
+        poolId = lockDealNFT.mint(owner, token, msg.sender, totalAmount, address(this));
 
-        uint256 totalStartAmount;
         for (uint256 i; i < providerCount; ++i) {
             address provider = providers[i];
             uint256[] memory params = providerParams[i];
 
             // check if the provider address is valid
             require(provider != address(lockDealNFT) && provider != address(this), "invalid provider address");
-
-            // increase the `totalStartAmount`
-            totalStartAmount += params[0];
-
-            // create the sub pool
-            if (i == providerCount - 1) {
-                // in case of the last sub pool, mint the NFT owned by the BunderDealProvider with `totalStartAmount` token transfer amount
-                // set the bundle provider state with the last sub pool Id
-                bundlePoolIdToLastSubPoolId[poolId] = _createNewSubPool(address(this), token, msg.sender, totalStartAmount, provider, params);
-            } else {
-               // mint the NFT owned by the BunderDealProvider with 0 token transfer amount
-                _createNewSubPool(address(this), token, msg.sender, 0, provider, params);
-            }
+            // mint the NFT owned by the BunderDealProvider with 0 token transfer amount
+            _createNewSubPool(address(this), token, msg.sender, 0, provider, params);
         }
     }
 
