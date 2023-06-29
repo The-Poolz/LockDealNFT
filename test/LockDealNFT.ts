@@ -83,6 +83,12 @@ describe("LockDealNFT", function () {
         ).to.be.revertedWith("Provider not approved")
     })
 
+    it("only provider can mintForProvider", async () => {
+        await expect(
+            lockDealNFT.connect(notOwner).mintForProvider(receiver.address, dealProvider.address)
+        ).to.be.revertedWith("Provider not approved")
+    })
+
     it("should return data from DealProvider using LockedDealNFT", async () => {
         const poolData = await lockDealNFT.getData(poolId)
         expect(poolData.provider).to.deep.equal(dealProvider.address)
