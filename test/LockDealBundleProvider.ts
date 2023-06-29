@@ -19,7 +19,6 @@ describe("Lock Deal Bundle Provider", function () {
     let dealProvider: DealProvider
     let lockDealNFT: LockDealNFT
     let mockProvider: MockProvider
-    let poolId: number
     let bundlePoolId: number
     let receiver: SignerWithAddress
     let newOwner: SignerWithAddress
@@ -53,7 +52,6 @@ describe("Lock Deal Bundle Provider", function () {
         const bundleProviderParams = [dealProviderParams, lockProviderParams, timedDealProviderParams]
         bundlePoolId = (await lockDealNFT.totalSupply()).toNumber()
         await bundleProvider.createNewPool(receiver.address, token, bundleProviders, bundleProviderParams)
-        poolId = (await lockDealNFT.totalSupply()).toNumber() - 1
     })
 
     it("should check lock deal NFT address", async () => {
