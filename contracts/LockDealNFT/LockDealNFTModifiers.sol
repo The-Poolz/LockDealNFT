@@ -59,7 +59,7 @@ abstract contract LockDealNFTModifiers is LockDealNFTState, Ownable {
     }
 
     function _notZeroAmount(uint256 amount) private pure {
-        require(amount > 0, "amount should be greater than 0");
+        require(amount > 0, "amount must be greater than 0");
     }
 
     function _validPoolId(uint256 poolId) internal view {
