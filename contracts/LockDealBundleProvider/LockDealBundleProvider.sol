@@ -37,7 +37,7 @@ contract LockDealBundleProvider is
 
         uint256 totalAmount = _calcTotalAmount(providerParams);
         // create a new bundle pool owned by the owner
-        poolId = lockDealNFT.mint(owner, token, msg.sender, totalAmount, address(this));
+        poolId = lockDealNFT.mintAndTransfer(owner, token, msg.sender, totalAmount, address(this));
 
         for (uint256 i; i < providerCount; ++i) {
             address provider = providers[i];
@@ -46,19 +46,16 @@ contract LockDealBundleProvider is
             // check if the provider address is valid
             require(provider != address(lockDealNFT) && provider != address(this), "invalid provider address");
             // mint the NFT owned by the BunderDealProvider with 0 token transfer amount
-            _createNewSubPool(address(this), token, msg.sender, 0, provider, params);
+            _createNewSubPool(address(this), provider, params);
         }
     }
 
     function _createNewSubPool(
         address owner,
-        address token,
-        address from,
-        uint256 amount,
         address provider,
         uint256[] memory params
     ) internal returns (uint256 poolId) {
-        poolId = lockDealNFT.mint(owner, token, from, amount, provider);
+        poolId = lockDealNFT.mintForProvider(owner, provider);
         IProviderSingleIdRegistrar(provider).registerPool(poolId, params);
     }
 
