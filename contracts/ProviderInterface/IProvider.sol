@@ -6,6 +6,12 @@ import "../DealProvider/IDealProvierEvents.sol";
 ///@dev Interface for the provider contract
 ///@notice This interface is used by the NFT contract to call the provider contract
 interface IProvider {
+    struct BasePoolInfo {
+        uint256 poolId;
+        address owner;
+        address token;
+    }
+
     function withdraw(
         uint256 poolId
     ) external returns (uint256 withdrawnAmount, bool isFinal);
@@ -19,7 +25,7 @@ interface IProvider {
     function getData(
         uint256 poolId
     ) external view returns (
-        IDealProvierEvents.BasePoolInfo memory poolInfo,
+        BasePoolInfo memory poolInfo,
         uint256[] memory params
     );
 }

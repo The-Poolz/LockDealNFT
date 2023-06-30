@@ -24,7 +24,7 @@ abstract contract LockDealNFTState is ERC721Enumerable {
         view
         returns (
             address provider,
-            IDealProvierEvents.BasePoolInfo memory poolInfo,
+            IProvider.BasePoolInfo memory poolInfo,
             uint256[] memory params
         )
     {

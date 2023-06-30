@@ -82,7 +82,7 @@ contract TimedDealProvider is BasicProvider, TimedProviderState {
         dealProvider.registerPool(poolId, params);
     }
 
-    function getData(uint256 poolId) public view override returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params) {
+    function getData(uint256 poolId) public view override returns (BasePoolInfo memory poolInfo, uint256[] memory params) {
         uint256[] memory lockDealProviderParams;
         (poolInfo, lockDealProviderParams) = dealProvider.getData(poolId);
 

@@ -28,7 +28,7 @@ contract MockProvider {
         public
         view
         returns (
-            IDealProvierEvents.BasePoolInfo memory poolInfo,
+            IProvider.BasePoolInfo memory poolInfo,
             uint256[] memory params
         )
     {
