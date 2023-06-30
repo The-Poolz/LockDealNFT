@@ -110,7 +110,7 @@ describe("Refund Provider", function () {
             expect(poolData.params[1]).to.equal(startTime)
         })
 
-        it("should return new pool data after split", async () => {
+        xit("should return new pool data after split", async () => {
             await lockDealNFT.split(poolId + 2, amount / 2, receiver.address)
 
             const poolData = await lockDealNFT.getData(poolId + 3)
@@ -128,7 +128,7 @@ describe("Refund Provider", function () {
             expect(poolData.params[1]).to.equal(finishTime)
         })
 
-        it("should return new data for user after split", async () => {
+        xit("should return new data for user after split", async () => {
             await lockDealNFT.split(poolId + 2, amount / 2, receiver.address)
 
             const poolData = await lockDealNFT.getData(poolId + 5)

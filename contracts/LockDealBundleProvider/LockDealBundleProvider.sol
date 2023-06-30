@@ -31,43 +31,26 @@ contract LockDealBundleProvider is
         address[] calldata providers,
         uint256[][] calldata providerParams
     ) external returns (uint256 poolId) {
-        // amount for LockDealProvider = `totalAmount` - `startAmount`
-        // amount for TimedDealProvider = `startAmount`
-
-        // mint the NFT owned by the BunderDealProvider on LockDealProvider for `totalAmount` - `startAmount` token amount
-        // mint the NFT owned by the BunderDealProvider on TimedDealProvider for `startAmount` token amount
-        // mint the NFT owned by the owner on LockDealBundleProvider for `totalAmount` token transfer amount
-
-        // To optimize the token transfer (for 1 token transfer)
-        // mint the NFT owned by the BunderDealProvider with 0 token transfer amount on LockDealProvider
-        // mint the NFT owned by the BunderDealProvider with 0 token transfer amount on TimedDealProvider
-        // mint the NFT owned by the owner with `totalAmount` token transfer amount on LockDealBundleProvider
-
         uint256 providerCount = providers.length;
         require(providerCount == providerParams.length, "providers and params length mismatch");
         require(providerCount > 1, "providers length must be greater than 1");
 
-        uint256[] memory subPoolIds = new uint256[](providerCount);
-        uint256 totalStartAmount;
+        uint256 totalAmount = _calcTotalAmount(providerParams);
+        // create a new bundle pool owned by the owner
+        poolId = lockDealNFT.mintAndTransfer(owner, token, msg.sender, totalAmount, address(this));
+
+        uint256 lastSubPoolId;
         for (uint256 i; i < providerCount; ++i) {
             address provider = providers[i];
             uint256[] memory params = providerParams[i];
 
             // check if the provider address is valid
             require(provider != address(lockDealNFT) && provider != address(this), "invalid provider address");
-
-            // create the pool and store the first sub poolId
             // mint the NFT owned by the BunderDealProvider with 0 token transfer amount
-            uint256 subPoolId = _createNewSubPool(address(this), provider, params);
-            subPoolIds[i] = subPoolId;
-
-            // increase the `totalStartAmount`
-            totalStartAmount += params[0];
+            lastSubPoolId = _createNewSubPool(address(this), provider, params);
         }
 
-        // create a new bundle pool owned by the owner with `totalStartAmount` token trasnfer amount
-        poolId = lockDealNFT.mintAndTransfer(owner, token, msg.sender, totalStartAmount, address(this));
-        bundlePoolIdToSubPoolIds[poolId] = subPoolIds;
+        bundlePoolIdToLastSubPoolId[poolId] = lastSubPoolId;
     }
 
     function _createNewSubPool(
@@ -83,13 +66,12 @@ contract LockDealBundleProvider is
         uint256 poolId
     ) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
         // withdraw the sub pools
-        uint256[] memory subPoolIds = bundlePoolIdToSubPoolIds[poolId];
+        uint256 lastSubPoolId = bundlePoolIdToLastSubPoolId[poolId];
         isFinal = true;
-        for (uint256 i; i < subPoolIds.length; ++i) {
-            uint256 subPool = subPoolIds[i];
+        for (uint256 i = poolId + 1; i <= lastSubPoolId; ++i) {
             // if the sub pool was already withdrawn and burnt, skip it
-            if (lockDealNFT.exist(subPool)) {
-                (uint256 subPoolWithdrawnAmount, bool subPoolIsFinal) = lockDealNFT.withdraw(subPool);
+            if (lockDealNFT.exist(i)) {
+                (uint256 subPoolWithdrawnAmount, bool subPoolIsFinal) = lockDealNFT.withdraw(i);
                 withdrawnAmount += subPoolWithdrawnAmount;
                 isFinal = isFinal && subPoolIsFinal;
             }
@@ -106,37 +88,34 @@ contract LockDealBundleProvider is
         require(rate > 1e18, "split amount exceeded");
 
         // split the sub pools
-        uint256[] memory oldSubPoolIds = bundlePoolIdToSubPoolIds[oldPoolId];
-        uint256 oldSubPoolCount = oldSubPoolIds.length;
-        uint256[] memory newSubPoolIds = new uint256[](oldSubPoolCount);
-        for (uint256 i; i < oldSubPoolCount; ++i) {
-            uint256 oldSubPoolId = oldSubPoolIds[i];
-            (,, uint256[] memory params) = lockDealNFT.getData(oldSubPoolId);
+        uint256 oldLastSubPoolId = bundlePoolIdToLastSubPoolId[oldPoolId];
+        for (uint256 i = oldPoolId + 1; i <= oldLastSubPoolId; ++i) {
+            (,, uint256[] memory params) = lockDealNFT.getData(i);
             uint256 oldSubPoolRemainingAmount = params[0];  // leftAmount
             uint256 subPoolSplitAmount = _calcAmount(oldSubPoolRemainingAmount, rate);
 
-            lockDealNFT.split(oldSubPoolId, subPoolSplitAmount, address(this));
-            newSubPoolIds[i] = newPoolId + i + 1;
+            // split the sub poold
+            lockDealNFT.split(i, subPoolSplitAmount, address(this));
         }
 
-        // set the sub pools of thew new bundle pool
-        bundlePoolIdToSubPoolIds[newPoolId] = newSubPoolIds;
+        // finally, set the bundle provider state with the last sub pool Id
+        bundlePoolIdToLastSubPoolId[newPoolId] = oldLastSubPoolId + (newPoolId - oldPoolId);
     }
 
     function getData(uint256 poolId) public view override returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params) {
         address owner = lockDealNFT.ownerOf(poolId);
         poolInfo = IDealProvierEvents.BasePoolInfo(poolId, owner, address(0));
-        params = bundlePoolIdToSubPoolIds[poolId];
+        params = new uint256[](1);
+        params[0] = bundlePoolIdToLastSubPoolId[poolId];    // last sub pool Id
     }
 
     function getTotalRemainingAmount(uint256 poolId) public view returns (uint256 totalRemainingAmount) {
         (address provider,,) = lockDealNFT.getData(poolId);
         require(provider == address(this), "not bundle poolId");
 
-        uint256[] memory subPoolIds = bundlePoolIdToSubPoolIds[poolId];
-        for (uint256 i; i < subPoolIds.length; ++i) {
-            uint256 subPoolId = subPoolIds[i];
-            (,, uint256[] memory params) = lockDealNFT.getData(subPoolId);
+        uint256 lastSubPoolId = bundlePoolIdToLastSubPoolId[poolId];
+        for (uint256 i = poolId + 1; i <= lastSubPoolId; ++i) {
+            (,, uint256[] memory params) = lockDealNFT.getData(i);
             totalRemainingAmount += params[0];  // leftAmount
         }
     }
