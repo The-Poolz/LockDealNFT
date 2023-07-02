@@ -119,7 +119,7 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
         // if(poolIdToVaultId[poolId] == 0 && !approvedProviders[msg.sender]) {
         //     newOwner = provider;
         //     dataPoolId = poolId - 2;
-        // }
+        // } 
         // else {
         //     dataPoolId = poolId;
         // }
