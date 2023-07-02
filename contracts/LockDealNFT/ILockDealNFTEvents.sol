@@ -6,4 +6,10 @@ pragma solidity ^0.8.0;
 interface ILockDealNFTEvents {
     event ProviderApproved(address indexed provider, bool status);
     event MintInitiated(address indexed provider);
+
+    struct BasePoolInfo {
+        uint256 poolId;
+        address owner;
+        address token;
+    }
 }

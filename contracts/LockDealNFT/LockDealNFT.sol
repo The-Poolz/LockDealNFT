@@ -22,7 +22,7 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
         return _exists(poolId);
     }
 
-    function tokenOf(uint256 poolId) external view returns (address token) {
+    function tokenOf(uint256 poolId) public view returns (address token) {
         token = vaultManager.vaultIdToTokenAddress(poolIdToVaultId[poolId]);
     }
 
@@ -144,5 +144,21 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
 
     function setPoolIdToVaultId(uint256 poolId, uint256 vaultId) external onlyApprovedProvider validPoolId(poolId) {
         poolIdToVaultId[poolId] = vaultId;
+    }
+
+    function getData(uint256 poolId)
+        public
+        view
+        returns (
+            address provider,
+            BasePoolInfo memory poolInfo,
+            uint256[] memory params
+        )
+    {
+        if (_exists(poolId)) {
+            provider = poolIdToProvider[poolId];
+            params = IProvider(provider).getParams(poolId);
+            poolInfo = BasePoolInfo(poolId, ownerOf(poolId), tokenOf(poolId));
+        }
     }
 }

@@ -34,7 +34,7 @@ contract TimedDealProvider is BasicProvider, TimedProviderState {
     }
 
     function getWithdrawableAmount(uint256 poolId) public view returns (uint256) {
-        (, uint256[] memory params) = getData(poolId);
+        uint256[] memory params = getParams(poolId);
         uint256 leftAmount = params[0];
         uint256 startTime = params[1];
         uint256 finishTime = params[2];
@@ -82,9 +82,9 @@ contract TimedDealProvider is BasicProvider, TimedProviderState {
         dealProvider.registerPool(poolId, params);
     }
 
-    function getData(uint256 poolId) public view override returns (BasePoolInfo memory poolInfo, uint256[] memory params) {
+    function getParams(uint256 poolId) public view override returns (uint256[] memory params) {
         uint256[] memory lockDealProviderParams;
-        (poolInfo, lockDealProviderParams) = dealProvider.getData(poolId);
+        lockDealProviderParams = dealProvider.getParams(poolId);
 
         params = new uint256[](4);
         params[0] = lockDealProviderParams[0];  // leftAmount

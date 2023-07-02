@@ -18,19 +18,4 @@ abstract contract LockDealNFTState is ERC721Enumerable {
     mapping(uint256 => address) public poolIdToProvider;
     mapping(uint256 => uint256) public poolIdToVaultId;
     mapping(address => bool) public approvedProviders;
-
-    function getData(uint256 poolId)
-        public
-        view
-        returns (
-            address provider,
-            IProvider.BasePoolInfo memory poolInfo,
-            uint256[] memory params
-        )
-    {
-        if (_exists(poolId)) {
-            provider = poolIdToProvider[poolId];
-            (poolInfo, params) = IProvider(provider).getData(poolId);
-        }
-    }
 }

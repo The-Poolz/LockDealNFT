@@ -123,10 +123,8 @@ contract LockDealBundleProvider is
         bundlePoolIdToSubPoolIds[newPoolId] = newSubPoolIds;
     }
 
-    function getData(uint256 poolId) public view override returns (BasePoolInfo memory poolInfo, uint256[] memory params) {
-        address owner = lockDealNFT.ownerOf(poolId);
-        poolInfo = BasePoolInfo(poolId, owner, address(0));
-        params = bundlePoolIdToSubPoolIds[poolId];
+    function getParams(uint256 poolId) public view override returns (uint256[] memory params) {
+        params = bundlePoolIdToSubPoolIds[poolId]; //TODO this will change to the Last Pool Id
     }
 
     function getTotalRemainingAmount(uint256 poolId) public view returns (uint256 totalRemainingAmount) {

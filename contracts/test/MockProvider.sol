@@ -22,16 +22,9 @@ contract MockProvider {
         TimedDealProvider(provider).registerPool(poolId, params);
     }
 
-    function getData(
+    function getParams(
         uint256 poolId
-    )
-        public
-        view
-        returns (
-            IProvider.BasePoolInfo memory poolInfo,
-            uint256[] memory params
-        )
-    {
-        return TimedDealProvider(provider).getData(poolId);
+    ) public view returns (uint256[] memory params) {
+        return TimedDealProvider(provider).getParams(poolId);
     }
 }
