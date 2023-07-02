@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../Provider/BasicProvider.sol";
+import "../ProviderInterface/ISplitble.sol";
 import "./LockDealState.sol";
 
-contract LockDealProvider is BasicProvider, LockDealState {
+contract LockDealProvider is ISplitble, LockDealState {
     constructor(address nft, address provider) {
         require(
             nft != address(0x0) && provider != address(0x0),

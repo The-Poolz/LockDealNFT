@@ -3,9 +3,9 @@ pragma solidity ^0.8.0;
 
 import "../LockDealNFT/LockDealNFT.sol";
 import "./DealProviderModifiers.sol";
-import "../Provider/BasicProvider.sol";
+import "../ProviderInterface/ISplitble.sol";
 
-contract DealProvider is DealProviderModifiers, BasicProvider {
+contract DealProvider is DealProviderModifiers, ISplitble {
     constructor(address _nftContract) {
         require(_nftContract != address(0x0), "invalid address");
         lockDealNFT = LockDealNFT(_nftContract);

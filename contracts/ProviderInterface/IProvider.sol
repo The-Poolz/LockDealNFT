@@ -10,12 +10,6 @@ interface IProvider {
         uint256 poolId
     ) external returns (uint256 withdrawnAmount, bool isFinal);
 
-    function split(
-        uint256 oldPoolId,
-        uint256 newPoolId,
-        uint256 splitAmount
-    ) external;
-
     function getData(
         uint256 poolId
     ) external view returns (

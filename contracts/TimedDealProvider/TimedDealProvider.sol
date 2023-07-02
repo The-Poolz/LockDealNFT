@@ -2,9 +2,9 @@
 pragma solidity ^0.8.0;
 
 import "./TimedProviderState.sol";
-import "../Provider/BasicProvider.sol";
+import "../ProviderInterface/ISplitble.sol";
 
-contract TimedDealProvider is BasicProvider, TimedProviderState {
+contract TimedDealProvider is ISplitble, TimedProviderState {
     /**
      * @dev Contract constructor.
      * @param nft The address of the LockDealNFT contract.

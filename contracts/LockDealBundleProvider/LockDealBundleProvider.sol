@@ -5,13 +5,11 @@ import "./LockDealBundleProviderState.sol";
 import "../Provider/ProviderModifiers.sol";
 import "../ProviderInterface/IProvider.sol";
 import "../ProviderInterface/IProviderSingleIdRegistrar.sol";
-import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 
 contract LockDealBundleProvider is
     LockDealBundleProviderState,
     ProviderModifiers,
-    IProvider,
-    ERC721Holder
+    IProvider
 {
     constructor(address nft) {
         require(
