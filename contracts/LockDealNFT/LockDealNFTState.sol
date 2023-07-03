@@ -6,12 +6,13 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@poolzfinance/poolz-helper-v2/contracts/interfaces/IVaultManager.sol";
 import "../ProviderInterface/IProvider.sol";
+import "./ILockDealNFTEvents.sol";
 
 /**
  * @title LockDealNFTState
  * @dev An abstract contract that defines the state variables and mappings for the LockDealNFT contract.
  */
-abstract contract LockDealNFTState is ERC721Enumerable {
+abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents {
     Counters.Counter public tokenIdCounter;
     IVaultManager public vaultManager;
 
@@ -24,21 +25,29 @@ abstract contract LockDealNFTState is ERC721Enumerable {
         view
         returns (
             address provider,
-            IDealProvierEvents.BasePoolInfo memory poolInfo,
+            BasePoolInfo memory poolInfo,
             uint256[] memory params
         )
     {
         if (_exists(poolId)) {
             provider = poolIdToProvider[poolId];
-            (poolInfo, params) = IProvider(provider).getData(poolId);
+            params = IProvider(provider).getParams(poolId);
+            poolInfo = BasePoolInfo(poolId, ownerOf(poolId), tokenOf(poolId));
         }
     }
 
-    function tokenOf(uint256 poolId) external view returns (address token) {
+    function tokenOf(uint256 poolId) public view returns (address token) {
         token = vaultManager.vaultIdToTokenAddress(poolIdToVaultId[poolId]);
     }
     
     function providerOf(uint256 poolId) external view returns (IProvider provider) {
         provider = IProvider(poolIdToProvider[poolId]);
+    }
+    
+    /// @dev Checks if a pool with the given ID exists
+    /// @param poolId The ID of the pool
+    /// @return boolean indicating whether the pool exists or not
+    function exist(uint256 poolId) external view returns (bool) {
+        return _exists(poolId);
     }
 }

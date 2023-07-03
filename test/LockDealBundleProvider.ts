@@ -8,7 +8,6 @@ import { LockDealBundleProvider } from "../typechain-types/";
 import { LockDealNFT } from "../typechain-types/contracts/LockDealNFT";
 import { DealProvider } from "../typechain-types/contracts/DealProvider";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { MockProvider } from "../typechain-types/contracts/test/MockProvider";
 import { deployed, token } from "./helper";
 import { MockVaultManager } from "../typechain-types";
 
@@ -18,7 +17,6 @@ describe("Lock Deal Bundle Provider", function () {
     let lockProvider: LockDealProvider
     let dealProvider: DealProvider
     let lockDealNFT: LockDealNFT
-    let mockProvider: MockProvider
     let bundlePoolId: number
     let receiver: SignerWithAddress
     let newOwner: SignerWithAddress
@@ -34,12 +32,10 @@ describe("Lock Deal Bundle Provider", function () {
         lockProvider = await deployed("LockDealProvider", lockDealNFT.address, dealProvider.address)
         timedDealProvider = await deployed("TimedDealProvider", lockDealNFT.address, lockProvider.address)
         bundleProvider = await deployed("LockDealBundleProvider", lockDealNFT.address)
-        mockProvider = await deployed("MockProvider", timedDealProvider.address)
         await lockDealNFT.setApprovedProvider(dealProvider.address, true)
         await lockDealNFT.setApprovedProvider(lockProvider.address, true)
         await lockDealNFT.setApprovedProvider(timedDealProvider.address, true)
         await lockDealNFT.setApprovedProvider(bundleProvider.address, true)
-        await lockDealNFT.setApprovedProvider(mockProvider.address, true)
     })
 
     beforeEach(async () => {
@@ -60,10 +56,10 @@ describe("Lock Deal Bundle Provider", function () {
     })
 
     it("should get bundle provider data after creation", async () => {
-        const poolData = await bundleProvider.getData(bundlePoolId);
+        const poolData = await lockDealNFT.getData(bundlePoolId);
 
         // check the pool data
-        expect(poolData.poolInfo).to.deep.equal([bundlePoolId, receiver.address, constants.AddressZero]);
+        expect(poolData.poolInfo).to.deep.equal([bundlePoolId, receiver.address, token]);
         expect(poolData.params).to.deep.equal([bundlePoolId + 3]);
 
         // check the NFT ownership
@@ -196,11 +192,11 @@ describe("Lock Deal Bundle Provider", function () {
             const splitAmount = amount.mul(3).div(10);  // totalAmount = amount*3, splitAmount = amount*3/10, rate = 10
             await lockDealNFT.split(bundlePoolId, splitAmount, newOwner.address)
             
-            const oldPoolData = await bundleProvider.getData(bundlePoolId);
-            const newPoolData = await bundleProvider.getData(newPoolId);
+            const oldPoolData = await lockDealNFT.getData(bundlePoolId);
+            const newPoolData = await lockDealNFT.getData(newPoolId);
 
             // check the old bundle pool data
-            expect(oldPoolData.poolInfo).to.deep.equal([bundlePoolId, receiver.address, constants.AddressZero]);
+            expect(oldPoolData.poolInfo).to.deep.equal([bundlePoolId, receiver.address, token]);
             expect(oldPoolData.params).to.deep.equal([bundlePoolId + 3]);
 
             expect(await lockDealNFT.ownerOf(bundlePoolId)).to.equal(receiver.address); // old bundle pool
@@ -213,7 +209,7 @@ describe("Lock Deal Bundle Provider", function () {
             expect((await lockDealNFT.getData(bundlePoolId + 3)).params[0]).to.equal(amount.mul(9).div(10));  // third sub pool
 
             // check the new bundle pool data
-            expect(newPoolData.poolInfo).to.deep.equal([newPoolId, newOwner.address, constants.AddressZero]);
+            expect(newPoolData.poolInfo).to.deep.equal([newPoolId, newOwner.address, token]);
             expect(newPoolData.params).to.deep.equal([newPoolId + 3]);
 
             expect(await lockDealNFT.ownerOf(newPoolId)).to.equal(newOwner.address);    // new bundle pool

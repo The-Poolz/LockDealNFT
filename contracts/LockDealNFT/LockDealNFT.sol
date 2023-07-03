@@ -2,24 +2,16 @@
 pragma solidity ^0.8.0;
 
 import "./LockDealNFTModifiers.sol";
-import "./ILockDealNFTEvents.sol";
 
 /// @title LockDealNFT contract
 /// @notice Implements a non-fungible token (NFT) contract for locking deals
-contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
+contract LockDealNFT is LockDealNFTModifiers {
     using Counters for Counters.Counter;
 
     constructor(address _vaultManager) ERC721("LockDealNFT", "LDNFT") {
         require(_vaultManager != address(0x0), "invalid vault manager address");
         vaultManager = IVaultManager(_vaultManager);
         approvedProviders[address(this)] = true;
-    }
-
-    /// @dev Checks if a pool with the given ID exists
-    /// @param poolId The ID of the pool
-    /// @return boolean indicating whether the pool exists or not
-    function exist(uint256 poolId) external view returns (bool) {
-        return _exists(poolId);
     }
 
     function mintForProvider(

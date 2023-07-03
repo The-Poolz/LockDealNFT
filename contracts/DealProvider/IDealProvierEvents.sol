@@ -4,12 +4,6 @@ pragma solidity ^0.8.0;
 /// @title Deal Provider interface
 /// @notice Contains all events emitted by the Provider
 interface IDealProvierEvents {
-    struct BasePoolInfo {
-        uint256 poolId;
-        address owner;
-        address token;
-    }
-
     event NewPoolCreated(uint256 indexed poolId, address indexed owner, address indexed token, uint256[] params);
 
     event TokenWithdrawn(

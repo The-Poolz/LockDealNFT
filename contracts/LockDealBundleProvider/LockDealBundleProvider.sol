@@ -102,11 +102,9 @@ contract LockDealBundleProvider is
         bundlePoolIdToLastSubPoolId[newPoolId] = oldLastSubPoolId + (newPoolId - oldPoolId);
     }
 
-    function getData(uint256 poolId) public view override returns (IDealProvierEvents.BasePoolInfo memory poolInfo, uint256[] memory params) {
-        address owner = lockDealNFT.ownerOf(poolId);
-        poolInfo = IDealProvierEvents.BasePoolInfo(poolId, owner, address(0));
+    function getParams(uint256 poolId) public view override returns (uint256[] memory params) {
         params = new uint256[](1);
-        params[0] = bundlePoolIdToLastSubPoolId[poolId];    // last sub pool Id
+        params[0] = bundlePoolIdToLastSubPoolId[poolId]; //TODO this will change to the Last Pool Id
     }
 
     function getTotalRemainingAmount(uint256 poolId) public view returns (uint256 totalRemainingAmount) {
