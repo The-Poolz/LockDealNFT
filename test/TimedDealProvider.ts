@@ -5,7 +5,7 @@ import { time } from "@nomicfoundation/hardhat-network-helpers";
 import { LockDealProvider } from "../typechain-types/contracts/LockProvider";
 import { TimedDealProvider } from "../typechain-types/contracts/TimedDealProvider";
 import { LockDealNFT } from "../typechain-types/contracts/LockDealNFT";
-import { DealProvider, IDealProvierEvents } from "../typechain-types/contracts/DealProvider";
+import { DealProvider } from "../typechain-types/contracts/DealProvider";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { MockProvider } from "../typechain-types/contracts/test/MockProvider";
 import { deployed, token } from "./helper";
