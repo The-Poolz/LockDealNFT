@@ -33,4 +33,8 @@ abstract contract LockDealNFTState is ERC721Enumerable {
             (poolInfo, params) = IProvider(provider).getData(poolId);
         }
     }
+
+    function tokenOf(uint256 poolId) external view returns (address token) {
+        token = vaultManager.vaultIdToTokenAddress(poolIdToVaultId[poolId]);
+    }
 }

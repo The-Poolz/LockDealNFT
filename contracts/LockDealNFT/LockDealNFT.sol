@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import "./LockDealNFTModifiers.sol";
 import "./ILockDealNFTEvents.sol";
-import "../ProviderInterface/IProvider.sol";
 
 /// @title LockDealNFT contract
 /// @notice Implements a non-fungible token (NFT) contract for locking deals
@@ -21,10 +20,6 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
     /// @return boolean indicating whether the pool exists or not
     function exist(uint256 poolId) external view returns (bool) {
         return _exists(poolId);
-    }
-
-    function tokenOf(uint256 poolId) external view returns (address token) {
-        token = vaultManager.vaultIdToTokenAddress(poolIdToVaultId[poolId]);
     }
 
     function providerOf(uint256 poolId) external view returns (IProvider provider) {
@@ -119,7 +114,7 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
         // if(poolIdToVaultId[poolId] == 0 && !approvedProviders[msg.sender]) {
         //     newOwner = provider;
         //     dataPoolId = poolId - 2;
-        // } 
+        // }
         // else {
         //     dataPoolId = poolId;
         // }
