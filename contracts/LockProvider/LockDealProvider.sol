@@ -63,11 +63,8 @@ contract LockDealProvider is BasicProvider, LockDealState {
     * by calling the downstream cascading provider and adding own data.
     */
     function getParams(uint256 poolId) public view override returns (uint256[] memory params) {
-        uint256[] memory dealProviderParams;
-        dealProviderParams = dealProvider.getParams(poolId);
-
         params = new uint256[](2);
-        params[0] = dealProviderParams[0];  // leftAmount
+        params[0] = dealProvider.getParams(poolId)[0];  // leftAmount
         params[1] = startTimes[poolId];    // startTime
     }
 }
