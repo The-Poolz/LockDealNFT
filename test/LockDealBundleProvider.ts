@@ -19,7 +19,6 @@ describe("Lock Deal Bundle Provider", function () {
     let dealProvider: DealProvider
     let lockDealNFT: LockDealNFT
     let mockProvider: MockProvider
-    let poolId: number
     let bundlePoolId: number
     let receiver: SignerWithAddress
     let newOwner: SignerWithAddress
@@ -51,9 +50,8 @@ describe("Lock Deal Bundle Provider", function () {
         const timedDealProviderParams = [amount, startTime, finishTime, amount]
         const bundleProviders = [dealProvider.address, lockProvider.address, timedDealProvider.address]
         const bundleProviderParams = [dealProviderParams, lockProviderParams, timedDealProviderParams]
-        poolId = (await lockDealNFT.totalSupply()).toNumber()
+        bundlePoolId = (await lockDealNFT.totalSupply()).toNumber()
         await bundleProvider.createNewPool(receiver.address, token, bundleProviders, bundleProviderParams)
-        bundlePoolId = (await lockDealNFT.totalSupply()).toNumber() - 1
     })
 
     it("should check lock deal NFT address", async () => {
@@ -62,17 +60,17 @@ describe("Lock Deal Bundle Provider", function () {
     })
 
     it("should get bundle provider data after creation", async () => {
-        const poolData = await bundleProvider.getData(bundlePoolId);
+        const poolData = await lockDealNFT.getData(bundlePoolId);
 
         // check the pool data
-        expect(poolData.poolInfo).to.deep.equal([bundlePoolId, receiver.address, constants.AddressZero]);
-        expect(poolData.params).to.deep.equal([poolId, poolId + 1, poolId + 2]);
+        expect(poolData.poolInfo).to.deep.equal([bundlePoolId, receiver.address, token]);
+        expect(poolData.params).to.deep.equal([bundlePoolId + 3]);
 
         // check the NFT ownership
-        expect(await lockDealNFT.ownerOf(poolId)).to.equal(bundleProvider.address);
-        expect(await lockDealNFT.ownerOf(poolId + 1)).to.equal(bundleProvider.address);
-        expect(await lockDealNFT.ownerOf(poolId + 2)).to.equal(bundleProvider.address);
         expect(await lockDealNFT.ownerOf(bundlePoolId)).to.equal(receiver.address);
+        expect(await lockDealNFT.ownerOf(bundlePoolId + 1)).to.equal(bundleProvider.address);
+        expect(await lockDealNFT.ownerOf(bundlePoolId + 2)).to.equal(bundleProvider.address);
+        expect(await lockDealNFT.ownerOf(bundlePoolId + 3)).to.equal(bundleProvider.address);
     })
 
     it("should check cascade NewPoolCreated event", async () => {
@@ -86,9 +84,9 @@ describe("Lock Deal Bundle Provider", function () {
         await tx.wait()
         const event = await dealProvider.queryFilter(dealProvider.filters.NewPoolCreated())
         const data = event[event.length - 1].args
-        const bundlePoolId = (await lockDealNFT.totalSupply()).toNumber() - 1;
+        const lastPoolId = (await lockDealNFT.totalSupply()).toNumber() - 1;
 
-        expect(data.poolId).to.equal(bundlePoolId - 1)
+        expect(data.poolId).to.equal(lastPoolId)
         expect(data.token).to.equal(token)
         expect(data.owner).to.equal(bundleProvider.address)
         expect(data.params[0]).to.equal(amount)
@@ -198,25 +196,25 @@ describe("Lock Deal Bundle Provider", function () {
             const splitAmount = amount.mul(3).div(10);  // totalAmount = amount*3, splitAmount = amount*3/10, rate = 10
             await lockDealNFT.split(bundlePoolId, splitAmount, newOwner.address)
             
-            const oldPoolData = await bundleProvider.getData(bundlePoolId);
-            const newPoolData = await bundleProvider.getData(newPoolId);
+            const oldPoolData = await lockDealNFT.getData(bundlePoolId);
+            const newPoolData = await lockDealNFT.getData(newPoolId);
 
             // check the old bundle pool data
-            expect(oldPoolData.poolInfo).to.deep.equal([bundlePoolId, receiver.address, constants.AddressZero]);
-            expect(oldPoolData.params).to.deep.equal([poolId, poolId + 1, poolId + 2]);
+            expect(oldPoolData.poolInfo).to.deep.equal([bundlePoolId, receiver.address, token]);
+            expect(oldPoolData.params).to.deep.equal([bundlePoolId + 3]);
 
             expect(await lockDealNFT.ownerOf(bundlePoolId)).to.equal(receiver.address); // old bundle pool
-            expect(await lockDealNFT.ownerOf(poolId)).to.equal(bundleProvider.address); // first sub pool
-            expect(await lockDealNFT.ownerOf(poolId + 1)).to.equal(bundleProvider.address); // second sub pool
-            expect(await lockDealNFT.ownerOf(poolId + 2)).to.equal(bundleProvider.address); // third sub pool
+            expect(await lockDealNFT.ownerOf(bundlePoolId + 1)).to.equal(bundleProvider.address); // first sub pool
+            expect(await lockDealNFT.ownerOf(bundlePoolId + 2)).to.equal(bundleProvider.address); // second sub pool
+            expect(await lockDealNFT.ownerOf(bundlePoolId + 3)).to.equal(bundleProvider.address); // third sub pool
 
-            expect((await lockDealNFT.getData(poolId)).params[0]).to.equal(amount.mul(9).div(10));  // first sub pool
-            expect((await lockDealNFT.getData(poolId + 1)).params[0]).to.equal(amount.mul(9).div(10));  // second sub pool
-            expect((await lockDealNFT.getData(poolId + 2)).params[0]).to.equal(amount.mul(9).div(10));  // third sub pool
+            expect((await lockDealNFT.getData(bundlePoolId + 1)).params[0]).to.equal(amount.mul(9).div(10));  // first sub pool
+            expect((await lockDealNFT.getData(bundlePoolId + 2)).params[0]).to.equal(amount.mul(9).div(10));  // second sub pool
+            expect((await lockDealNFT.getData(bundlePoolId + 3)).params[0]).to.equal(amount.mul(9).div(10));  // third sub pool
 
             // check the new bundle pool data
-            expect(newPoolData.poolInfo).to.deep.equal([newPoolId, newOwner.address, constants.AddressZero]);
-            expect(newPoolData.params).to.deep.equal([newPoolId + 1, newPoolId + 2, newPoolId + 3]);
+            expect(newPoolData.poolInfo).to.deep.equal([newPoolId, newOwner.address, token]);
+            expect(newPoolData.params).to.deep.equal([newPoolId + 3]);
 
             expect(await lockDealNFT.ownerOf(newPoolId)).to.equal(newOwner.address);    // new bundle pool
             expect(await lockDealNFT.ownerOf(newPoolId + 1)).to.equal(bundleProvider.address);  // first sub pool

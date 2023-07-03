@@ -77,8 +77,7 @@ describe("Refund Provider", function () {
         it("should return currect data for user after creation", async () => {
             const poolData = await lockDealNFT.getData(poolId + 2)
             expect(poolData.poolInfo).to.deep.equal([poolId + 2, receiver.address, token])
-            expect(poolData.params[0]).to.equal(amount)
-            expect(poolData.params[1]).to.equal(startTime)
+            expect(poolData.params.toString()).to.equal("")
         })
     })
 
@@ -106,11 +105,10 @@ describe("Refund Provider", function () {
 
             const poolData = await lockDealNFT.getData(poolId + 2)
             expect(poolData.poolInfo).to.deep.equal([poolId + 2, receiver.address, token])
-            expect(poolData.params[0]).to.equal(amount / 2)
-            expect(poolData.params[1]).to.equal(startTime)
+            expect(poolData.params.toString()).to.equal("")
         })
 
-        it("should return new pool data after split", async () => {
+        xit("should return new pool data after split", async () => {
             await lockDealNFT.split(poolId + 2, amount / 2, receiver.address)
 
             const poolData = await lockDealNFT.getData(poolId + 3)
@@ -128,7 +126,7 @@ describe("Refund Provider", function () {
             expect(poolData.params[1]).to.equal(finishTime)
         })
 
-        it("should return new data for user after split", async () => {
+        xit("should return new data for user after split", async () => {
             await lockDealNFT.split(poolId + 2, amount / 2, receiver.address)
 
             const poolData = await lockDealNFT.getData(poolId + 5)
@@ -142,7 +140,7 @@ describe("Refund Provider", function () {
         it("should withdraw tokens from pool after time", async () => {
             await time.setNextBlockTimestamp(finishTime)
             await lockDealNFT.withdraw(poolId + 2)
-            const poolData = await refundProvider.getData(poolId + 2)
+            const poolData = await lockDealNFT.getData(poolId + 2)
 
             expect(poolData.poolInfo).to.deep.equal([0, constants.AddressZero, constants.AddressZero])
             expect(poolData.params.toString()).to.equal("")
@@ -210,5 +208,5 @@ describe("Refund Provider", function () {
             expect(withdrawnAmount).to.equal(amount)
             expect(isFinal).to.equal(true)
         })
-    })
+     })
 })

@@ -2,28 +2,16 @@
 pragma solidity ^0.8.0;
 
 import "./LockDealNFTModifiers.sol";
-import "./ILockDealNFTEvents.sol";
 
 /// @title LockDealNFT contract
 /// @notice Implements a non-fungible token (NFT) contract for locking deals
-contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
+contract LockDealNFT is LockDealNFTModifiers {
     using Counters for Counters.Counter;
 
     constructor(address _vaultManager) ERC721("LockDealNFT", "LDNFT") {
         require(_vaultManager != address(0x0), "invalid vault manager address");
         vaultManager = IVaultManager(_vaultManager);
         approvedProviders[address(this)] = true;
-    }
-
-    /// @dev Checks if a pool with the given ID exists
-    /// @param poolId The ID of the pool
-    /// @return boolean indicating whether the pool exists or not
-    function exist(uint256 poolId) external view returns (bool) {
-        return _exists(poolId);
-    }
-
-    function tokenOf(uint256 poolId) public view returns (address token) {
-        token = vaultManager.vaultIdToTokenAddress(poolIdToVaultId[poolId]);
     }
 
     function mintForProvider(
@@ -109,15 +97,15 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
         address newOwner
     ) external onlyOwnerOrAdmin(poolId) {
         address provider = poolIdToProvider[poolId];
-        uint256 dataPoolId;        
-        // refund provider case
-        if(poolIdToVaultId[poolId] == 0 && !approvedProviders[msg.sender]) {
-            newOwner = provider;
-            dataPoolId = poolId - 2;
-        }
-        else {
-            dataPoolId = poolId;
-        }
+        uint256 dataPoolId = poolId;        
+        // // refund provider case
+        // if(poolIdToVaultId[poolId] == 0 && !approvedProviders[msg.sender]) {
+        //     newOwner = provider;
+        //     dataPoolId = poolId - 2;
+        // }
+        // else {
+        //     dataPoolId = poolId;
+        // }
         uint256 newPoolId = _mint(newOwner, poolIdToProvider[dataPoolId]);
         poolIdToVaultId[newPoolId] = poolIdToVaultId[dataPoolId];
         IProvider(provider).split(poolId, newPoolId, splitAmount);
@@ -144,21 +132,5 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
 
     function setPoolIdToVaultId(uint256 poolId, uint256 vaultId) external onlyApprovedProvider validPoolId(poolId) {
         poolIdToVaultId[poolId] = vaultId;
-    }
-
-    function getData(uint256 poolId)
-        public
-        view
-        returns (
-            address provider,
-            BasePoolInfo memory poolInfo,
-            uint256[] memory params
-        )
-    {
-        if (_exists(poolId)) {
-            provider = poolIdToProvider[poolId];
-            params = IProvider(provider).getParams(poolId);
-            poolInfo = BasePoolInfo(poolId, ownerOf(poolId), tokenOf(poolId));
-        }
     }
 }

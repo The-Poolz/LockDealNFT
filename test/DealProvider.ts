@@ -35,7 +35,7 @@ describe("Deal Provider", function () {
     })
 
     it("should get pool data", async () => {
-        poolData = await dealProvider.getData(poolId);
+        const poolData = await lockDealNFT.getData(poolId);
         expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token]);
         expect(poolData.params[0]).to.equal(amount);
     })
@@ -72,7 +72,7 @@ describe("Deal Provider", function () {
         it("should check data in old pool after split", async () => {
             await lockDealNFT.split(poolId, amount / 2, newOwner.address)
 
-            poolData = await dealProvider.getData(poolId);
+            const poolData = await lockDealNFT.getData(poolId);
             expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token]);
             expect(poolData.params[0]).to.equal(amount / 2);
         })
@@ -80,7 +80,7 @@ describe("Deal Provider", function () {
         it("should check data in new pool after split", async () => {
             await lockDealNFT.split(poolId, amount / 2, newOwner.address)
 
-            poolData = await dealProvider.getData(poolId + 1);
+            const poolData = await lockDealNFT.getData(poolId + 1);
             expect(poolData.poolInfo).to.deep.equal([poolId + 1, newOwner.address, token]);
             expect(poolData.params[0]).to.equal(amount / 2);
         })
@@ -96,9 +96,9 @@ describe("Deal Provider", function () {
         it("should check data in pool after withdraw", async () => {
             await lockDealNFT.withdraw(poolId)
             
-            poolData = await dealProvider.getData(poolId);
-            expect(poolData.poolInfo).to.deep.equal([poolId, constants.AddressZero, token]);
-            expect(poolData.params[0]).to.equal(0);
+            const poolData = await lockDealNFT.getData(poolId);
+            expect(poolData.poolInfo).to.deep.equal([0, constants.AddressZero, constants.AddressZero]);
+            expect(poolData.params.toString()).to.equal([].toString());
         })
 
         it("should check events after withdraw", async () => {

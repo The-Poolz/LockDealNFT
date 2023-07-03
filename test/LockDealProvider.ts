@@ -53,7 +53,7 @@ describe("Lock Deal Provider", function () {
     })
 
     it("should get lock provider data after creation", async () => {       
-        const poolData = await lockProvider.getData(poolId);
+        const poolData = await lockDealNFT.getData(poolId);
         expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token]);
         expect(poolData.params[0]).to.equal(amount);
         expect(poolData.params[1]).to.equal(startTime);
@@ -82,7 +82,7 @@ describe("Lock Deal Provider", function () {
         it("should check data in old pool after split", async () => {
             await lockDealNFT.split(poolId, amount / 2, newOwner.address)
             
-            const poolData = await lockProvider.getData(poolId);
+            const poolData = await lockDealNFT.getData(poolId);
             expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token]);
             expect(poolData.params[0]).to.equal(amount / 2);
             expect(poolData.params[1]).to.equal(startTime);
@@ -91,7 +91,7 @@ describe("Lock Deal Provider", function () {
         it("should check data in new pool after split", async () => {
             await lockDealNFT.split(poolId, amount / 2, newOwner.address)
 
-            const poolData = await lockProvider.getData(poolId + 1);
+            const poolData = await lockDealNFT.getData(poolId + 1);
             expect(poolData.poolInfo).to.deep.equal([poolId + 1, newOwner.address, token]);
             expect(poolData.params[0]).to.equal(amount / 2);
             expect(poolData.params[1]).to.equal(startTime);
@@ -103,10 +103,9 @@ describe("Lock Deal Provider", function () {
             await time.increase(3600)
             await lockDealNFT.withdraw(poolId)
             
-            const poolData = await lockProvider.getData(poolId);
-            expect(poolData.poolInfo).to.deep.equal([poolId, constants.AddressZero, token]);
-            expect(poolData.params[0]).to.equal(0);
-            expect(poolData.params[1]).to.equal(startTime);
+            const poolData = await lockDealNFT.getData(poolId);
+            expect(poolData.poolInfo).to.deep.equal([0, constants.AddressZero, constants.AddressZero]);
+            expect(poolData.params.toString()).to.equal("");
         })
     })
 })
