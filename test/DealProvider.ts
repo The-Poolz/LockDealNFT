@@ -14,10 +14,6 @@ describe("Deal Provider", function () {
     let receiver: SignerWithAddress
     let newOwner: SignerWithAddress
     let params: [number]
-    let poolData: [IDealProvierEvents.BasePoolInfoStructOutput, BigNumber[]] & {
-        poolInfo: IDealProvierEvents.BasePoolInfoStructOutput;
-        params: BigNumber[];
-    }
     const amount = 10000
 
     before(async () => {
