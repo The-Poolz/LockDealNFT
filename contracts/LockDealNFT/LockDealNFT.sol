@@ -22,10 +22,6 @@ contract LockDealNFT is LockDealNFTModifiers, ILockDealNFTEvents {
         return _exists(poolId);
     }
 
-    function tokenOf(uint256 poolId) external view returns (address token) {
-        token = vaultManager.vaultIdToTokenAddress(poolIdToVaultId[poolId]);
-    }
-
     function mintForProvider(
         address owner,
         address provider
