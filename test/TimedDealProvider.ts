@@ -19,7 +19,7 @@ describe("Timed Deal Provider", function () {
     let mockProvider: MockProvider
     let halfTime: number
     let poolId: number
-    let params: [number, number, number, number]
+    let params: [number, number, number]
     let receiver: SignerWithAddress
     let newOwner: SignerWithAddress
     let startTime: number, finishTime: number
@@ -43,7 +43,7 @@ describe("Timed Deal Provider", function () {
         const ONE_DAY = 86400
         startTime = await time.latest() + ONE_DAY   // plus 1 day
         finishTime = startTime + 7 * ONE_DAY   // plus 7 days from `startTime`
-        params = [amount, startTime, finishTime, amount]
+        params = [amount, startTime, finishTime]
         poolId = (await lockDealNFT.totalSupply()).toNumber()
         await timedDealProvider.createNewPool(receiver.address, token, params)
         halfTime = (finishTime - startTime) / 2
