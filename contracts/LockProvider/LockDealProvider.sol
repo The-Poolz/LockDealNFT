@@ -18,7 +18,7 @@ contract LockDealProvider is BasicProvider, LockDealState {
     function withdraw(
         uint256 poolId
     ) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
-        (, uint256[] memory params) = getData(poolId);
+        uint256[] memory params = getParams(poolId);
         uint256 leftAmount = params[0];
         
         (withdrawnAmount, isFinal) = _withdraw(poolId, leftAmount);
@@ -62,9 +62,9 @@ contract LockDealProvider is BasicProvider, LockDealState {
     * @dev Retrieves the data of the specific pool identified by `poolId`
     * by calling the downstream cascading provider and adding own data.
     */
-    function getData(uint256 poolId) public view override returns (BasePoolInfo memory poolInfo, uint256[] memory params) {
+    function getParams(uint256 poolId) public view override returns (uint256[] memory params) {
         uint256[] memory dealProviderParams;
-        (poolInfo, dealProviderParams) = dealProvider.getData(poolId);
+        dealProviderParams = dealProvider.getParams(poolId);
 
         params = new uint256[](2);
         params[0] = dealProviderParams[0];  // leftAmount
