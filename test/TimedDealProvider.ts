@@ -37,7 +37,7 @@ describe("Timed Deal Provider", function () {
         dealProvider = await deployed("DealProvider", lockDealNFT.address)
         lockProvider = await deployed("LockDealProvider", lockDealNFT.address, dealProvider.address)
         timedDealProvider = await deployed("TimedDealProvider", lockDealNFT.address, lockProvider.address)
-        mockProvider = await deployed("MockProvider", timedDealProvider.address)
+        mockProvider = await deployed("MockProvider", lockDealNFT.address, timedDealProvider.address)
         await lockDealNFT.setApprovedProvider(dealProvider.address, true)
         await lockDealNFT.setApprovedProvider(lockProvider.address, true)
         await lockDealNFT.setApprovedProvider(timedDealProvider.address, true)
@@ -192,13 +192,14 @@ describe("Timed Deal Provider", function () {
 
     describe("test higher cascading providers", () => {
         beforeEach(async () => {
-            poolId = (await lockDealNFT.totalSupply()).toNumber()
+            poolId = (await lockDealNFT.totalSupply()).toNumber() + 1
             await mockProvider.createNewPool(receiver.address, token, params)
             await time.setNextBlockTimestamp(startTime)
         })
 
         it("should register data", async () => {
             poolData = await lockDealNFT.getData(poolId)
+            expect(poolData.provider).to.equal(mockProvider.address)
             expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token])
             expect(poolData.params[0]).to.equal(amount)
             expect(poolData.params[1]).to.equal(startTime)
@@ -227,14 +228,14 @@ describe("Timed Deal Provider", function () {
         })
 
         it("invalid provider can't change data", async () => {
-            const invalidContract = await deployed<MockProvider>("MockProvider", timedDealProvider.address)
+            const invalidContract = await deployed<MockProvider>("MockProvider", lockDealNFT.address, timedDealProvider.address)
             await expect(invalidContract.createNewPool(receiver.address, token, params)).to.be.revertedWith(
-                "invalid provider address"
+                "Provider not approved"
             )
         })
 
         it("invalid provider can't withdraw", async () => {
-            const invalidContract = await deployed<MockProvider>("MockProvider", timedDealProvider.address)
+            const invalidContract = await deployed<MockProvider>("MockProvider", lockDealNFT.address, timedDealProvider.address)
             await expect(invalidContract.withdraw(poolId, amount / 2)).to.be.revertedWith(
                 "invalid provider address"
             )
