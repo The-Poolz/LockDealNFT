@@ -1,5 +1,5 @@
 import { expect, } from "chai";
-import { BigNumber, constants } from "ethers";
+import { constants } from "ethers";
 import { ethers } from 'hardhat';
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 import { LockDealProvider } from "../typechain-types/contracts/LockProvider";

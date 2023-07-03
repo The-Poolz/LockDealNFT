@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { constants, BigNumber } from "ethers";
+import { constants } from "ethers";
 import { ethers } from 'hardhat';
 import { LockDealNFT } from "../typechain-types/contracts/LockDealNFT";
 import { DealProvider } from "../typechain-types/contracts/DealProvider";
