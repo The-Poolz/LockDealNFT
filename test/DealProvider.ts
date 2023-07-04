@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { constants, BigNumber } from "ethers";
+import { constants } from "ethers";
 import { ethers } from 'hardhat';
 import { LockDealNFT } from "../typechain-types/contracts/LockDealNFT";
 import { DealProvider } from "../typechain-types/contracts/DealProvider";
@@ -14,10 +14,6 @@ describe("Deal Provider", function () {
     let receiver: SignerWithAddress
     let newOwner: SignerWithAddress
     let params: [number]
-    let poolData: [IDealProvierEvents.BasePoolInfoStructOutput, BigNumber[]] & {
-        poolInfo: IDealProvierEvents.BasePoolInfoStructOutput;
-        params: BigNumber[];
-    }
     const amount = 10000
 
     before(async () => {

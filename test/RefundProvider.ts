@@ -2,13 +2,14 @@ import { MockVaultManager } from "../typechain-types"
 import { DealProvider } from "../typechain-types/contracts/DealProvider"
 import { LockDealNFT } from "../typechain-types/contracts/LockDealNFT"
 import { LockDealProvider } from "../typechain-types/contracts/LockProvider"
-import { TimedDealProvider } from "../typechain-typescontracts/TimedDealProvider/TimedDealProvider.sol"
-import { RefundProvider } from "../typechain-types/contracts/RefundProvider/RefundProvider.sol"
+import { TimedDealProvider } from "../typechain-types/contracts/TimedDealProvider";
+import { RefundProvider } from "../typechain-types/contracts/RefundProvider"
 import { deployed, token } from "./helper"
 import { time } from "@nomicfoundation/hardhat-network-helpers"
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 import { expect } from "chai"
 import { constants } from "ethers";
+import { ethers } from 'hardhat';
 
 describe("Refund Provider", function () {
     let lockProvider: LockDealProvider
@@ -21,7 +22,7 @@ describe("Refund Provider", function () {
     let receiver: SignerWithAddress
     let projectOwner: SignerWithAddress
     let BUSD: string
-    let params: [number, number, number, number, number]
+    let params: [number, number, number, number, number, number]
     let startTime: number, finishTime: number
     const amount = 10000
     const ONE_DAY = 86400

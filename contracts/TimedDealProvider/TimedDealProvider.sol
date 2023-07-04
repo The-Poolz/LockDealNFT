@@ -61,10 +61,9 @@ contract TimedDealProvider is BasicProvider, TimedProviderState {
         poolIdToTimedDeal[newPoolId].finishTime = poolIdToTimedDeal[oldPoolId].finishTime;
     }
 
-    ///@param params[0] = leftAmount
+    ///@param params[0] = leftAmount = startAmount (leftAmount & startAmount must be same while creating pool)
     ///@param params[1] = startTime
     ///@param params[2] = finishTime
-    ///@param params[3] = startAmount
     function _registerPool(
         uint256 poolId,
         uint256[] memory params
@@ -73,12 +72,8 @@ contract TimedDealProvider is BasicProvider, TimedProviderState {
             params[2] >= params[1],
             "Finish time should be greater than start time"
         );
-        require(
-            params[0] == params[3],
-            "Start amount should be equal to left amount"
-        );
         poolIdToTimedDeal[poolId].finishTime = params[2];
-        poolIdToTimedDeal[poolId].startAmount = params[3];
+        poolIdToTimedDeal[poolId].startAmount = params[0];
         dealProvider.registerPool(poolId, params);
     }
 
@@ -94,6 +89,6 @@ contract TimedDealProvider is BasicProvider, TimedProviderState {
     }
 
     function currentParamsTargetLenght() public override view returns (uint256) {
-        return 2 + dealProvider.currentParamsTargetLenght();
+        return 1 + dealProvider.currentParamsTargetLenght();
     }
 }
