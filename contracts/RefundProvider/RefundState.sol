@@ -1,13 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../LockProvider/LockDealProvider.sol";
+import "../CollateralProvider/CollateralProvider.sol";
+import "../CollectorProvider/CollectorProvider.sol";
 
 abstract contract RefundState is ProviderModifiers, IProvider {
-    LockDealProvider public lockProvider;
-    mapping(uint256 => address) public poolIdToProjectOwner;
+    CollateralProvider public collateralProvider;
+    CollectorProvider public collectorProvider;
 
     function getParams(uint256 poolId) external view override returns (uint256[] memory params){
-        // will return the Project owner Id - as this the only state we save
+        uint256 dataPoolId = poolId + 1;
+        if(lockDealNFT.exist(dataPoolId)) {
+            params = lockDealNFT.providerOf(dataPoolId).getParams(dataPoolId);
+        }
     }
 }

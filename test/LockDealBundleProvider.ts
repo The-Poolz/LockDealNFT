@@ -83,7 +83,7 @@ describe("Lock Deal Bundle Provider", function () {
         const lastPoolId = (await lockDealNFT.totalSupply()).toNumber() - 1;
 
         expect(data.poolId).to.equal(lastPoolId)
-        expect(data.token).to.equal(token)
+        expect(data.token).to.equal(constants.AddressZero)
         expect(data.owner).to.equal(bundleProvider.address)
         expect(data.params[0]).to.equal(amount)
     })
