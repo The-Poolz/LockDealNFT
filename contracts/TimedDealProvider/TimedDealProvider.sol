@@ -66,7 +66,7 @@ contract TimedDealProvider is BasicProvider, TimedProviderState {
     ///@param params[2] = finishTime
     function _registerPool(
         uint256 poolId,
-        uint256[] memory params
+        uint256[] calldata params
     ) internal override {
         require(
             params[2] >= params[1],

@@ -3,8 +3,9 @@ pragma solidity ^0.8.0;
 
 import "./ProviderModifiers.sol";
 import "../ProviderInterface/IProvider.sol";
+import "../ProviderInterface/IProviderSingleIdRegistrar.sol";
 
-abstract contract BasicProvider is IProvider, ProviderModifiers {
+abstract contract BasicProvider is IProvider, IProviderSingleIdRegistrar, ProviderModifiers {
     /**
      * @dev Creates a new pool with the specified parameters.
      * @param owner The address of the pool owner.
@@ -15,7 +16,7 @@ abstract contract BasicProvider is IProvider, ProviderModifiers {
     function createNewPool(
         address owner,
         address token,
-        uint256[] memory params
+        uint256[] calldata params
     ) public virtual validParamsLength(params.length, currentParamsTargetLenght()) returns (uint256 poolId) {
         poolId = lockDealNFT.mintAndTransfer(owner, token, msg.sender, params[0], address(this));
         _registerPool(poolId, params);
@@ -25,7 +26,7 @@ abstract contract BasicProvider is IProvider, ProviderModifiers {
     /// @dev used by providers to implement cascading pool creation logic.
     function registerPool(
         uint256 poolId,
-        uint256[] memory params
+        uint256[] calldata params
     ) public virtual onlyProvider {
         _registerPool(poolId, params);
     }
@@ -45,7 +46,7 @@ abstract contract BasicProvider is IProvider, ProviderModifiers {
 
     function _registerPool(
         uint256 poolId,
-        uint256[] memory params
+        uint256[] calldata params
     ) internal virtual {}
 
     function _withdraw(

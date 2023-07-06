@@ -50,7 +50,7 @@ contract LockDealProvider is BasicProvider, LockDealState {
     ///@param params[1] = startTime
     function _registerPool(
         uint256 poolId,
-        uint256[] memory params
+        uint256[] calldata params
     ) internal override {
         require(block.timestamp <= params[1], "Invalid start time");
         
