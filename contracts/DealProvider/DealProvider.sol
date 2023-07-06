@@ -69,7 +69,7 @@ contract DealProvider is DealProviderModifiers, BasicProvider {
      */
     function _registerPool(
         uint256 poolId,
-        uint256[] memory params
+        uint256[] calldata params
     ) internal override {
         poolIdToleftAmount[poolId] = params[0];
         address owner = lockDealNFT.ownerOf(poolId);
