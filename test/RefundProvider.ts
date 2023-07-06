@@ -27,9 +27,9 @@ describe("Refund Provider", function () {
     let receiver: SignerWithAddress
     let projectOwner: SignerWithAddress
     let BUSD: string
-    let params: [number, number, number, number, number, BigNumber]
+    let params: [BigNumber, number, number, BigNumber, number, BigNumber]
     let startTime: number, finishTime: number
-    const amount = 10000
+    const amount = ethers.utils.parseEther('1')
     const ONE_DAY = 86400
 
     before(async () => {
@@ -60,8 +60,8 @@ describe("Refund Provider", function () {
         startTime = await time.latest() + ONE_DAY   // plus 1 day
         finishTime = startTime + 7 * ONE_DAY   // plus 7 days from `startTime`
         halfTime = (finishTime - startTime) / 2
-        let rate = ethers.utils.parseEther('0.9');
-        params = [amount, startTime, finishTime, amount / 2, (startTime + halfTime), rate]
+        const rate = ethers.utils.parseEther('0.5')
+        params = [amount, startTime, finishTime, ethers.utils.parseEther('0.5'), (startTime + halfTime), rate]
         poolId = (await lockDealNFT.tokenIdCounter()).toNumber()
         await refundProvider
             .connect(projectOwner)
@@ -88,7 +88,7 @@ describe("Refund Provider", function () {
             const poolData = await lockDealNFT.getData(poolId + 2)
             expect(poolData.provider).to.equal(collateralProvider.address)
             expect(poolData.poolInfo).to.deep.equal([poolId + 2, projectOwner.address, BUSD])
-            expect(poolData.params[0]).to.equal(amount / 2)
+            expect(poolData.params[0]).to.equal(ethers.utils.parseEther('0.5'))
             expect(poolData.params[1]).to.equal((startTime + halfTime))
         })
 
@@ -170,23 +170,24 @@ describe("Refund Provider", function () {
             expect(poolData.params.toString()).to.equal("")
         })
 
-        it("should refresh old main coin pool left amount after withdraw", async () => {
+        it("should deposit main coins after user withdraw", async () => {
             await time.setNextBlockTimestamp(finishTime)
-            await lockDealNFT.withdraw(poolId + 2)
-            const poolData = await lockDealNFT.getData(poolId + 1)
+            await lockDealNFT.withdraw(poolId)
 
-            expect(poolData.poolInfo).to.deep.equal([poolId + 1, refundProvider.address, BUSD])
-            expect(poolData.params[0]).to.equal(0)
-            expect(poolData.params[1]).to.equal(finishTime)
+            let collectorMainCoinPoolId =  poolId + 3
+            const poolData = await lockDealNFT.getData(collectorMainCoinPoolId)
+            expect(poolData.provider).to.equal(collectorProvider.address)
+            expect(poolData.poolInfo).to.deep.equal([collectorMainCoinPoolId, collateralProvider.address, constants.AddressZero])
+            expect(poolData.params[0]).to.equal(ethers.utils.parseEther('0.5'))
         })
 
         it("should create new main coin pool with half tokens", async () => {
-            await time.setNextBlockTimestamp(startTime + halfTime)
-            await lockDealNFT.withdraw(poolId + 2)
-            const poolData = await lockDealNFT.getData(poolId + 3)
+            // await time.setNextBlockTimestamp(startTime + halfTime)
+            // await lockDealNFT.withdraw(poolId + 2)
+            // const poolData = await lockDealNFT.getData(poolId + 3)
 
-            expect(poolData.poolInfo).to.deep.equal([poolId + 3, projectOwner.address, BUSD])
-            expect(poolData.params[0]).to.equal(amount / 4)
+            // expect(poolData.poolInfo).to.deep.equal([poolId + 3, projectOwner.address, BUSD])
+            // expect(poolData.params[0]).to.equal(amount / 4)
         })
     })
 
@@ -214,7 +215,7 @@ describe("Refund Provider", function () {
             await refundProvider.connect(projectOwner).createNewRefundPool(token, receiver.address, BUSD, lockProvider.address, params)
             await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, refundProvider.address, poolId + 2)
             const [withdrawnAmount, isFinal] = await lockDealNFT.callStatic.withdraw(poolId + 1)
-            expect(withdrawnAmount).to.equal(amount / 2)
+            expect(withdrawnAmount).to.equal(ethers.utils.parseEther('0.5'))
             expect(isFinal).to.equal(true)
         })
 

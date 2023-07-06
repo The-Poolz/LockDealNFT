@@ -104,8 +104,8 @@ contract RefundProvider is RefundState, IERC721Receiver {
         lockDealNFT.mintForProvider(lockDealNFT.ownerOf(poolId), address(this));
     }
 
-    function _calcAmount(uint256 amount, uint256 rate) internal pure returns (uint256) {
-        return rate != 0 ? (amount * 1e18) / rate : 0;
+    function _calcMainCoinAmount(uint256 rate, uint256 amount) internal pure returns (uint256) {
+        return amount != 0 ? rate * 1e18 / amount : 0;
     }
 
     function withdraw(
@@ -116,6 +116,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
         uint256 collectorMainCoinId = poolId + 3;
         (withdrawnAmount, isFinal) = lockDealNFT.withdraw(userPoolDataId);
         uint256 rate = collateralProvider.rateInWei(refundPoolId);
-        collectorProvider.deposit(collectorMainCoinId, _calcAmount(withdrawnAmount, rate));
+        if(withdrawnAmount > 0)
+            collectorProvider.deposit(collectorMainCoinId, _calcMainCoinAmount(rate, withdrawnAmount));            
     }
 }

@@ -18,7 +18,7 @@ contract CollectorProvider is IDeposit, IProviderSingleIdRegistrar {
     }
 
     function deposit(uint256 poolId, uint256 amount) public override {
-        uint256[] memory params = new uint256[](2);
+        uint256[] memory params = lockProvider.getParams(poolId);
         params[0] += amount;
         params[1] = block.timestamp;
         lockProvider.registerPool(poolId, params);
