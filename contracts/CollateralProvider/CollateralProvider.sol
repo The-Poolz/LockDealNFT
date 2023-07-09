@@ -3,82 +3,107 @@ pragma solidity ^0.8.0;
 
 import "../ProviderInterface/IProviderSingleIdRegistrar.sol";
 import "../Provider/ProviderState.sol";
-import "./CollateralState.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "../LockProvider/LockDealState.sol";
 
 contract CollateralProvider is
     IProviderSingleIdRegistrar,
-    CollateralState,
-    ProviderState,
-    IERC721Receiver
+    LockDealState,
+    ProviderState
 {
     ///@dev withdraw tokens
-    function onERC721Received(
-        address operator,
-        address from,
-        uint256 poolId,
-        bytes calldata
-    ) external override returns (bytes4) {
-        require(msg.sender == address(lockDealNFT), "invalid nft contract");
-        if (operator == from) {
-            uint256 tokenPoolId = poolId + 1;
-            DealProvider dealProvider = dealProvider.dealProvider();
-            // create new pool with tokens
-            uint256 newPoolId = lockDealNFT.mintForProvider(from, address(dealProvider));
-            uint256[] memory params = new uint256[](1);
-            params[0] = dealProvider.getParams(tokenPoolId)[0];
-            dealProvider.registerPool(newPoolId, params);
-
-            // return nft to owner
-            lockDealNFT.transferFrom(address(this), from, poolId);
-            // refresh old token poolId
-            params[0] = 0;
-            dealProvider.registerPool(tokenPoolId, params);
-        }
-        return IERC721Receiver.onERC721Received.selector;
-    }
-
-    constructor(address _lockDealNFT) {
-        require(_lockDealNFT != address(0x0), "invalid address");
+    constructor(address _lockDealNFT, address _dealProvider) {
+        require(
+            _lockDealNFT != address(0x0) && _dealProvider != address(0x0),
+            "invalid address"
+        );
         lockDealNFT = LockDealNFT(_lockDealNFT);
+        DealProvider = dealProvider(_dealProvider);
     }
 
     function registerPool(
         uint256 poolId,
         uint256[] calldata params
-    ) external override {
+    ) external /** TODO add Only Aprove provider**/ override {
         _registerPool(poolId, params);
     }
 
     ///@dev each provider decides how many parameters it needs by overriding this function
     ///@param params[0] = StartAmount
     ///@param params[1] = FinishTime
-    ///@param params[2] = RateInWei
     function _registerPool(uint256 poolId, uint256[] memory params) internal {
-        require(block.timestamp <= params[1], "Invalid start time");
-        require(address(lockDealNFT.providerOf(poolId)) == address(this), "Invalid provider");
+        require(block.timestamp <= params[1], "start time must be in the future");
         require(
-            lockDealNFT.ownerOf(poolId + 1) == address(this) &&
-                lockDealNFT.ownerOf(poolId + 2) == address(this),
-            "Invalid NFTs"
+            address(lockDealNFT.providerOf(poolId)) == address(this),
+            "Invalid provider"
         );
-        poolIdToTimedDeal[poolId] = TimedDeal(params[1], params[0]);
-        rateInWei[poolId] = params[2];
+        require(
+            poolId == lockDealNFT.totalSupply(),
+            "_registerPool only for new id's"
+        );
+        //address projcetOwner = lockDealNFT.ownerOf(poolId); 
+        startTimes[poolId] = params[1];
+        lockDealNFT.mintForProvider(address(this), address(dealProvider)); //Main Coin Collector poolId + 1
+        lockDealNFT.mintForProvider(address(this), address(dealProvider)); //Token Collector poolId + 2
+        uint256 mainCoinHolderId = lockDealNFT.mintForProvider(
+            address(this),
+            address(dealProvider)
+        ); //hold main coin for the project owner poolId + 3
+        dealProvider.registerPool(mainCoinHolderId, params); // just need the 0 index, left amount
+        assert(mainCoinHolderId == poolId + 3, "Invalid mint");
+        //need to call this from the refund, then call copyVaultId to this Id's
+        //poolId + 1 and poolId + 3 is the main coin and poolId + 2 is the token
     }
 
+    // this need to give the projecet owner to get the tokens that in the poolId + 2
     function withdraw(
         uint256 poolId
-    ) public returns (uint256 withdrawnAmount, bool isFinal) {
-        (withdrawnAmount, ) = lockDealNFT.withdraw(poolId);
-        isFinal = poolIdToTimedDeal[poolId].finishTime < block.timestamp;
+    ) public /** TODO add Only NFT **/ returns (uint256 withdrawnAmount, bool isFinal) {
+        address projcetOwner = lockDealNFT.ownerOf(poolId);
+        uint256 mainCoinCollectorId = poolId + 1;
+        uint256 tokenCollectorId = poolId + 2;
+        uint256 mainCoinHolderId = poolId + 3;
+        //check for time
+        if (startTimes[poolId] < block.timestamp) {
+            // Finish Refound
+            lockDealNFT.transferFrom(
+                address(this),
+                projcetOwner,
+                mainCoinCollectorId
+            );
+            lockDealNFT.transferFrom(
+                address(this),
+                projcetOwner,
+                tokenCollectorId
+            );
+            lockDealNFT.transferFrom(
+                address(this),
+                projcetOwner,
+                mainCoinHolderId
+            );
+            isFinal = true;
+        } else {
+            // the refound phase is not finished yet
+            uint256 mainCoinAmount = dealProvider.getParams(
+                mainCoinCollectorId
+            )[0];
+            uint256 tokenAmount = dealProvider.getParams(tokenCollectorId)[0];
+            lockDealNFT.split(
+                mainCoinCollectorId,
+                mainCoinAmount,
+                projcetOwner
+            );
+            lockDealNFT.split(
+                tokenCollectorId,
+                 tokenAmount,
+                  projcetOwner);
+        }
     }
 
     function getParams(
         uint256 poolId
     ) public view returns (uint256[] memory params) {
         params = new uint256[](3);
-        params[0] = poolIdToTimedDeal[poolId].startAmount;
-        params[1] = poolIdToTimedDeal[poolId].finishTime;
-        params[2] = rateInWei[poolId];
+        params[0] = dealProvider.getParams(poolId)[0];
+        params[1] = startTimes[poolId];
     }
 }
