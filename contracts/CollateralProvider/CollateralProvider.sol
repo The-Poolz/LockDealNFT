@@ -17,7 +17,7 @@ contract CollateralProvider is
             "invalid address"
         );
         lockDealNFT = LockDealNFT(_lockDealNFT);
-        DealProvider = dealProvider(_dealProvider);
+        dealProvider = DealProvider(_dealProvider);
     }
 
     function registerPool(
@@ -49,7 +49,7 @@ contract CollateralProvider is
             address(dealProvider)
         ); //hold main coin for the project owner poolId + 3
         dealProvider.registerPool(mainCoinHolderId, params); // just need the 0 index, left amount
-        assert(mainCoinHolderId == poolId + 3, "Invalid mint");
+        assert(mainCoinHolderId == poolId + 3);
         //need to call this from the refund, then call copyVaultId to this Id's
         //poolId + 1 and poolId + 3 is the main coin and poolId + 2 is the token
     }
