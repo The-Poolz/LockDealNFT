@@ -22,8 +22,8 @@ contract CollateralProvider is
 
     function registerPool(
         uint256 poolId,
-        uint256[] calldata params
-    ) external /** TODO add Only Aprove provider**/ override {
+        uint256[] calldata params /** TODO add Only Aprove provider**/
+    ) external override {
         _registerPool(poolId, params);
     }
 
@@ -31,7 +31,10 @@ contract CollateralProvider is
     ///@param params[0] = StartAmount
     ///@param params[1] = FinishTime
     function _registerPool(uint256 poolId, uint256[] memory params) internal {
-        require(block.timestamp <= params[1], "start time must be in the future");
+        require(
+            block.timestamp <= params[1],
+            "start time must be in the future"
+        );
         require(
             address(lockDealNFT.providerOf(poolId)) == address(this),
             "Invalid provider"
@@ -40,7 +43,7 @@ contract CollateralProvider is
             poolId == lockDealNFT.totalSupply(),
             "_registerPool only for new id's"
         );
-        //address projcetOwner = lockDealNFT.ownerOf(poolId); 
+        //address projcetOwner = lockDealNFT.ownerOf(poolId);
         startTimes[poolId] = params[1];
         lockDealNFT.mintForProvider(address(this), address(dealProvider)); //Main Coin Collector poolId + 1
         lockDealNFT.mintForProvider(address(this), address(dealProvider)); //Token Collector poolId + 2
@@ -56,8 +59,8 @@ contract CollateralProvider is
 
     // this need to give the projecet owner to get the tokens that in the poolId + 2
     function withdraw(
-        uint256 poolId
-    ) public /** TODO add Only NFT **/ returns (uint256 withdrawnAmount, bool isFinal) {
+        uint256 poolId /** TODO add Only NFT **/
+    ) public returns (uint256 withdrawnAmount, bool isFinal) {
         address projcetOwner = lockDealNFT.ownerOf(poolId);
         uint256 mainCoinCollectorId = poolId + 1;
         uint256 tokenCollectorId = poolId + 2;
@@ -92,11 +95,31 @@ contract CollateralProvider is
                 mainCoinAmount,
                 projcetOwner
             );
-            lockDealNFT.split(
-                tokenCollectorId,
-                 tokenAmount,
-                  projcetOwner);
+            lockDealNFT.split(tokenCollectorId, tokenAmount, projcetOwner);
         }
+    }
+
+    function handleRefund(uint256 poolId, uint256 tokenAmount,uint256 mainCoinAmount) internal {
+        address provider = lockDealNFT.providerOf(poolId);
+        require(
+            provider == address(this),
+            "CollateralProvider: invalid provider"
+        );
+        uint256 tokenCollectorId = poolId + 2;
+        uint256 mainCoinHolderId = poolId + 3;
+        dealProvider.withdraw(mainCoinHolder, mainCoinHolderId);
+        uint256[] params = dealProvider.getParams(tokenCollectorId);
+        params[0] += tokenAmount;
+        dealProvider.registerPool(tokenCollectorId, params);
+    }
+
+    function handleWithdraw(uint256 poolId, uint256 mainCoinAmount) internal {
+        uint256 mainCoinCollectorId = poolId + 1;
+        uint256 mainCoinHolderId = poolId + 3;
+        dealProvider.withdraw(mainCoinHolderId, mainCoinAmount);
+        uint256[] params = dealProvider.getParams(mainCoinCollectorId);
+        params[0] += mainCoinAmount;
+        dealProvider.registerPool(mainCoinCollectorId, params);
     }
 
     function getParams(
