@@ -68,21 +68,9 @@ contract CollateralProvider is
         //check for time
         if (startTimes[poolId] < block.timestamp) {
             // Finish Refound
-            lockDealNFT.transferFrom(
-                address(this),
-                projcetOwner,
-                mainCoinCollectorId
-            );
-            lockDealNFT.transferFrom(
-                address(this),
-                projcetOwner,
-                tokenCollectorId
-            );
-            lockDealNFT.transferFrom(
-                address(this),
-                projcetOwner,
-                mainCoinHolderId
-            );
+            lockDealNFT.transferFrom(address(this), projcetOwner, mainCoinCollectorId);
+            lockDealNFT.transferFrom(address(this), projcetOwner, tokenCollectorId);
+            lockDealNFT.transferFrom(address(this), projcetOwner, mainCoinHolderId);
             isFinal = true;
         } else {
             // the refound phase is not finished yet
@@ -100,15 +88,15 @@ contract CollateralProvider is
     }
 
     function handleRefund(uint256 poolId, uint256 tokenAmount,uint256 mainCoinAmount) internal {
-        address provider = lockDealNFT.providerOf(poolId);
+        address provider = address(lockDealNFT.providerOf(poolId));
         require(
             provider == address(this),
             "CollateralProvider: invalid provider"
         );
         uint256 tokenCollectorId = poolId + 2;
         uint256 mainCoinHolderId = poolId + 3;
-        dealProvider.withdraw(mainCoinHolder, mainCoinHolderId);
-        uint256[] params = dealProvider.getParams(tokenCollectorId);
+        dealProvider.withdraw(mainCoinHolderId, mainCoinAmount);
+        uint256[] memory params = dealProvider.getParams(tokenCollectorId);
         params[0] += tokenAmount;
         dealProvider.registerPool(tokenCollectorId, params);
     }
@@ -117,7 +105,7 @@ contract CollateralProvider is
         uint256 mainCoinCollectorId = poolId + 1;
         uint256 mainCoinHolderId = poolId + 3;
         dealProvider.withdraw(mainCoinHolderId, mainCoinAmount);
-        uint256[] params = dealProvider.getParams(mainCoinCollectorId);
+        uint256[] memory params = dealProvider.getParams(mainCoinCollectorId);
         params[0] += mainCoinAmount;
         dealProvider.registerPool(mainCoinCollectorId, params);
     }
@@ -125,7 +113,7 @@ contract CollateralProvider is
     function getParams(
         uint256 poolId
     ) public view returns (uint256[] memory params) {
-        params = new uint256[](3);
+        params = new uint256[](2);
         params[0] = dealProvider.getParams(poolId)[0];
         params[1] = startTimes[poolId];
     }
