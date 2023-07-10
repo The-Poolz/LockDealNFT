@@ -20,7 +20,6 @@ describe("Collateral Provider", function () {
     let receiver: SignerWithAddress
     let projectOwner: SignerWithAddress
     let finishTime: number
-    let halfTime: number
     const amount = 100000
 
     before(async () => {
@@ -38,7 +37,6 @@ describe("Collateral Provider", function () {
     beforeEach(async () => {
         const ONE_DAY = 86400
         finishTime = (await time.latest()) + 14 * ONE_DAY // plus 14 days
-        halfTime = (await time.latest()) + 7 * ONE_DAY // plus 7 days
         params = [amount, finishTime]
         poolId = (await lockDealNFT.totalSupply()).toNumber()
         await mockProvider.createNewPool(projectOwner.address, token, params)
