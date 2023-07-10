@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../ProviderInterface/IProviderSingleIdRegistrar.sol";
 import "../ProviderInterface/IFundsManager.sol";
 import "./CollateralModifiers.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 
-contract CollateralProvider is IProviderSingleIdRegistrar, CollateralModifiers, IFundsManager, ERC721Holder {
+contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder {
     ///@dev withdraw tokens
     constructor(address _lockDealNFT, address _dealProvider) {
         require(
