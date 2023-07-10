@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
+
 import "../TimedDealProvider/TimedDealProvider.sol";
+import "../ProviderInterface/IFundsManager.sol";
 
 /// @dev MockProvider is a contract for testing purposes.
-contract MockProvider {
+contract MockProvider is IFundsManager {
     address public provider;
     LockDealNFT public lockDealNFT;
 
@@ -21,7 +23,7 @@ contract MockProvider {
         address token,
         uint256[] memory params
     ) public returns (uint256 poolId) {
-        poolId = lockDealNFT.mintAndTransfer(owner, token, owner, params[0], address(this));
+        poolId = lockDealNFT.mintAndTransfer(owner, token, owner, params[0], provider);
         TimedDealProvider(provider).registerPool(poolId, params);
     }
 
@@ -29,5 +31,17 @@ contract MockProvider {
         uint256 poolId
     ) public view returns (uint256[] memory params) {
         return TimedDealProvider(provider).getParams(poolId);
+    }
+
+    function handleWithdraw(uint256 poolId, uint256 mainCoinAmount) external {
+        IFundsManager(provider).handleWithdraw(poolId, mainCoinAmount);
+    }
+
+    function handleRefund(
+        uint256 poolId,
+        uint256 tokenAmount,
+        uint256 mainCoinAmount
+    ) external {
+        IFundsManager(provider).handleRefund(poolId, tokenAmount, mainCoinAmount);
     }
 }
