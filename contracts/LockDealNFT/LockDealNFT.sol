@@ -24,7 +24,7 @@ contract LockDealNFT is LockDealNFTModifiers {
         notZeroAddress(provider)
         returns (uint256 poolId)
     {
-        if(provider != msg.sender) {
+        if (provider != msg.sender) {
             _onlyApprovedProvider(provider);
         }
         poolId = _mint(owner, provider);
@@ -45,11 +45,21 @@ contract LockDealNFT is LockDealNFTModifiers {
         notZeroAmount(amount)
         returns (uint256 poolId)
     {
-        if(provider != msg.sender) {
+        if (provider != msg.sender) {
             _onlyApprovedProvider(provider);
         }
         poolId = _mint(owner, provider);
-        poolIdToVaultId[poolId] = vaultManager.depositByToken(token, from, amount);       
+        poolIdToVaultId[poolId] = vaultManager.depositByToken(
+            token,
+            from,
+            amount
+        );
+    }
+
+    function copyVaultId(uint256 fromId,uint256 toId) external onlyApprovedProvider {
+        _onlyApprovedProvider(ownerOf(fromId));
+        _onlyApprovedProvider(ownerOf(toId));
+        poolIdToVaultId[toId] = poolIdToVaultId[fromId];
     }
 
     /// @dev Sets the approved status of a provider
@@ -69,10 +79,14 @@ contract LockDealNFT is LockDealNFTModifiers {
     /// @return isFinal A boolean indicating if the withdrawal is the final one
     function withdraw(
         uint256 poolId
-    ) external onlyOwnerOrAdmin(poolId) returns (uint256 withdrawnAmount, bool isFinal) {
+    )
+        external
+        onlyOwnerOrAdmin(poolId)
+        returns (uint256 withdrawnAmount, bool isFinal)
+    {
         address provider = poolIdToProvider[poolId];
         (withdrawnAmount, isFinal) = IProvider(provider).withdraw(poolId);
-        
+
         // in case of the sub-provider, the main provider will sum the data
         if (!approvedProviders[ownerOf(poolId)]) {
             vaultManager.withdrawByVaultId(
@@ -97,7 +111,7 @@ contract LockDealNFT is LockDealNFTModifiers {
         address newOwner
     ) external onlyOwnerOrAdmin(poolId) {
         address provider = poolIdToProvider[poolId];
-        uint256 dataPoolId = poolId;        
+        uint256 dataPoolId = poolId;
         // // refund provider case
         // if(poolIdToVaultId[poolId] == 0 && !approvedProviders[msg.sender]) {
         //     newOwner = provider;
@@ -124,13 +138,19 @@ contract LockDealNFT is LockDealNFTModifiers {
         poolIdToProvider[newPoolId] = provider;
         emit MintInitiated(provider);
     }
-    
-    function setPoolIdToProvider(address provider, uint256 poolId) external onlyApprovedProvider validPoolId(poolId) {
+
+    function setPoolIdToProvider(
+        address provider,
+        uint256 poolId
+    ) external onlyApprovedProvider validPoolId(poolId) {
         _onlyApprovedProvider(provider);
         poolIdToProvider[poolId] = provider;
     }
 
-    function setPoolIdToVaultId(uint256 poolId, uint256 vaultId) external onlyApprovedProvider validPoolId(poolId) {
+    function setPoolIdToVaultId(
+        uint256 poolId,
+        uint256 vaultId
+    ) external onlyApprovedProvider validPoolId(poolId) {
         poolIdToVaultId[poolId] = vaultId;
     }
 }
