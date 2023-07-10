@@ -11,7 +11,7 @@ contract MockVaultManager {
         address,
         uint
     ) external returns (uint vaultId) {
-        vaultId = Id++;
+        vaultId = ++Id;
         vaultIdtoToken[vaultId] = _tokenAddress;
         tokenToVaultId[_tokenAddress] = vaultId;
     }

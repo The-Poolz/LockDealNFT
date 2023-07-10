@@ -194,7 +194,7 @@ describe("Timed Deal Provider", function () {
 
         it("should register data", async () => {
             const poolData = await lockDealNFT.getData(poolId)
-            expect(poolData.provider).to.equal(mockProvider.address)
+            expect(poolData.provider).to.equal(timedDealProvider.address)
             expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token])
             expect(poolData.params[0]).to.equal(amount)
             expect(poolData.params[1]).to.equal(startTime)

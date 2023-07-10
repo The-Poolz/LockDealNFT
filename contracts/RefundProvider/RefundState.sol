@@ -8,6 +8,6 @@ abstract contract RefundState is ProviderModifiers, IProvider {
     mapping(uint256 => address) public poolIdToProjectOwner;
 
     function getParams(uint256 poolId) external view override returns (uint256[] memory params){
-        // will return the Project owner Id - as this the only state we save
+        //TODO implement
     }
 }

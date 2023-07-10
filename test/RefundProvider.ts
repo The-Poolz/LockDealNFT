@@ -77,7 +77,7 @@ describe("Refund Provider", function () {
 
         it("should return currect data for user after creation", async () => {
             const poolData = await lockDealNFT.getData(poolId + 2)
-            expect(poolData.poolInfo).to.deep.equal([poolId + 2, receiver.address, token])
+            expect(poolData.poolInfo).to.deep.equal([poolId + 2, receiver.address, constants.AddressZero])
             expect(poolData.params.toString()).to.equal("")
         })
     })
@@ -105,7 +105,7 @@ describe("Refund Provider", function () {
             await lockDealNFT.split(poolId + 2, amount / 2, receiver.address)
 
             const poolData = await lockDealNFT.getData(poolId + 2)
-            expect(poolData.poolInfo).to.deep.equal([poolId + 2, receiver.address, token])
+            expect(poolData.poolInfo).to.deep.equal([poolId + 2, receiver.address, constants.AddressZero])
             expect(poolData.params.toString()).to.equal("")
         })
 
