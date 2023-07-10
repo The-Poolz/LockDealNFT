@@ -64,7 +64,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
         poolId = lockDealNFT.mintForProvider(owner, address(this));
     }
 
-    function registerPool(uint256 poolId,uint256[] calldata params) external override onlyNFT {
+    function registerPool(uint256 poolId,uint256[] calldata params) external override onlyProvider {
         // will be implemented in the future
     }
 

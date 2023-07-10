@@ -52,7 +52,7 @@ contract LockDealBundleProvider is
         bundlePoolIdToLastSubPoolId[poolId] = lastSubPoolId;
     }
 
-    function registerPool(uint256 poolId,uint256[] calldata params) external override onlyNFT {
+    function registerPool(uint256 poolId,uint256[] calldata params) external override onlyProvider {
         // will be implemented in the future
     }
 
