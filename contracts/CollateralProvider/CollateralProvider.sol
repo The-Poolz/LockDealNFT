@@ -19,7 +19,7 @@ contract CollateralProvider is IProviderSingleIdRegistrar, CollateralModifiers, 
 
     function registerPool(
         uint256 poolId,
-        uint256[] calldata params /** TODO add Only Aprove provider**/
+        uint256[] calldata params
     )
         external
         override
@@ -38,6 +38,7 @@ contract CollateralProvider is IProviderSingleIdRegistrar, CollateralModifiers, 
             block.timestamp <= params[1],
             "start time must be in the future"
         );
+        require(poolId == lockDealNFT.totalSupply() - 1, "invalid params");
         //address projectOwner = lockDealNFT.ownerOf(poolId);
         startTimes[poolId] = params[1];
         lockDealNFT.mintForProvider(address(this), address(dealProvider)); //Main Coin Collector poolId + 1
@@ -55,11 +56,9 @@ contract CollateralProvider is IProviderSingleIdRegistrar, CollateralModifiers, 
     // this need to give the project owner to get the tokens that in the poolId + 2
     function withdraw(
         uint256 poolId
-    ) public onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
+    ) public override onlyNFT returns (uint256, bool isFinal) {
         address projectOwner = lockDealNFT.ownerOf(poolId);
-        uint256 mainCoinCollectorId = poolId + 1;
-        uint256 tokenCollectorId = poolId + 2;
-        uint256 mainCoinHolderId = poolId + 3;
+        (uint256 mainCoinCollectorId, uint256 tokenCollectorId, uint256 mainCoinHolderId) = getInnerIds(poolId);
         //check for time
         if (startTimes[poolId] < block.timestamp) {
             // Finish Refund
@@ -74,6 +73,14 @@ contract CollateralProvider is IProviderSingleIdRegistrar, CollateralModifiers, 
         }
     }
 
+    function split(
+        uint256,
+        uint256,
+        uint256
+    ) external override pure {
+        revert("not implemented");
+    }
+
     function _split(uint256 poolId, address owner) internal {
         uint256 amount = dealProvider.getParams(poolId)[0];
         if (amount > 0) {
@@ -86,8 +93,7 @@ contract CollateralProvider is IProviderSingleIdRegistrar, CollateralModifiers, 
         uint256 tokenAmount,
         uint256 mainCoinAmount
     ) public override onlyProvider validProviderId(poolId) {
-        uint256 tokenCollectorId = poolId + 2;
-        uint256 mainCoinHolderId = poolId + 3;
+        (, uint256 tokenCollectorId, uint256 mainCoinHolderId) = getInnerIds(poolId);
         dealProvider.withdraw(mainCoinHolderId, mainCoinAmount);
         _deposit(tokenCollectorId, tokenAmount);
     }
