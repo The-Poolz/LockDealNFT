@@ -2,13 +2,11 @@
 pragma solidity ^0.8.0;
 
 import "../ProviderInterface/IProviderSingleIdRegistrar.sol";
-import "../Provider/ProviderState.sol";
-import "../LockProvider/LockDealState.sol";
+import "./CollateralModifiers.sol";
 
 contract CollateralProvider is
     IProviderSingleIdRegistrar,
-    LockDealState,
-    ProviderState
+    CollateralModifiers
 {
     ///@dev withdraw tokens
     constructor(address _lockDealNFT, address _dealProvider) {
@@ -23,7 +21,7 @@ contract CollateralProvider is
     function registerPool(
         uint256 poolId,
         uint256[] calldata params /** TODO add Only Aprove provider**/
-    ) external override {
+    ) external override onlyProvider validProviderId(poolId){
         _registerPool(poolId, params);
     }
 
@@ -43,7 +41,7 @@ contract CollateralProvider is
             poolId == lockDealNFT.totalSupply(),
             "_registerPool only for new id's"
         );
-        //address projcetOwner = lockDealNFT.ownerOf(poolId);
+        //address projectOwner = lockDealNFT.ownerOf(poolId);
         startTimes[poolId] = params[1];
         lockDealNFT.mintForProvider(address(this), address(dealProvider)); //Main Coin Collector poolId + 1
         lockDealNFT.mintForProvider(address(this), address(dealProvider)); //Token Collector poolId + 2
@@ -59,21 +57,21 @@ contract CollateralProvider is
 
     // this need to give the projecet owner to get the tokens that in the poolId + 2
     function withdraw(
-        uint256 poolId /** TODO add Only NFT **/
-    ) public returns (uint256 withdrawnAmount, bool isFinal) {
-        address projcetOwner = lockDealNFT.ownerOf(poolId);
+        uint256 poolId 
+    ) public onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
+        address projectOwner = lockDealNFT.ownerOf(poolId);
         uint256 mainCoinCollectorId = poolId + 1;
         uint256 tokenCollectorId = poolId + 2;
         uint256 mainCoinHolderId = poolId + 3;
         //check for time
         if (startTimes[poolId] < block.timestamp) {
-            // Finish Refound
-            lockDealNFT.transferFrom(address(this), projcetOwner, mainCoinCollectorId);
-            lockDealNFT.transferFrom(address(this), projcetOwner, tokenCollectorId);
-            lockDealNFT.transferFrom(address(this), projcetOwner, mainCoinHolderId);
+            // Finish Refund
+            lockDealNFT.transferFrom(address(this), projectOwner, mainCoinCollectorId);
+            lockDealNFT.transferFrom(address(this), projectOwner, tokenCollectorId);
+            lockDealNFT.transferFrom(address(this), projectOwner, mainCoinHolderId);
             isFinal = true;
         } else {
-            // the refound phase is not finished yet
+            // the refund phase is not finished yet
             uint256 mainCoinAmount = dealProvider.getParams(
                 mainCoinCollectorId
             )[0];
@@ -81,18 +79,13 @@ contract CollateralProvider is
             lockDealNFT.split(
                 mainCoinCollectorId,
                 mainCoinAmount,
-                projcetOwner
+                projectOwner
             );
-            lockDealNFT.split(tokenCollectorId, tokenAmount, projcetOwner);
+            lockDealNFT.split(tokenCollectorId, tokenAmount, projectOwner);
         }
     }
 
-    function handleRefund(uint256 poolId, uint256 tokenAmount,uint256 mainCoinAmount) internal {
-        address provider = address(lockDealNFT.providerOf(poolId));
-        require(
-            provider == address(this),
-            "CollateralProvider: invalid provider"
-        );
+    function handleRefund(uint256 poolId, uint256 tokenAmount,uint256 mainCoinAmount) public onlyProvider validProviderId(poolId){
         uint256 tokenCollectorId = poolId + 2;
         uint256 mainCoinHolderId = poolId + 3;
         dealProvider.withdraw(mainCoinHolderId, mainCoinAmount);
@@ -101,7 +94,7 @@ contract CollateralProvider is
         dealProvider.registerPool(tokenCollectorId, params);
     }
 
-    function handleWithdraw(uint256 poolId, uint256 mainCoinAmount) internal {
+    function handleWithdraw(uint256 poolId, uint256 mainCoinAmount) public onlyProvider validProviderId(poolId) {
         uint256 mainCoinCollectorId = poolId + 1;
         uint256 mainCoinHolderId = poolId + 3;
         dealProvider.withdraw(mainCoinHolderId, mainCoinAmount);
@@ -113,8 +106,11 @@ contract CollateralProvider is
     function getParams(
         uint256 poolId
     ) public view returns (uint256[] memory params) {
-        params = new uint256[](2);
-        params[0] = dealProvider.getParams(poolId)[0];
-        params[1] = startTimes[poolId];
+        uint256 mainCoinHolderId = poolId + 3;
+        if(lockDealNFT.exist(mainCoinHolderId)) {
+            params = new uint256[](2);
+            params[0] = dealProvider.getParams(mainCoinHolderId)[0];
+            params[1] = startTimes[poolId];
+        }
     }
 }
