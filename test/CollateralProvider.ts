@@ -89,12 +89,66 @@ describe("Collateral Provider", function () {
     })
 
     it("should deposit main coin", async () => {
-        const mainCoinCollectorId = poolId + 1;
-        const mainCoinHolderId = poolId + 3
         await mockProvider.handleWithdraw(poolId, amount / 2)
+        const mainCoinCollectorId = poolId + 1
+        const mainCoinHolderId = poolId + 3
         let poolData = await lockDealNFT.getData(mainCoinHolderId)
         expect(poolData.params[0]).to.equal(amount / 2)
         poolData = await lockDealNFT.getData(mainCoinCollectorId)
         expect(poolData.params[0]).to.equal(amount / 2)
+    })
+
+    it("only NFT can manage withdraw", async () => {
+        await expect(collateralProvider.withdraw(poolId)).to.be.revertedWith("only NFT contract can call this function")
+    })
+
+    it("should withdraw before time main coins", async () => {
+        await mockProvider.handleWithdraw(poolId, amount / 2)
+        await lockDealNFT.withdraw(poolId)
+        const newMainCoinHolderId = poolId + 4
+        const poolData = await lockDealNFT.getData(newMainCoinHolderId)
+        expect(poolData.poolInfo).to.deep.equal([newMainCoinHolderId, projectOwner.address, constants.AddressZero])
+        expect(poolData.params[0]).to.equal(amount / 2)
+    })
+
+    it("should withdraw tokens before time", async () => {
+        await mockProvider.handleRefund(poolId, amount / 2, amount / 2)
+        await lockDealNFT.withdraw(poolId)
+        const newTokenHolderId = poolId + 4
+        const poolData = await lockDealNFT.getData(newTokenHolderId)
+        expect(poolData.poolInfo).to.deep.equal([newTokenHolderId, projectOwner.address, constants.AddressZero])
+        expect(poolData.params[0]).to.equal(amount / 2)
+    })
+
+    it("should withdraw main coins and tokens before time", async () => {
+        await mockProvider.handleWithdraw(poolId, amount / 2)
+        await mockProvider.handleRefund(poolId, amount / 2, amount / 2)
+        await lockDealNFT.withdraw(poolId)
+        const newMainCoinHolderId = poolId + 4
+        const newTokenHolderId = poolId + 5
+        // should create two pools with tokens and main coins
+        const mainCoinPoolData = await lockDealNFT.getData(newMainCoinHolderId)
+        expect(mainCoinPoolData.poolInfo).to.deep.equal([newMainCoinHolderId, projectOwner.address, constants.AddressZero])
+        expect(mainCoinPoolData.params[0]).to.equal(amount / 2)
+        const tokensPoolData = await lockDealNFT.getData(newTokenHolderId)
+        expect(tokensPoolData.poolInfo).to.deep.equal([newTokenHolderId, projectOwner.address, constants.AddressZero])
+        expect(tokensPoolData.params[0]).to.equal(amount / 2)
+    })
+
+    it("should transfer all pools to project owner after finish time", async () => {
+        await time.setNextBlockTimestamp(finishTime + 1)
+        await lockDealNFT.withdraw(poolId)
+        const mainCoinCollectorId = poolId + 1
+        const tokenCollectorId = poolId + 2
+        const mainCoinHolderId = poolId + 3
+        // check pools ownership
+        let poolData = await lockDealNFT.getData(mainCoinCollectorId)
+        expect(poolData.poolInfo).to.deep.equal([mainCoinCollectorId, projectOwner.address, constants.AddressZero])
+
+        poolData = await lockDealNFT.getData(tokenCollectorId)
+        expect(poolData.poolInfo).to.deep.equal([tokenCollectorId, projectOwner.address, constants.AddressZero])
+
+        poolData = await lockDealNFT.getData(mainCoinHolderId)
+        expect(poolData.poolInfo).to.deep.equal([mainCoinHolderId, projectOwner.address, constants.AddressZero])
     })
 })

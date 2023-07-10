@@ -69,14 +69,15 @@ contract CollateralProvider is IProviderSingleIdRegistrar, CollateralModifiers, 
             isFinal = true;
         } else {
             // the refund phase is not finished yet
-            uint256 mainCoinAmount = dealProvider.getParams(mainCoinCollectorId)[0];
-            uint256 tokenAmount = dealProvider.getParams(tokenCollectorId)[0];
-            lockDealNFT.split(
-                mainCoinCollectorId,
-                mainCoinAmount,
-                projectOwner
-            );
-            lockDealNFT.split(tokenCollectorId, tokenAmount, projectOwner);
+            _split(mainCoinCollectorId, projectOwner);
+            _split(tokenCollectorId, projectOwner);
+        }
+    }
+
+    function _split(uint256 poolId, address owner) internal {
+        uint256 amount = dealProvider.getParams(poolId)[0];
+        if (amount > 0) {
+            lockDealNFT.split(poolId, amount, owner);
         }
     }
 
@@ -88,9 +89,7 @@ contract CollateralProvider is IProviderSingleIdRegistrar, CollateralModifiers, 
         uint256 tokenCollectorId = poolId + 2;
         uint256 mainCoinHolderId = poolId + 3;
         dealProvider.withdraw(mainCoinHolderId, mainCoinAmount);
-        uint256[] memory params = dealProvider.getParams(tokenCollectorId);
-        params[0] += tokenAmount;
-        dealProvider.registerPool(tokenCollectorId, params);
+        _deposit(tokenCollectorId, tokenAmount);
     }
 
     function handleWithdraw(
@@ -100,8 +99,12 @@ contract CollateralProvider is IProviderSingleIdRegistrar, CollateralModifiers, 
         uint256 mainCoinCollectorId = poolId + 1;
         uint256 mainCoinHolderId = poolId + 3;
         dealProvider.withdraw(mainCoinHolderId, mainCoinAmount);
-        uint256[] memory params = dealProvider.getParams(mainCoinCollectorId);
-        params[0] += mainCoinAmount;
-        dealProvider.registerPool(mainCoinCollectorId, params);
+        _deposit(mainCoinCollectorId, mainCoinAmount);
+    }
+
+    function _deposit(uint256 poolId, uint256 amount) internal {
+        uint256[] memory params = dealProvider.getParams(poolId);
+        params[0] += amount;
+        dealProvider.registerPool(poolId, params);
     }
 }
