@@ -39,7 +39,6 @@ contract CollateralProvider is IProviderSingleIdRegistrar, CollateralModifiers, 
             "start time must be in the future"
         );
         require(poolId == lockDealNFT.totalSupply() - 1, "invalid params");
-        //address projectOwner = lockDealNFT.ownerOf(poolId);
         startTimes[poolId] = params[1];
         lockDealNFT.mintForProvider(address(this), address(dealProvider)); //Main Coin Collector poolId + 1
         lockDealNFT.mintForProvider(address(this), address(dealProvider)); //Token Collector poolId + 2
