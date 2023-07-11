@@ -32,7 +32,7 @@ describe("Refund Provider", function () {
     const ONE_DAY = 86400
 
     before(async () => {
-        ;[receiver, projectOwner] = await ethers.getSigners()
+        [receiver, projectOwner] = await ethers.getSigners()
         const mockVaultManager: MockVaultManager = await deployed("MockVaultManager")
         lockDealNFT = await deployed("LockDealNFT", mockVaultManager.address)
         dealProvider = await deployed("DealProvider", lockDealNFT.address)
@@ -189,7 +189,7 @@ describe("Refund Provider", function () {
         it("the user receives the main coins", async () => {
             await refundProvider.connect(projectOwner).createNewRefundPool(token, receiver.address, BUSD, lockProvider.address, params)
             await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, refundProvider.address, poolId)
-            let newMainCoinPoolId = (await lockDealNFT.tokenIdCounter()).toNumber() - 1
+            const newMainCoinPoolId = (await lockDealNFT.tokenIdCounter()).toNumber() - 1
             
             const poolData = await lockDealNFT.getData(newMainCoinPoolId)
             expect(poolData.poolInfo).to.deep.equal([newMainCoinPoolId, receiver.address, BUSD])
