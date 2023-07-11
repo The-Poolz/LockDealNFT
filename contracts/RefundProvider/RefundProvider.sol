@@ -65,7 +65,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
     }
 
     function registerPool(uint256 poolId,uint256[] calldata params) external override onlyProvider {
-        // will be implemented in the future
+        // TODO: needs to be implemented
     }
 
     ///@dev split tokens and main coins into new pools
