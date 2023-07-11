@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 import "./LockDealBundleProviderState.sol";
 import "../Provider/ProviderModifiers.sol";
 import "../ProviderInterface/IProvider.sol";
-import "../ProviderInterface/IProviderSingleIdRegistrar.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 
 contract LockDealBundleProvider is
@@ -53,13 +52,17 @@ contract LockDealBundleProvider is
         bundlePoolIdToLastSubPoolId[poolId] = lastSubPoolId;
     }
 
+    function registerPool(uint256 poolId,uint256[] calldata params) external override onlyProvider {
+        // TODO: needs to be implemented
+    }
+
     function _createNewSubPool(
         address owner,
         address provider,
         uint256[] memory params
     ) internal returns (uint256 poolId) {
         poolId = lockDealNFT.mintForProvider(owner, provider);
-        IProviderSingleIdRegistrar(provider).registerPool(poolId, params);
+        IProvider(provider).registerPool(poolId, params);
     }
 
     function withdraw(

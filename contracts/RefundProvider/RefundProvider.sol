@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import "./RefundState.sol";
-import "../ProviderInterface/IProviderSingleIdRegistrar.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 contract RefundProvider is RefundState, IERC721Receiver {
@@ -51,7 +50,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
         require(paramsLength > 2, "invalid params length");
         // Hold token (data) | Owner Refund
         uint256 dataPoolID = lockDealNFT.mintAndTransfer(address(this), token, msg.sender, params[0], provider);
-        IProviderSingleIdRegistrar(provider).registerPool(dataPoolID, params);
+        IProvider(provider).registerPool(dataPoolID, params);
 
         // Hold main coin | Owner Refund
         uint256 [] memory mainCoinParams = new uint256[](2);
@@ -63,6 +62,10 @@ contract RefundProvider is RefundState, IERC721Receiver {
 
         /// real owner poolId
         poolId = lockDealNFT.mintForProvider(owner, address(this));
+    }
+
+    function registerPool(uint256 poolId,uint256[] calldata params) external override onlyProvider {
+        // TODO: needs to be implemented
     }
 
     ///@dev split tokens and main coins into new pools
