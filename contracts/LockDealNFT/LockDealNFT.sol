@@ -56,7 +56,7 @@ contract LockDealNFT is LockDealNFTModifiers {
         );
     }
 
-    function copyVaultId(uint256 fromId,uint256 toId) external onlyApprovedProvider {
+    function copyVaultId(uint256 fromId, uint256 toId) external onlyApprovedProvider {
         _onlyApprovedProvider(ownerOf(fromId));
         _onlyApprovedProvider(ownerOf(toId));
         poolIdToVaultId[toId] = poolIdToVaultId[fromId];
