@@ -50,20 +50,4 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents {
     function exist(uint256 poolId) external view returns (bool) {
         return _exists(poolId);
     }
-
-    // function transferFrom(
-    //     address from,
-    //     address to,
-    //     uint256 poolId
-    // ) public virtual override(ERC721, IERC721) {
-    //     if (
-    //         approvedProviders[msg.sender] &&
-    //         ownerOf(poolId) != msg.sender  &&
-    //         !isApprovedForAll(from, msg.sender) &&
-    //         getApproved(poolId) != msg.sender
-    //     ) {
-    //         _approve(msg.sender, poolId);
-    //     }
-    //     super.transferFrom(from, to, poolId);
-    // }
 }

@@ -9,7 +9,7 @@ abstract contract RefundState is ProviderModifiers, IProvider {
     mapping(uint256 => uint256) public poolIdToCollateralId;
     mapping(uint256 => uint256) public poolIdToRateToWei;
 
-    function getParams(uint256 poolId) external view override returns (uint256[] memory params) {
+    function getParams(uint256 poolId) public view override returns (uint256[] memory params) {
         params = new uint256[](currentParamsTargetLenght());
         params[0] = poolIdToCollateralId[poolId];
         params[1] = poolIdToRateToWei[poolId];
