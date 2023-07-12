@@ -49,8 +49,8 @@ describe("Timed Deal Provider", function () {
         halfTime = (finishTime - startTime) / 2
     })
 
-    it("should check deal provider address", async () => {
-        const provider = await timedDealProvider.dealProvider()
+    it("should check lock deal provider address", async () => {
+        const provider = await timedDealProvider.lockDealProvider()
         expect(provider.toString()).to.equal(lockProvider.address)
     })
 

@@ -7,7 +7,7 @@ import "../LockProvider/LockDealProvider.sol";
 /// @title DealProviderState contract
 /// @notice Contains storage variables
 contract TimedProviderState {
-    LockDealProvider public dealProvider;
+    LockDealProvider public lockDealProvider;
     mapping(uint256 => TimedDeal) public poolIdToTimedDeal;
 
     struct TimedDeal {

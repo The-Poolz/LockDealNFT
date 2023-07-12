@@ -14,7 +14,7 @@ contract TimedDealProvider is BasicProvider, TimedProviderState {
             nft != address(0x0) && provider != address(0x0),
             "invalid address"
         );
-        dealProvider = LockDealProvider(provider);
+        lockDealProvider = LockDealProvider(provider);
         lockDealNFT = LockDealNFT(nft);
     }
 
@@ -29,7 +29,7 @@ contract TimedDealProvider is BasicProvider, TimedProviderState {
         uint256 poolId,
         uint256 amount
     ) internal override returns (uint256 withdrawnAmount, bool isFinal) {
-        (withdrawnAmount, isFinal) = dealProvider.withdraw(poolId, amount);
+        (withdrawnAmount, isFinal) = lockDealProvider.withdraw(poolId, amount);
     }
 
     function getWithdrawableAmount(uint256 poolId) public view returns (uint256) {
@@ -53,7 +53,7 @@ contract TimedDealProvider is BasicProvider, TimedProviderState {
         uint256 newPoolId,
         uint256 splitAmount
     ) public onlyProvider {
-        dealProvider.split(oldPoolId, newPoolId, splitAmount);
+        lockDealProvider.split(oldPoolId, newPoolId, splitAmount);
         uint256 newPoolStartAmount = poolIdToTimedDeal[oldPoolId].startAmount - splitAmount;
         poolIdToTimedDeal[oldPoolId].startAmount -= newPoolStartAmount;
         poolIdToTimedDeal[newPoolId].startAmount = newPoolStartAmount;
@@ -73,12 +73,12 @@ contract TimedDealProvider is BasicProvider, TimedProviderState {
         );
         poolIdToTimedDeal[poolId].finishTime = params[2];
         poolIdToTimedDeal[poolId].startAmount = params[0];
-        dealProvider.registerPool(poolId, params);
+        lockDealProvider.registerPool(poolId, params);
     }
 
     function getParams(uint256 poolId) public view override returns (uint256[] memory params) {
         uint256[] memory lockDealProviderParams;
-        lockDealProviderParams = dealProvider.getParams(poolId);
+        lockDealProviderParams = lockDealProvider.getParams(poolId);
 
         params = new uint256[](4);
         params[0] = lockDealProviderParams[0];  // leftAmount
@@ -88,6 +88,6 @@ contract TimedDealProvider is BasicProvider, TimedProviderState {
     }
 
     function currentParamsTargetLenght() public override view returns (uint256) {
-        return 1 + dealProvider.currentParamsTargetLenght();
+        return 1 + lockDealProvider.currentParamsTargetLenght();
     }
 }
