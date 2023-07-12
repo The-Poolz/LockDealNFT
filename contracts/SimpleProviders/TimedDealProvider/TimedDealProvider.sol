@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import "./TimedProviderState.sol";
-import "../Provider/BasicProvider.sol";
 
 contract TimedDealProvider is BasicProvider, TimedProviderState {
     /**

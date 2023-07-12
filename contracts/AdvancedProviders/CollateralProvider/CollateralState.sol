@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../LockProvider/LockDealState.sol";
-import "../ProviderInterface/IProvider.sol";
+import "../../SimpleProviders/LockProvider/LockDealState.sol";
 
 abstract contract CollateralState is LockDealState, ProviderModifiers, IProvider {
     function getParams(

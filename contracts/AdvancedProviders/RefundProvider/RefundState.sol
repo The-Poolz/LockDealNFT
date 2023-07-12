@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../LockProvider/LockDealProvider.sol";
+import "../../SimpleProviders/LockProvider/LockDealProvider.sol";
 import "../CollateralProvider/CollateralProvider.sol";
 
 abstract contract RefundState is ProviderModifiers, IProvider {

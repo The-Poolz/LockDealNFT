@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./ProviderModifiers.sol";
-import "../ProviderInterface/IProvider.sol";
+import "../../interfaces/IProvider.sol";
 
 abstract contract BasicProvider is IProvider, ProviderModifiers {
     /**
