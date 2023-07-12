@@ -2,8 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./LockDealBundleProviderState.sol";
-import "../Provider/ProviderModifiers.sol";
-import "../ProviderInterface/IProvider.sol";
+import "../../SimpleProviders/Provider/ProviderModifiers.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 
 contract LockDealBundleProvider is

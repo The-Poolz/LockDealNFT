@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../TimedDealProvider/TimedDealProvider.sol";
-import "../ProviderInterface/IFundsManager.sol";
+import "../SimpleProviders/TimedDealProvider/TimedDealProvider.sol";
+import "../interfaces/IFundsManager.sol";
 
 /// @dev MockProvider is a contract for testing purposes.
 contract MockProvider is IFundsManager {

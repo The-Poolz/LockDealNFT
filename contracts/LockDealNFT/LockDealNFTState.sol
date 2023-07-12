@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@poolzfinance/poolz-helper-v2/contracts/interfaces/IVaultManager.sol";
-import "../ProviderInterface/IProvider.sol";
+import "../interfaces/IProvider.sol";
 import "./ILockDealNFTEvents.sol";
 
 /**
