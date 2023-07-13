@@ -16,15 +16,14 @@ contract LockDealNFT is LockDealNFTModifiers {
 
     function mintForProvider(
         address owner,
-        address provider
+        IProvider provider
     )
         external
         onlyApprovedProvider
         notZeroAddress(owner)
-        notZeroAddress(provider)
         returns (uint256 poolId)
     {
-        if (provider != msg.sender) {
+        if (address(provider) != msg.sender) {
             _onlyApprovedProvider(provider);
         }
         poolId = _mint(owner, provider);
@@ -35,17 +34,16 @@ contract LockDealNFT is LockDealNFTModifiers {
         address token,
         address from,
         uint256 amount,
-        address provider
+        IProvider provider
     )
         public
         onlyApprovedProvider
         notZeroAddress(owner)
         notZeroAddress(token)
-        notZeroAddress(provider)
         notZeroAmount(amount)
         returns (uint256 poolId)
     {
-        if (provider != msg.sender) {
+        if (address(provider) != msg.sender) {
             _onlyApprovedProvider(provider);
         }
         poolId = _mint(owner, provider);
@@ -57,8 +55,8 @@ contract LockDealNFT is LockDealNFTModifiers {
     }
 
     function copyVaultId(uint256 fromId, uint256 toId) external onlyApprovedProvider {
-        _onlyApprovedProvider(ownerOf(fromId));
-        _onlyApprovedProvider(ownerOf(toId));
+        _onlyApprovedProvider(IProvider(ownerOf(fromId)));
+        _onlyApprovedProvider(IProvider(ownerOf(toId)));
         poolIdToVaultId[toId] = poolIdToVaultId[fromId];
     }
 
@@ -66,10 +64,10 @@ contract LockDealNFT is LockDealNFTModifiers {
     /// @param provider The address of the provider
     /// @param status The new approved status (true or false)
     function setApprovedProvider(
-        address provider,
+        IProvider provider,
         bool status
-    ) external onlyOwner onlyContract(provider) {
-        approvedProviders[provider] = status;
+    ) external onlyOwner onlyContract(address(provider)) {
+        approvedProviders[address(provider)] = status;
         emit ProviderApproved(provider, status);
     }
 
@@ -84,8 +82,8 @@ contract LockDealNFT is LockDealNFTModifiers {
         onlyOwnerOrAdmin(poolId)
         returns (uint256 withdrawnAmount, bool isFinal)
     {
-        address provider = poolIdToProvider[poolId];
-        (withdrawnAmount, isFinal) = IProvider(provider).withdraw(poolId);
+        IProvider provider = poolIdToProvider[poolId];
+        (withdrawnAmount, isFinal) = provider.withdraw(poolId);
 
         // in case of the sub-provider, the main provider will sum the data
         if (!approvedProviders[ownerOf(poolId)]) {
@@ -110,10 +108,10 @@ contract LockDealNFT is LockDealNFTModifiers {
         uint256 splitAmount,
         address newOwner
     ) external onlyOwnerOrAdmin(poolId) {
-        address provider = poolIdToProvider[poolId];
+        IProvider provider = poolIdToProvider[poolId];
         uint256 newPoolId = _mint(newOwner, provider);
         poolIdToVaultId[newPoolId] = poolIdToVaultId[poolId];
-        IProvider(provider).split(poolId, newPoolId, splitAmount);
+        provider.split(poolId, newPoolId, splitAmount);
     }
 
     /// @param owner The address to assign the token to
@@ -121,7 +119,7 @@ contract LockDealNFT is LockDealNFTModifiers {
     /// @return newPoolId The ID of the pool
     function _mint(
         address owner,
-        address provider
+        IProvider provider
     ) internal returns (uint256 newPoolId) {
         newPoolId = tokenIdCounter.current();
         tokenIdCounter.increment();

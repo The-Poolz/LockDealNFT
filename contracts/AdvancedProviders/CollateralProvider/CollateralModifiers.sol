@@ -6,7 +6,7 @@ import "./CollateralState.sol";
 abstract contract CollateralModifiers is CollateralState {
     modifier validProviderId(uint256 poolId) {
         require(
-            address(lockDealNFT.providerOf(poolId)) == address(this),
+            lockDealNFT.poolIdToProvider(poolId) == this,
             "Invalid provider"
         );
         _;
