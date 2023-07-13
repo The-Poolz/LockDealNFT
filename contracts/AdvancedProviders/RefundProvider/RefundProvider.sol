@@ -39,7 +39,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
             uint256[] memory params = new uint256[](1);
             params[0] = mainCoinAmount;
             dealProvider.registerPool(newMainCoinPoolId, params);
-            lockDealNFT.setPoolIdToVaultId(newMainCoinPoolId, lockDealNFT.poolIdToVaultId(collateralPoolId));
+            lockDealNFT.copyVaultId(collateralPoolId, newMainCoinPoolId);
         }
         return IERC721Receiver.onERC721Received.selector;
     }
@@ -65,7 +65,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
         provider.registerPool(dataPoolID, params);
 
         // Hold main coin | Project Owner 
-        uint256 collateralPoolId = lockDealNFT.mintAndTransfer(address(this), mainCoin, msg.sender, params[paramsLength - 3], collateralProvider);
+        uint256 collateralPoolId = lockDealNFT.mintAndTransfer(msg.sender, mainCoin, msg.sender, params[paramsLength - 3], collateralProvider);
         uint256[] memory collateralParams = new uint256[](2);
         collateralParams[0] = params[paramsLength - 3];
         collateralParams[1] = params[paramsLength - 1];
@@ -74,7 +74,6 @@ contract RefundProvider is RefundState, IERC721Receiver {
         lockDealNFT.copyVaultId(collateralPoolId, collateralPoolId + 1);
         lockDealNFT.copyVaultId(dataPoolID, collateralPoolId + 2);
         lockDealNFT.copyVaultId(collateralPoolId, collateralPoolId + 3);
-        lockDealNFT.transferFrom(address(this), msg.sender, collateralPoolId);
         // save refund data
         uint256[] memory refundRegisterParams = new uint256[](currentParamsTargetLenght());
         refundRegisterParams[0] = collateralPoolId;
