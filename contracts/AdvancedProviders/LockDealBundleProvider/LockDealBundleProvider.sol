@@ -53,10 +53,10 @@ contract LockDealBundleProvider is LockDealBundleProviderState, ERC721Holder {
     function _registerPool(uint256 poolId, uint256[] memory params) internal validParamsLength(params.length, 1) {
         uint256 lastSubPoolId = params[0];
         require(poolId < lastSubPoolId, "poolId can't be greater than lastSubPoolId");
-        for(uint256 i = poolId + 1; i < lastSubPoolId; ++i) {
+        for(uint256 i = poolId + 1; i <= lastSubPoolId; ++i) {
             require(lockDealNFT.ownerOf(i) == address(this), "invalid owner of sub pool");
         }
-        bundlePoolIdToLastSubPoolId[poolId] = params[0];
+        bundlePoolIdToLastSubPoolId[poolId] = lastSubPoolId;
     }
 
     function _createNewSubPool(

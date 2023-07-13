@@ -11,7 +11,7 @@ abstract contract LockDealBundleProviderState is IProvider, ProviderModifiers {
 
     function _calcTotalAmount(uint256[][] calldata params) internal pure returns (uint256 totalAmount) {
         uint length = params.length;
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i = 0; i < length; ++i) {
             totalAmount += params[i][0];
         }
     }
