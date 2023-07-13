@@ -99,7 +99,7 @@ describe("Lock Deal Bundle Provider", function () {
         bundleProviders[0] = constants.AddressZero
         await expect(
             bundleProvider.createNewPool(receiver.address, token, bundleProviders, bundleProviderParams)
-        ).to.be.revertedWith("Zero Address is not allowed")
+        ).to.be.revertedWith("Provider not approved")
 
         // lockDealNFT address
         bundleProviders[0] = lockDealNFT.address

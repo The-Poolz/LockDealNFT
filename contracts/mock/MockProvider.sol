@@ -23,7 +23,7 @@ contract MockProvider is IFundsManager {
         address token,
         uint256[] memory params
     ) public returns (uint256 poolId) {
-        poolId = lockDealNFT.mintAndTransfer(owner, token, owner, params[0], provider);
+        poolId = lockDealNFT.mintAndTransfer(owner, token, owner, params[0], IProvider(provider));
         TimedDealProvider(provider).registerPool(poolId, params);
     }
 

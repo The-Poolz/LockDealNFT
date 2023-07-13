@@ -35,7 +35,7 @@ contract LockDealBundleProvider is
 
         uint256 totalAmount = _calcTotalAmount(providerParams);
         // create a new bundle pool owned by the owner
-        poolId = lockDealNFT.mintAndTransfer(owner, token, msg.sender, totalAmount, address(this));
+        poolId = lockDealNFT.mintAndTransfer(owner, token, msg.sender, totalAmount, this);
 
         uint256 lastSubPoolId;
         for (uint256 i; i < providerCount; ++i) {
@@ -45,7 +45,7 @@ contract LockDealBundleProvider is
             // check if the provider address is valid
             require(provider != address(lockDealNFT) && provider != address(this), "invalid provider address");
             // mint the NFT owned by the BunderDealProvider with 0 token transfer amount
-            lastSubPoolId = _createNewSubPool(address(this), provider, params);
+            lastSubPoolId = _createNewSubPool(address(this), IProvider(provider), params);
         }
 
         bundlePoolIdToLastSubPoolId[poolId] = lastSubPoolId;
@@ -57,11 +57,11 @@ contract LockDealBundleProvider is
 
     function _createNewSubPool(
         address owner,
-        address provider,
+        IProvider provider,
         uint256[] memory params
     ) internal returns (uint256 poolId) {
         poolId = lockDealNFT.mintForProvider(owner, provider);
-        IProvider(provider).registerPool(poolId, params);
+        provider.registerPool(poolId, params);
     }
 
     function withdraw(
@@ -110,8 +110,8 @@ contract LockDealBundleProvider is
     }
 
     function getTotalRemainingAmount(uint256 poolId) public view returns (uint256 totalRemainingAmount) {
-        (address provider,,) = lockDealNFT.getData(poolId);
-        require(provider == address(this), "not bundle poolId");
+        (IProvider provider,,) = lockDealNFT.getData(poolId);
+        require(provider == this, "not bundle poolId");
 
         uint256 lastSubPoolId = bundlePoolIdToLastSubPoolId[poolId];
         for (uint256 i = poolId + 1; i <= lastSubPoolId; ++i) {
