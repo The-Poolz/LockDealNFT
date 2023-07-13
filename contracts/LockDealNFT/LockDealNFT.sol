@@ -128,14 +128,6 @@ contract LockDealNFT is LockDealNFTModifiers {
         emit MintInitiated(provider);
     }
 
-    function setPoolIdToProvider(
-        IProvider provider,
-        uint256 poolId
-    ) external onlyApprovedProvider validPoolId(poolId) {
-        _onlyApprovedProvider(provider);
-        poolIdToProvider[poolId] = provider;
-    }
-
     function setPoolIdToVaultId(
         uint256 poolId,
         uint256 vaultId
