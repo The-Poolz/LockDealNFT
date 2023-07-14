@@ -54,9 +54,10 @@ contract LockDealNFT is LockDealNFTModifiers {
         );
     }
 
-    function copyVaultId(uint256 fromId, uint256 toId) external onlyApprovedProvider {
-        _onlyApprovedProvider(IProvider(ownerOf(fromId)));
-        _onlyApprovedProvider(IProvider(ownerOf(toId)));
+    function copyVaultId(
+        uint256 fromId,
+        uint256 toId
+    ) external onlyApprovedProvider validPoolId(fromId) validPoolId(toId) {
         poolIdToVaultId[toId] = poolIdToVaultId[fromId];
     }
 
@@ -126,12 +127,5 @@ contract LockDealNFT is LockDealNFTModifiers {
         _safeMint(owner, newPoolId);
         poolIdToProvider[newPoolId] = provider;
         emit MintInitiated(provider);
-    }
-
-    function setPoolIdToVaultId(
-        uint256 poolId,
-        uint256 vaultId
-    ) external onlyApprovedProvider validPoolId(poolId) {
-        poolIdToVaultId[poolId] = vaultId;
     }
 }
