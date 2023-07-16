@@ -19,14 +19,18 @@ contract RefundBundleBuilder {
     constructor(address _nft,address _refund, address _bundle, address _collateral) 
     {
         lockDealNFT = LockDealNFT(_nft);
-        refundProvider = IProvider(_refund);
-        bundleProvider = IProvider(_bundle);
-        collateralProvider = IProvider(_collateral);
+        refundProvider = RefundProvider(_refund);
+        bundleProvider = LockDealBundleProvider(_bundle);
+        collateralProvider = CollateralProvider(_collateral);
     }
 
     struct UserSplit {
         address user;
         uint256 amount;
+    }
+
+    function _calcRate(uint256 tokenAValue, uint256 tokenBValue) internal pure returns (uint256) {
+        return (tokenAValue * 1e18) / tokenBValue;
     }
 
     // address[0] = token
@@ -49,13 +53,14 @@ contract RefundBundleBuilder {
         for (uint256 i = 0; i < userSplits.length; i++) {
             tokenAmount += userSplits[i].amount;
         }
-        uint256[] collateralParams = params[0];
-        uint256 rate = bundle._calcRate(tokenAmount, mainCoinAmount);
+        uint256 mainCoinAmount = params[0][0];
+        uint256[] memory collateralParams = params[0];
+        uint256 rate = _calcRate(tokenAmount, mainCoinAmount);
                 // Hold main coin | Project Owner 
         uint256 collateralPoolId = lockDealNFT.mintAndTransfer(msg.sender, mainCoin, msg.sender, collateralParams[0], collateralProvider);
         collateralProvider.registerPool(collateralPoolId, collateralParams);
 
-        uint256[] refundRegisterParams = new uint256[](2);
+        uint256[] memory refundRegisterParams = new uint256[](2);
         refundRegisterParams[0] = collateralPoolId;
         refundRegisterParams[1] = rate;
 
@@ -65,7 +70,8 @@ contract RefundBundleBuilder {
         for (uint256 i = 2; i < addressParams.length; i++) {
             IProvider provider = IProvider(addressParams[i]);
             uint256 innerPoolId = lockDealNFT.mintForProvider(address(bundleProvider), provider);
-            provider.registerPool(innerPoolId, params[i-1]);
+            uint256[] memory innerParams = params[i-1];
+            provider.registerPool(innerPoolId, innerParams);
         }
 
         refundProvider.registerPool(refundPoolId, refundRegisterParams);
@@ -76,7 +82,9 @@ contract RefundBundleBuilder {
         lockDealNFT.copyVaultId(collateralPoolId, collateralPoolId + 3);
   
         for (uint256 i = 0; i < userSplits.length; i++) {
-            lockDealNFT.split(refundPoolId, userSplits[i].amount, userSplits[i].user);
+            uint256 userAmount = userSplits[i].amount;
+            address user = userSplits[i].user;
+            lockDealNFT.split(refundPoolId, userAmount, user);
         }
     }
 
