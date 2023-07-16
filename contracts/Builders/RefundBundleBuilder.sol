@@ -12,16 +12,16 @@ import "../AdvancedProviders/LockDealBundleProvider/LockDealBundleProvider.sol";
 /// @notice Implements a contract for building refund bundles
 contract RefundBundleBuilder {
     LockDealNFT public lockDealNFT;
-    RefundProvider public refund;
-    LockDealBundleProvider public bundle;
-    CollateralProvider public collateral;
+    RefundProvider public refundProvider;
+    LockDealBundleProvider public bundleProvider;
+    CollateralProvider public collateralProvider;
 
     constructor(address _nft,address _refund, address _bundle, address _collateral) 
     {
         lockDealNFT = LockDealNFT(_nft);
-        refund = IProvider(_refund);
-        bundle = IProvider(_bundle);
-        collateral = IProvider(_collateral);
+        refundProvider = IProvider(_refund);
+        bundleProvider = IProvider(_bundle);
+        collateralProvider = IProvider(_collateral);
     }
 
     struct UserSplit {
