@@ -86,14 +86,11 @@ contract LockDealNFT is LockDealNFTModifiers {
         IProvider provider = poolIdToProvider[poolId];
         (withdrawnAmount, isFinal) = provider.withdraw(poolId);
 
-        // in case of the sub-provider, the main provider will sum the data
-        if (!approvedProviders[ownerOf(poolId)]) {
-            vaultManager.withdrawByVaultId(
-                poolIdToVaultId[poolId],
-                ownerOf(poolId),
-                withdrawnAmount
-            );
-        }
+        vaultManager.withdrawByVaultId(
+            poolIdToVaultId[poolId],
+            ownerOf(poolId),
+            withdrawnAmount
+        );
 
         if (isFinal) {
             _burn(poolId);
