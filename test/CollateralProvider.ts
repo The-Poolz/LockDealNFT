@@ -102,7 +102,7 @@ describe("Collateral Provider", function () {
 
     it("should withdraw before time main coins", async () => {
         await mockProvider.handleWithdraw(poolId, amount / 2)
-        await lockDealNFT.withdraw(poolId)
+        await lockDealNFT.connect(projectOwner)["safeTransferFrom(address,address,uint256)"](projectOwner.address, lockDealNFT.address, poolId)
         const newMainCoinHolderId = poolId + 4
         const poolData = await lockDealNFT.getData(newMainCoinHolderId)
         expect(poolData.poolInfo).to.deep.equal([newMainCoinHolderId, projectOwner.address, constants.AddressZero])
@@ -111,7 +111,7 @@ describe("Collateral Provider", function () {
 
     it("should withdraw tokens before time", async () => {
         await mockProvider.handleRefund(poolId, amount / 2, amount / 2)
-        await lockDealNFT.withdraw(poolId)
+        await lockDealNFT.connect(projectOwner)["safeTransferFrom(address,address,uint256)"](projectOwner.address, lockDealNFT.address, poolId)
         const newTokenHolderId = poolId + 4
         const poolData = await lockDealNFT.getData(newTokenHolderId)
         expect(poolData.poolInfo).to.deep.equal([newTokenHolderId, projectOwner.address, constants.AddressZero])
@@ -121,7 +121,8 @@ describe("Collateral Provider", function () {
     it("should withdraw main coins and tokens before time", async () => {
         await mockProvider.handleWithdraw(poolId, amount / 2)
         await mockProvider.handleRefund(poolId, amount / 2, amount / 2)
-        await lockDealNFT.withdraw(poolId)
+        await lockDealNFT.connect(projectOwner)["safeTransferFrom(address,address,uint256)"](projectOwner.address, lockDealNFT.address, poolId)
+        //await lockDealNFT.withdraw(poolId)
         const newMainCoinHolderId = poolId + 4
         const newTokenHolderId = poolId + 5
         // should create two pools with tokens and main coins
@@ -135,7 +136,7 @@ describe("Collateral Provider", function () {
 
     it("should transfer all pools to project owner after finish time", async () => {
         await time.setNextBlockTimestamp(finishTime + 1)
-        await lockDealNFT.withdraw(poolId)
+        await lockDealNFT.connect(projectOwner)["safeTransferFrom(address,address,uint256)"](projectOwner.address, lockDealNFT.address, poolId)
         const mainCoinCollectorId = poolId + 1
         const tokenCollectorId = poolId + 2
         const mainCoinHolderId = poolId + 3

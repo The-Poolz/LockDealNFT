@@ -123,7 +123,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
     ) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
         uint256 userDataPoolId = poolId + 1;
         // user withdraws his tokens
-        (withdrawnAmount, isFinal) = lockDealNFT.withdraw(userDataPoolId);
+        (withdrawnAmount, isFinal) = lockDealNFT.poolIdToProvider(userDataPoolId).withdraw(userDataPoolId);
         if(collateralProvider.startTimes(poolIdToCollateralId[poolId]) >= block.timestamp) {
             uint256 mainCoinAmount = _calcMainCoinAmount(withdrawnAmount, poolIdToRateToWei[poolId]);
             collateralProvider.handleWithdraw(poolIdToCollateralId[poolId], mainCoinAmount);

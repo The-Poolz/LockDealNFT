@@ -90,8 +90,8 @@ describe("Deal Provider", function () {
         })
 
         it("should check data in pool after withdraw", async () => {
-            await lockDealNFT.withdraw(poolId)
-            
+            await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, lockDealNFT.address, poolId)
+
             const poolData = await lockDealNFT.getData(poolId);
             expect(poolData.poolInfo).to.deep.equal([0, constants.AddressZero, constants.AddressZero]);
             expect(poolData.params.toString()).to.equal([].toString());
@@ -99,7 +99,7 @@ describe("Deal Provider", function () {
 
         it("should check events after withdraw", async () => {
             poolId = (await lockDealNFT.totalSupply()).toNumber()
-            const tx = await lockDealNFT.withdraw(poolId)
+            const tx = await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, lockDealNFT.address, poolId)
             await tx.wait()
             const events = await dealProvider.queryFilter(dealProvider.filters.TokenWithdrawn())
             expect(events[events.length - 1].args.poolId.toString()).to.equal(poolId.toString())

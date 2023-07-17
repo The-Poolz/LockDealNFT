@@ -2,10 +2,11 @@
 pragma solidity ^0.8.0;
 
 import "./LockDealNFTModifiers.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 /// @title LockDealNFT contract
 /// @notice Implements a non-fungible token (NFT) contract for locking deals
-contract LockDealNFT is LockDealNFTModifiers {
+contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
     using Counters for Counters.Counter;
 
     constructor(address _vaultManager) ERC721("LockDealNFT", "LDNFT") {
@@ -72,29 +73,28 @@ contract LockDealNFT is LockDealNFTModifiers {
         emit ProviderApproved(provider, status);
     }
 
-    /// @dev Withdraws funds from a pool and updates the vault accordingly
-    /// @param poolId The ID of the pool
-    /// @return withdrawnAmount The amount of funds withdrawn from the pool
-    /// @return isFinal A boolean indicating if the withdrawal is the final one
-    function withdraw(
-        uint256 poolId
-    )
-        external
-        onlyOwnerOrAdmin(poolId)
-        returns (uint256 withdrawnAmount, bool isFinal)
-    {
+    ///@dev withdraw implementation
+    function onERC721Received(
+        address provider,
+        address user,
+        uint256 poolId,
+        bytes calldata
+    ) external override returns (bytes4) {
+        require(msg.sender == address(this), "invalid nft contract");
         IProvider provider = poolIdToProvider[poolId];
-        (withdrawnAmount, isFinal) = provider.withdraw(poolId);
+        (uint withdrawnAmount,bool isFinal) = provider.withdraw(poolId);
 
         vaultManager.withdrawByVaultId(
             poolIdToVaultId[poolId],
-            ownerOf(poolId),
+            user,
             withdrawnAmount
         );
 
-        if (isFinal) {
-            _burn(poolId);
+        if (!isFinal) {
+            //transferFrom(address(this), user, poolId);
         }
+
+        return IERC721Receiver.onERC721Received.selector;
     }
 
     /// @dev Splits a pool into two pools with adjusted amounts
