@@ -81,19 +81,20 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         bytes calldata
     ) external override returns (bytes4) {
         require(msg.sender == address(this), "invalid nft contract");
+        if (provider == user) {
+            (uint withdrawnAmount, bool isFinal) = poolIdToProvider[poolId]
+                .withdraw(poolId);
 
-        (uint withdrawnAmount,bool isFinal) = poolIdToProvider[poolId].withdraw(poolId);
+            vaultManager.withdrawByVaultId(
+                poolIdToVaultId[poolId],
+                user,
+                withdrawnAmount
+            );
 
-        vaultManager.withdrawByVaultId(
-            poolIdToVaultId[poolId],
-            user,
-            withdrawnAmount
-        );
-
-        if (!isFinal) {
-            transferFrom(address(this), user, poolId);
+            if (!isFinal) {
+                transferFrom(address(this), user, poolId);
+            }
         }
-
         return IERC721Receiver.onERC721Received.selector;
     }
 
