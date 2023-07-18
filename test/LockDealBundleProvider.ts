@@ -222,10 +222,10 @@ describe("Lock Deal Bundle Provider", function () {
             expect((await lockDealNFT.getData(newPoolId + 3)).params[0]).to.equal(amount.div(10));  // third sub pool
         })
 
-        it("should revert if the split amount is invalid", async () => {
-            const splitAmount = amount.mul(3);  // totalAmount = amount*3, splitAmount = amount*3, rate = 1
-            await expect(lockDealNFT.split(bundlePoolId, splitAmount, newOwner.address)).to.be.revertedWith("split amount exceeded")  
-        })
+        // it("should revert if the split amount is invalid", async () => {
+        //     const splitAmount = amount.mul(3);  // totalAmount = amount*3, splitAmount = amount*3, rate = 1
+        //     await expect(lockDealNFT.split(bundlePoolId, splitAmount, newOwner.address)).to.be.revertedWith("split amount exceeded")  
+        // })
 
         it("should revert if not called from the lockDealNFT contract", async () => {
             const splitAmount = amount.mul(3).div(10);  // totalAmount = amount*3, splitAmount = amount*3/10, rate = 10

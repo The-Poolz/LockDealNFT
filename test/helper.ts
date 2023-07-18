@@ -7,3 +7,4 @@ export const deployed = async <T>(contractName: string, ...args: any[]): Promise
 };
 
 export const token = "0xCcf41440a137299CB6af95114cb043Ce4e28679A"
+export const BUSD = "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56"

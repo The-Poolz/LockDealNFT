@@ -51,8 +51,8 @@ contract LockDealBundleProvider is
         bundlePoolIdToLastSubPoolId[poolId] = lastSubPoolId;
     }
 
-    function registerPool(uint256 poolId,uint256[] calldata params) external override onlyProvider {
-        // TODO: needs to be implemented
+    function registerPool(uint256 poolId, uint256[] calldata params) external override onlyProvider {
+        bundlePoolIdToLastSubPoolId[poolId] = params[0];
     }
 
     function _createNewSubPool(
@@ -87,7 +87,8 @@ contract LockDealBundleProvider is
     ) public override onlyProvider {
         uint256 oldPoolTotalRemainingAmount = getTotalRemainingAmount(oldPoolId);
         uint256 rate = _calcRate(oldPoolTotalRemainingAmount, splitAmount);
-        require(rate > 1e18, "split amount exceeded");
+
+        require(rate >= 1e18, "split amount exceeded");
 
         // split the sub pools
         uint256 oldLastSubPoolId = bundlePoolIdToLastSubPoolId[oldPoolId];

@@ -10,7 +10,7 @@ import "../AdvancedProviders/LockDealBundleProvider/LockDealBundleProvider.sol";
 
 /// @title RefundBundleBuilder contract
 /// @notice Implements a contract for building refund bundles
-contract RefundBundleBuilder {
+contract RefundBundleBuilder is ERC721Holder {
     LockDealNFT public lockDealNFT;
     RefundProvider public refundProvider;
     LockDealBundleProvider public bundleProvider;
@@ -55,37 +55,37 @@ contract RefundBundleBuilder {
         }
         uint256 mainCoinAmount = params[0][0];
         uint256[] memory collateralParams = params[0];
-        uint256 rate = _calcRate(tokenAmount, mainCoinAmount);
                 // Hold main coin | Project Owner 
         uint256 collateralPoolId = lockDealNFT.mintAndTransfer(msg.sender, mainCoin, msg.sender, collateralParams[0], collateralProvider);
         collateralProvider.registerPool(collateralPoolId, collateralParams);
 
         uint256[] memory refundRegisterParams = new uint256[](2);
         refundRegisterParams[0] = collateralPoolId;
-        refundRegisterParams[1] = rate;
+        refundRegisterParams[1] = _calcRate(tokenAmount, mainCoinAmount);
 
         uint256 refundPoolId = lockDealNFT.mintAndTransfer(address(this), token, msg.sender, tokenAmount, refundProvider);
         uint256 bundlePoolId = lockDealNFT.mintForProvider(address(refundProvider), bundleProvider);
 
-        for (uint256 i = 2; i < addressParams.length; i++) {
+        for (uint256 i = 2; i < addressParams.length; ++i) {
             IProvider provider = IProvider(addressParams[i]);
             uint256 innerPoolId = lockDealNFT.mintForProvider(address(bundleProvider), provider);
-            uint256[] memory innerParams = params[i-1];
+            uint256[] memory innerParams = params[i - 1];
             provider.registerPool(innerPoolId, innerParams);
         }
 
         refundProvider.registerPool(refundPoolId, refundRegisterParams);
-        bundleProvider.registerPool(bundlePoolId, params[0]);
+        uint256[] memory bundleParams = new uint256[](1);
+        bundleParams[0] = lockDealNFT.tokenIdCounter() - 1;
+        bundleProvider.registerPool(bundlePoolId, bundleParams);
 
         lockDealNFT.copyVaultId(collateralPoolId, collateralPoolId + 1);
         lockDealNFT.copyVaultId(refundPoolId, collateralPoolId + 2);
         lockDealNFT.copyVaultId(collateralPoolId, collateralPoolId + 3);
   
-        for (uint256 i = 0; i < userSplits.length; i++) {
+        for (uint256 i = 0; i < userSplits.length; ++i) {
             uint256 userAmount = userSplits[i].amount;
             address user = userSplits[i].user;
             lockDealNFT.split(refundPoolId, userAmount, user);
         }
     }
-
 }
