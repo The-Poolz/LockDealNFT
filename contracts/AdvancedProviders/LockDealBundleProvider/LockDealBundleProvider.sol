@@ -51,7 +51,15 @@ contract LockDealBundleProvider is
         bundlePoolIdToLastSubPoolId[poolId] = lastSubPoolId;
     }
 
-    function registerPool(uint256 poolId,uint256[] calldata params) external override onlyProvider {
+    function registerPool(
+        uint256 poolId,
+        uint256[] calldata params
+    )
+        external
+        override
+        onlyProvider
+        validParamsLength(params.length, currentParamsTargetLenght())
+    {
         // TODO: needs to be implemented
     }
 
