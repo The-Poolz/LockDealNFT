@@ -37,7 +37,7 @@ contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder 
             block.timestamp <= params[1],
             "start time must be in the future"
         );
-        require(poolId == lockDealNFT.tokenIdCounter() - 1, "invalid params");
+        require(poolId == lockDealNFT.totalSupply() - 1, "invalid params");
         startTimes[poolId] = params[1];
         lockDealNFT.mintForProvider(address(this), dealProvider); //Main Coin Collector poolId + 1
         lockDealNFT.mintForProvider(address(this), dealProvider); //Token Collector poolId + 2

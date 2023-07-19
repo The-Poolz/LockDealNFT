@@ -7,7 +7,6 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 /// @title LockDealNFT contract
 /// @notice Implements a non-fungible token (NFT) contract for locking deals
 contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
-    using Counters for Counters.Counter;
 
     constructor(address _vaultManager) ERC721("LockDealNFT", "LDNFT") {
         require(_vaultManager != address(0x0), "invalid vault manager address");
@@ -120,8 +119,7 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         address owner,
         IProvider provider
     ) internal returns (uint256 newPoolId) {
-        newPoolId = tokenIdCounter.current();
-        tokenIdCounter.increment();
+        newPoolId = totalSupply();
         _safeMint(owner, newPoolId);
         poolIdToProvider[newPoolId] = provider;
         emit MintInitiated(provider);
