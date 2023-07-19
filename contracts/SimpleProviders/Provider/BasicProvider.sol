@@ -26,7 +26,7 @@ abstract contract BasicProvider is IProvider, ProviderModifiers {
     function registerPool(
         uint256 poolId,
         uint256[] calldata params
-    ) public virtual onlyProvider {
+    ) public virtual onlyProvider validParamsLength(params.length, currentParamsTargetLenght()) {
         _registerPool(poolId, params);
     }
 
