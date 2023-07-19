@@ -27,6 +27,13 @@ contract MockProvider is IFundsManager {
         TimedDealProvider(provider).registerPool(poolId, params);
     }
 
+    function registerPool(
+        uint256 poolId,
+        uint256[] memory params
+    ) external {
+        IProvider(provider).registerPool(poolId, params);
+    }
+
     function getParams(
         uint256 poolId
     ) public view returns (uint256[] memory params) {
