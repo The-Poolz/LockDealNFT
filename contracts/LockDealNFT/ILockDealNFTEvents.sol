@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "../interfaces/IProvider.sol";
+
 /// @title ILockDealNFTEvents interface
 /// @notice Contains all events emitted by the LockDealNFT
 interface ILockDealNFTEvents {
-    event ProviderApproved(address indexed provider, bool status);
-    event MintInitiated(address indexed provider);
+    event ProviderApproved(IProvider indexed provider, bool status);
+    event MintInitiated(IProvider indexed provider);
 
     struct BasePoolInfo {
         uint256 poolId;

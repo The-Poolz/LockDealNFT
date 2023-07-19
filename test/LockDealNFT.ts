@@ -67,7 +67,7 @@ describe("LockDealNFT", function () {
     })
 
     it("should set provider", async () => {
-        expect(await lockDealNFT.providerOf(poolId)).to.equal(dealProvider.address)
+        expect(await lockDealNFT.poolIdToProvider(poolId)).to.equal(dealProvider.address)
     })
 
     it("should return mintInitiated event", async () => {

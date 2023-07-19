@@ -17,7 +17,7 @@ abstract contract BasicProvider is IProvider, ProviderModifiers {
         address token,
         uint256[] calldata params
     ) public virtual validParamsLength(params.length, currentParamsTargetLenght()) returns (uint256 poolId) {
-        poolId = lockDealNFT.mintAndTransfer(owner, token, msg.sender, params[0], address(this));
+        poolId = lockDealNFT.mintAndTransfer(owner, token, msg.sender, params[0], this);
         _registerPool(poolId, params);
     }
 
