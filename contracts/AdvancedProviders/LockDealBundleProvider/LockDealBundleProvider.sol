@@ -5,17 +5,9 @@ import "./LockDealBundleProviderState.sol";
 import "../../SimpleProviders/Provider/ProviderModifiers.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 
-contract LockDealBundleProvider is
-    LockDealBundleProviderState,
-    ProviderModifiers,
-    IProvider,
-    ERC721Holder
-{
+contract LockDealBundleProvider is LockDealBundleProviderState, ProviderModifiers, IProvider, ERC721Holder {
     constructor(address nft) {
-        require(
-            nft != address(0x0),
-            "invalid address"
-        );
+        require(nft != address(0x0), "invalid address");
         lockDealNFT = LockDealNFT(nft);
     }
 
@@ -35,8 +27,8 @@ contract LockDealBundleProvider is
 
         uint256 totalAmount = _calcTotalAmount(providerParams);
         // create a new bundle pool owned by the owner
-        poolId = lockDealNFT.mintAndTransfer(owner, token, msg.sender, totalAmount, this);
 
+        poolId = lockDealNFT.mintAndTransfer(owner, token, msg.sender, totalAmount, this);
         uint256 lastSubPoolId;
         for (uint256 i; i < providerCount; ++i) {
             address provider = providers[i];
@@ -47,20 +39,24 @@ contract LockDealBundleProvider is
             // mint the NFT owned by the BunderDealProvider with 0 token transfer amount
             lastSubPoolId = _createNewSubPool(address(this), IProvider(provider), params);
         }
-
         bundlePoolIdToLastSubPoolId[poolId] = lastSubPoolId;
     }
 
     function registerPool(
         uint256 poolId,
         uint256[] calldata params
-    )
-        external
-        override
-        onlyProvider
-        validParamsLength(params.length, currentParamsTargetLenght())
-    {
-        // TODO: needs to be implemented
+    ) external override onlyProvider validParamsLength(params.length, currentParamsTargetLenght()) {
+        uint256 lastSubPoolId = params[0];
+        require(poolId < lastSubPoolId,"poolId can't be greater than lastSubPoolId");
+        for (uint256 i = poolId + 1; i <= lastSubPoolId; ++i) {
+            require(lockDealNFT.ownerOf(i) == address(this), "invalid owner of sub pool");
+        }
+        _registerPool(poolId, params);
+    }
+
+    ///@param params[0] = lastSubPoolId
+    function _registerPool(uint256 poolId, uint256[] memory params) internal {
+        bundlePoolIdToLastSubPoolId[poolId] = params[0];
     }
 
     function _createNewSubPool(
