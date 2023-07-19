@@ -97,7 +97,7 @@ describe("Collateral Provider", function () {
     })
 
     it("only NFT can manage withdraw", async () => {
-        await expect(collateralProvider.withdraw(poolId)).to.be.revertedWith("only NFT contract can call this function")
+        await expect(collateralProvider.withdraw(constants.AddressZero, constants.AddressZero, poolId, [])).to.be.revertedWith("only NFT contract can call this function")
     })
 
     it("should withdraw before time main coins", async () => {

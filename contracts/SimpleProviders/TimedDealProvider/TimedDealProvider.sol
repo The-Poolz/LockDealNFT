@@ -18,13 +18,6 @@ contract TimedDealProvider is BasicProvider, TimedProviderState {
         lockDealNFT = LockDealNFT(nft);
     }
 
-    /// @dev use revert only for permissions
-    function withdraw(
-        uint256 poolId
-    ) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
-        (withdrawnAmount, isFinal) = _withdraw(poolId, getWithdrawableAmount(poolId));
-    }
-
     function _withdraw(
         uint256 poolId,
         uint256 amount
@@ -32,7 +25,7 @@ contract TimedDealProvider is BasicProvider, TimedProviderState {
         (withdrawnAmount, isFinal) = lockDealProvider.withdraw(poolId, amount);
     }
 
-    function getWithdrawableAmount(uint256 poolId) public view returns (uint256) {
+    function getWithdrawableAmount(uint256 poolId) public override view returns (uint256) {
         uint256[] memory params = getParams(poolId);
         uint256 leftAmount = params[0];
         uint256 startTime = params[1];

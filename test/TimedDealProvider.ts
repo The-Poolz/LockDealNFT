@@ -2,12 +2,12 @@ import { expect, } from "chai";
 import { constants } from "ethers";
 import { ethers } from 'hardhat';
 import { time } from "@nomicfoundation/hardhat-network-helpers";
-import { LockDealProvider } from "../typechain-types/contracts/LockProvider";
-import { TimedDealProvider } from "../typechain-types/contracts/TimedDealProvider";
-import { LockDealNFT } from "../typechain-types/contracts/LockDealNFT";
-import { DealProvider } from "../typechain-types/contracts/DealProvider";
+import { LockDealProvider } from "../typechain-types";
+import { TimedDealProvider } from "../typechain-types";
+import { LockDealNFT } from "../typechain-types";
+import { DealProvider } from "../typechain-types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { MockProvider } from "../typechain-types/contracts/mock/MockProvider";
+import { MockProvider } from "../typechain-types";
 import { deployed, token } from "./helper";
 import { MockVaultManager } from "../typechain-types";
 
@@ -124,7 +124,7 @@ describe("Timed Deal Provider", function () {
         it("should split after withdraw", async () => {
             await time.setNextBlockTimestamp(startTime + halfTime / 5) // 10% of time
 
-            await lockDealNFT.withdraw(poolId)
+            await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, lockDealNFT.address, poolId)
             await lockDealNFT.split(poolId, amount / 2, newOwner.address)
 
             const poolData = await lockDealNFT.getData(poolId);
@@ -151,7 +151,7 @@ describe("Timed Deal Provider", function () {
         it("should withdraw 25% tokens", async () => {
             await time.setNextBlockTimestamp(startTime + halfTime / 2)
 
-            await lockDealNFT.withdraw(poolId)
+            await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, lockDealNFT.address, poolId)
 
             const poolData = await lockDealNFT.getData(poolId);
             expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token]);
@@ -164,7 +164,7 @@ describe("Timed Deal Provider", function () {
         it("should withdraw half tokens", async () => {
             await time.setNextBlockTimestamp(startTime + halfTime)
 
-            await lockDealNFT.withdraw(poolId)
+            await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, lockDealNFT.address, poolId)
 
             const poolData = await lockDealNFT.getData(poolId);
             expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token]);
@@ -177,17 +177,20 @@ describe("Timed Deal Provider", function () {
         it("should withdraw all tokens", async () => {
             await time.setNextBlockTimestamp(finishTime + 1)
 
-            await lockDealNFT.withdraw(poolId)
+            await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, lockDealNFT.address, poolId)
 
-            const poolData = await lockDealNFT.getData(poolId);
-            expect(poolData.poolInfo).to.deep.equal([0, constants.AddressZero, constants.AddressZero]);
-            expect(poolData.params.toString()).to.equal("");
+            const poolData = await lockDealNFT.getData(poolId)
+            expect(poolData.poolInfo).to.deep.equal([poolId, lockDealNFT.address, token])
+            expect(poolData.params[0]).to.equal("0")
+            expect(poolData.params[1]).to.equal(startTime)
+            expect(poolData.params[2]).to.equal(finishTime)
+            expect(poolData.params[3]).to.equal(amount)
         })
     })
 
     describe("test higher cascading providers", () => {
         beforeEach(async () => {
-            poolId = (await lockDealNFT.totalSupply()).toNumber() + 1
+            poolId = (await lockDealNFT.totalSupply()).toNumber()
             await mockProvider.createNewPool(receiver.address, token, params)
             await time.setNextBlockTimestamp(startTime)
         })

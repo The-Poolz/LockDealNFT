@@ -101,11 +101,12 @@ describe("Lock Deal Provider", function () {
     describe("Lock Deal Withdraw", () => {
         it("should withdraw tokens", async () => {
             await time.increase(3600)
-            await lockDealNFT.withdraw(poolId)
-            
-            const poolData = await lockDealNFT.getData(poolId);
-            expect(poolData.poolInfo).to.deep.equal([0, constants.AddressZero, constants.AddressZero]);
-            expect(poolData.params.toString()).to.equal("");
+            await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, lockDealNFT.address, poolId)
+
+            const poolData = await lockDealNFT.getData(poolId)
+            expect(poolData.poolInfo).to.deep.equal([poolId, lockDealNFT.address, token])
+            expect(poolData.params[0].toString()).to.equal("0")
+            expect(poolData.params[1].toString()).to.equal(startTime.toString())
         })
     })
 })

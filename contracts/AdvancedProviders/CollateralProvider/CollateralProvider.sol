@@ -53,9 +53,9 @@ contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder 
 
     // this need to give the project owner to get the tokens that in the poolId + 2
     function withdraw(
-        uint256 poolId
+        address, address from, uint256 poolId, bytes calldata
     ) public override onlyNFT returns (uint256, bool isFinal) {
-        address projectOwner = lockDealNFT.ownerOf(poolId);
+        address projectOwner = from;
         (uint256 mainCoinCollectorId, uint256 tokenCollectorId, uint256 mainCoinHolderId) = getInnerIds(poolId);
         //check for time
         if (startTimes[poolId] < block.timestamp) {
