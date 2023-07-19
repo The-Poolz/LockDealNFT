@@ -1,19 +1,21 @@
-import { expect, } from "chai";
-import { BigNumber, constants } from "ethers";
-import { ethers } from 'hardhat';
-import { time } from "@nomicfoundation/hardhat-network-helpers";
-import { LockDealProvider } from "../typechain-types/contracts/LockProvider";
-import { TimedDealProvider } from "../typechain-types/contracts/TimedDealProvider";
-import { LockDealBundleProvider } from "../typechain-types/";
-import { LockDealNFT } from "../typechain-types/contracts/LockDealNFT";
-import { DealProvider } from "../typechain-types/contracts/DealProvider";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { deployed, token } from "./helper";
-import { MockVaultManager } from "../typechain-types";
+import { LockDealProvider } from "../typechain-types"
+import { TimedDealProvider } from "../typechain-types"
+import { LockDealNFT } from "../typechain-types"
+import { DealProvider } from "../typechain-types"
+import { MockVaultManager } from "../typechain-types"
+import { MockProvider } from "../typechain-types/"
+import { LockDealBundleProvider } from "../typechain-types/"
+import { deployed, token } from "./helper"
+import { time } from "@nomicfoundation/hardhat-network-helpers"
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
+import { expect } from "chai"
+import { BigNumber, constants } from "ethers"
+import { ethers } from "hardhat"
 
 describe("Lock Deal Bundle Provider", function () {
     let bundleProvider: LockDealBundleProvider
-    let timedDealProvider: TimedDealProvider 
+    let mockProvider: MockProvider
+    let timedDealProvider: TimedDealProvider
     let lockProvider: LockDealProvider
     let dealProvider: DealProvider
     let lockDealNFT: LockDealNFT
@@ -32,10 +34,12 @@ describe("Lock Deal Bundle Provider", function () {
         lockProvider = await deployed("LockDealProvider", lockDealNFT.address, dealProvider.address)
         timedDealProvider = await deployed("TimedDealProvider", lockDealNFT.address, lockProvider.address)
         bundleProvider = await deployed("LockDealBundleProvider", lockDealNFT.address)
+        mockProvider = await deployed("MockProvider", lockDealNFT.address, bundleProvider.address)
         await lockDealNFT.setApprovedProvider(dealProvider.address, true)
         await lockDealNFT.setApprovedProvider(lockProvider.address, true)
         await lockDealNFT.setApprovedProvider(timedDealProvider.address, true)
         await lockDealNFT.setApprovedProvider(bundleProvider.address, true)
+        await lockDealNFT.setApprovedProvider(mockProvider.address, true)
     })
 
     beforeEach(async () => {
@@ -230,6 +234,35 @@ describe("Lock Deal Bundle Provider", function () {
         it("should revert if not called from the lockDealNFT contract", async () => {
             const splitAmount = amount.mul(3).div(10);  // totalAmount = amount*3, splitAmount = amount*3/10, rate = 10
             await expect(bundleProvider.split(bundlePoolId, splitAmount, newOwner.address)).to.be.revertedWith("invalid provider address")  
+        })
+    })
+
+    describe("Mock register pool tests", () => {
+        let params: [number]
+
+        beforeEach(async () => {
+            const lastSubPoolId = (await lockDealNFT.tokenIdCounter()).toNumber() - 1
+            params = [lastSubPoolId]
+        })
+
+        it("should register pool", async () => {
+            await mockProvider.registerPool(bundlePoolId, params)
+
+            const poolData = await lockDealNFT.getData(bundlePoolId)
+            expect(poolData.provider).to.equal(bundleProvider.address)
+            expect(poolData.poolInfo).to.deep.equal([bundlePoolId, receiver.address, token])
+            expect(poolData.params).to.deep.equal(params)
+        })
+
+        it("should revert invalid last sub pool id", async () => {
+            params[0] = bundlePoolId - 1
+            await expect(mockProvider.registerPool(bundlePoolId, params)).to.be.revertedWith("poolId can't be greater than lastSubPoolId")
+        })
+
+        it("should revert invalid pool owner", async () => {
+            await dealProvider.createNewPool(receiver.address, token, params)
+            params[0] = (await lockDealNFT.tokenIdCounter()).toNumber() - 1
+            await expect(mockProvider.registerPool(bundlePoolId, params)).to.be.revertedWith("invalid owner of sub pool")
         })
     })
 })

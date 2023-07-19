@@ -6,7 +6,7 @@ import "../../SimpleProviders/Provider/ProviderModifiers.sol";
 
 /// @title LockDealBundleProviderState contract
 /// @notice Contains storage variables
-abstract contract LockDealBundleProviderState is IProvider, ProviderModifiers {
+contract LockDealBundleProviderState {
     mapping(uint256 => uint256) public bundlePoolIdToLastSubPoolId;
 
     function _calcTotalAmount(uint256[][] calldata params) internal pure returns (uint256 totalAmount) {
