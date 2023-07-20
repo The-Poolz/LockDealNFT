@@ -46,7 +46,7 @@ contract LockDealBundleProvider is LockDealBundleProviderState, ProviderModifier
     function registerPool(
         uint256 poolId,
         uint256[] calldata params
-    ) external override onlyProvider validParamsLength(params.length, 1) {
+    ) external override onlyProvider validParamsLength(params.length, currentParamsTargetLenght()) {
         uint256 lastSubPoolId = params[0];
         require(poolId < lastSubPoolId,"poolId can't be greater than lastSubPoolId");
         for (uint256 i = poolId + 1; i <= lastSubPoolId; ++i) {
