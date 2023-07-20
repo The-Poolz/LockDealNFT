@@ -18,8 +18,4 @@ abstract contract RefundState is ProviderModifiers, IProvider {
     function currentParamsTargetLenght() public pure override returns (uint256) {
         return 2;
     }
-    
-    function _calcMainCoinAmount(uint256 amount, uint256 rate) internal pure returns (uint256) {
-        return (amount * rate) / 1e18;
-    }
 }

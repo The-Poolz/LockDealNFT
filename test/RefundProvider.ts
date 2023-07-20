@@ -155,16 +155,16 @@ describe("Refund Provider", function () {
     describe("Withdraw Pool", async () => {
         it("should withdraw tokens from pool after time", async () => {
             await time.setNextBlockTimestamp(finishTime + 1)
-            await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, refundProvider.address, poolId)
+            await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, lockDealNFT.address, poolId)
             const poolData = await lockDealNFT.getData(poolId + 1)
 
-            expect(poolData.poolInfo).to.deep.equal([poolId + 1, lockDealNFT.address, token])
+            expect(poolData.poolInfo).to.deep.equal([poolId + 1, refundProvider.address, token])
             expect(poolData.params[0].toString()).to.equal("0")
         })
 
         it("should withdraw half tokens from pool after halfTime", async () => {
             await time.setNextBlockTimestamp(startTime + halfTime)
-            await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, refundProvider.address, poolId)
+            await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, lockDealNFT.address, poolId)
 
             const poolData = await lockDealNFT.getData(poolId + 1)
             expect(poolData.poolInfo).to.deep.equal([poolId + 1, refundProvider.address, token])
@@ -176,7 +176,7 @@ describe("Refund Provider", function () {
 
         it("should increase token collector pool after halfTime", async () => {
             await time.setNextBlockTimestamp(startTime + halfTime)
-            await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, refundProvider.address, poolId)
+            await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, lockDealNFT.address, poolId)
 
             const poolData = await lockDealNFT.getData(poolId + 3)
             expect(poolData.provider).to.equal(dealProvider.address)

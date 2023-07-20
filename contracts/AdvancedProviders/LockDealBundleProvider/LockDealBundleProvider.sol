@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 import "./LockDealBundleProviderState.sol";
 import "../../SimpleProviders/Provider/ProviderModifiers.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
-import "../../SimpleProviders/Provider/BasicProvider.sol";
 
 contract LockDealBundleProvider is LockDealBundleProviderState, ProviderModifiers, IProvider, ERC721Holder {
     constructor(address nft) {

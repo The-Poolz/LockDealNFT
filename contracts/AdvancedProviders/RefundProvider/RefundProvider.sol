@@ -113,6 +113,10 @@ contract RefundProvider is RefundState, IERC721Receiver {
         lockDealNFT.split(userPoolId, splitAmount, address(this));
     }
 
+    function _calcMainCoinAmount(uint256 amount, uint256 rate) internal pure returns (uint256) {
+        return amount * rate / 1e18;
+    }
+
     ///@dev user withdraws his tokens
     function withdraw(
         address operator, address from, uint256 poolId, bytes calldata data
