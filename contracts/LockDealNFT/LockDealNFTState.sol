@@ -45,4 +45,10 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents {
     function exist(uint256 poolId) external view returns (bool) {
         return _exists(poolId);
     }
+
+    function getWithdrawableAmount(uint256 poolId) external view returns(uint256 withdrawalAmount) {
+        if (_exists(poolId)) {
+            withdrawalAmount = poolIdToProvider[poolId].getWithdrawableAmount(poolId);
+        }
+    }
 }

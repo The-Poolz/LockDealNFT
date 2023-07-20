@@ -108,5 +108,16 @@ describe("Lock Deal Provider", function () {
             expect(poolData.params[0].toString()).to.equal("0")
             expect(poolData.params[1].toString()).to.equal(startTime.toString())
         })
+
+        it("getWithdrawableAmount should return zero before startTime", async () => {
+            const withdrawableAmount = await lockProvider.getWithdrawableAmount(poolId)
+            expect(withdrawableAmount.toString()).to.equal("0")
+        })
+
+        it("getWithdrawableAmount should return full amount after startTime", async () => {
+            await time.increase(3600)
+            const withdrawableAmount = await lockProvider.getWithdrawableAmount(poolId)
+            expect(withdrawableAmount).to.equal(amount)
+        })
     })
 })

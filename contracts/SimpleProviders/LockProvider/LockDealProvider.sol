@@ -64,4 +64,8 @@ contract LockDealProvider is BasicProvider, LockDealState {
         params[0] = dealProvider.getParams(poolId)[0];  // leftAmount
         params[1] = startTimes[poolId];    // startTime
     }
+
+    function getWithdrawableAmount(uint256 poolId) public view override returns (uint256) {
+        return startTimes[poolId] <= block.timestamp ? dealProvider.getWithdrawableAmount(poolId) : 0;
+    }
 }

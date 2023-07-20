@@ -8,4 +8,5 @@ interface IProvider {
     function split(uint256 oldPoolId, uint256 newPoolId, uint256 splitAmount) external;
     function registerPool(uint256 poolId, uint256[] calldata params) external;
     function getParams(uint256 poolId) external view returns (uint256[] memory params);
+    function getWithdrawableAmount(uint256 poolId) external view returns (uint256 withdrawalAmount);
 }

@@ -1,10 +1,10 @@
 import { MockVaultManager } from "../typechain-types"
-import { CollateralProvider } from "../typechain-types/contracts/CollateralProvider"
-import { DealProvider } from "../typechain-types/contracts/DealProvider"
-import { LockDealNFT } from "../typechain-types/contracts/LockDealNFT"
-import { MockProvider } from "../typechain-types/contracts/mock/MockProvider"
+import { CollateralProvider } from "../typechain-types"
+import { DealProvider } from "../typechain-types"
+import { LockDealNFT } from "../typechain-types"
+import { MockProvider } from "../typechain-types"
 import { deployed, token } from "./helper"
-import { time } from "@nomicfoundation/hardhat-network-helpers"
+import { time, mine } from "@nomicfoundation/hardhat-network-helpers"
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 import { expect } from "chai"
 import { constants } from "ethers"
@@ -148,5 +148,23 @@ describe("Collateral Provider", function () {
 
         poolData = await lockDealNFT.getData(mainCoinHolderId)
         expect(poolData.poolInfo).to.deep.equal([mainCoinHolderId, projectOwner.address, constants.AddressZero])
+    })
+
+    it("should get zero amount before time", async () => {
+        const withdrawAmount = await lockDealNFT.getWithdrawableAmount(poolId)
+        expect(withdrawAmount).to.equal(0)
+    })
+
+    it("should get full amount after time", async () => {
+        await time.setNextBlockTimestamp(finishTime)
+        await mine(1)
+        const withdrawAmount = await lockDealNFT.getWithdrawableAmount(poolId)
+        expect(withdrawAmount).to.equal(amount)
+    })
+
+    it("should get half amount", async () => {
+        await mockProvider.handleWithdraw(poolId, amount / 2)
+        const withdrawAmount = await lockDealNFT.getWithdrawableAmount(poolId)
+        expect(withdrawAmount).to.equal(amount / 2)
     })
 })

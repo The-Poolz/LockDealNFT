@@ -101,5 +101,10 @@ describe("Deal Provider", function () {
             expect(events[events.length - 1].args.withdrawnAmount.toString()).to.equal(amount.toString())
             expect(events[events.length - 1].args.leftAmount.toString()).to.equal("0".toString())
         })
+
+        it("getWithdrawableAmount should get all amount", async () => {
+            const withdrawableAmount = await dealProvider.getWithdrawableAmount(poolId)
+            expect(withdrawableAmount).to.equal(amount)
+        })
     })
 })
