@@ -75,7 +75,6 @@ contract LockDealBundleProvider is LockDealBundleProviderState, ProviderModifier
         uint256 lastSubPoolId = bundlePoolIdToLastSubPoolId[poolId];
         isFinal = true;
         for (uint256 i = poolId + 1; i <= lastSubPoolId; ++i) {
-            // if the sub pool was already withdrawn and burnt, skip it
             if (lockDealNFT.exist(i)) {
                 IProvider provider = lockDealNFT.poolIdToProvider(i);
                 (uint256 subPoolWithdrawnAmount, bool subPoolIsFinal) = provider.withdraw(operator, from, i, data);

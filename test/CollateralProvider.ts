@@ -122,7 +122,6 @@ describe("Collateral Provider", function () {
         await mockProvider.handleWithdraw(poolId, amount / 2)
         await mockProvider.handleRefund(poolId, amount / 2, amount / 2)
         await lockDealNFT.connect(projectOwner)["safeTransferFrom(address,address,uint256)"](projectOwner.address, lockDealNFT.address, poolId)
-        //await lockDealNFT.withdraw(poolId)
         const newMainCoinHolderId = poolId + 4
         const newTokenHolderId = poolId + 5
         // should create two pools with tokens and main coins
