@@ -70,7 +70,7 @@ contract LockDealBundleProvider is LockDealBundleProviderState, ProviderModifier
     }
 
     function withdraw(
-        address, address, uint256 poolId, bytes calldata
+        address operator, address from, uint256 poolId, bytes calldata data
     ) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
         // withdraw the sub pools
         uint256 lastSubPoolId = bundlePoolIdToLastSubPoolId[poolId];
@@ -78,9 +78,8 @@ contract LockDealBundleProvider is LockDealBundleProviderState, ProviderModifier
         for (uint256 i = poolId + 1; i <= lastSubPoolId; ++i) {
             // if the sub pool was already withdrawn and burnt, skip it
             if (lockDealNFT.exist(i)) {
-                BasicProvider provider = BasicProvider(address(lockDealNFT.poolIdToProvider(i)));
-                uint256 amount = provider.getWithdrawableAmount(i);
-                (uint256 subPoolWithdrawnAmount, bool subPoolIsFinal) = provider.withdraw(i, amount);
+                IProvider provider = lockDealNFT.poolIdToProvider(i);
+                (uint256 subPoolWithdrawnAmount, bool subPoolIsFinal) = provider.withdraw(operator, from, i, data);
                 withdrawnAmount += subPoolWithdrawnAmount;
                 isFinal = isFinal && subPoolIsFinal;
             }
@@ -133,17 +132,5 @@ contract LockDealBundleProvider is LockDealBundleProviderState, ProviderModifier
 
     function _calcAmount(uint256 amount, uint256 rate) internal pure returns (uint256) {
         return amount * 1e18 / rate;
-    }
-
-    function getWithdrawableAmount(uint256 poolId) public view override returns(uint256 withdrawnAmount) {
-        uint256 lastSubPoolId = bundlePoolIdToLastSubPoolId[poolId];
-        for (uint256 i = poolId + 1; i <= lastSubPoolId; ++i) {
-            // if the sub pool was already withdrawn and burnt, skip it
-            if (lockDealNFT.exist(i)) {
-                BasicProvider provider = BasicProvider(address(lockDealNFT.poolIdToProvider(i)));
-                uint256 amount = provider.getWithdrawableAmount(i);
-                withdrawnAmount += amount;
-            }
-        }
     }
 }

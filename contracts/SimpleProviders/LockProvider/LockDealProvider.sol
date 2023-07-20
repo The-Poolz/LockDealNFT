@@ -14,7 +14,17 @@ contract LockDealProvider is BasicProvider, LockDealState {
         lockDealNFT = LockDealNFT(nft);
     }
 
-    function _withdraw(uint256 poolId, uint256 amount) internal override returns (uint256 withdrawnAmount, bool isFinal) {
+    /// @dev use revert only for permissions
+    function withdraw(
+        address, address, uint256 poolId, bytes calldata
+    ) public override onlyProvider returns (uint256 withdrawnAmount, bool isFinal) {
+        (withdrawnAmount, isFinal) = _withdraw(poolId, getParams(poolId)[0]);
+    }
+
+    function _withdraw(
+        uint256 poolId,
+        uint256 amount
+    ) internal override returns (uint256 withdrawnAmount, bool isFinal) {
         if (startTimes[poolId] <= block.timestamp) {
             (withdrawnAmount, isFinal) = dealProvider.withdraw(poolId, amount);
         }
@@ -51,15 +61,7 @@ contract LockDealProvider is BasicProvider, LockDealState {
     */
     function getParams(uint256 poolId) public view override returns (uint256[] memory params) {
         params = new uint256[](2);
-        params[0] = dealProvider.getParams(poolId)[0]; // leftAmount
-        params[1] = startTimes[poolId]; // startTime
-    }
-
-    function getWithdrawableAmount(
-        uint256 poolId
-    ) public view override returns (uint256 withdrawableAmount) {
-        if (startTimes[poolId] <= block.timestamp) {
-            return dealProvider.getWithdrawableAmount(poolId);
-        }
+        params[0] = dealProvider.getParams(poolId)[0];  // leftAmount
+        params[1] = startTimes[poolId];    // startTime
     }
 }

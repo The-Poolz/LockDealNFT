@@ -18,15 +18,7 @@ abstract contract RefundState is ProviderModifiers, IProvider {
     function currentParamsTargetLenght() public pure override returns (uint256) {
         return 2;
     }
-
-    function getWithdrawableAmount(uint256 poolId) public view virtual override returns (uint256 withdrawableAmount) {
-        uint256 userDataPoolId = poolId + 1;
-        IProvider provider = lockDealNFT.poolIdToProvider(userDataPoolId);
-        uint256 withdrawableAmount = provider.getParams(userDataPoolId)[0];
-        uint256 rateToWei = poolIdToRateToWei[poolId];
-        return _calcMainCoinAmount(withdrawableAmount, poolIdToRateToWei[poolId]);
-    }
-
+    
     function _calcMainCoinAmount(uint256 amount, uint256 rate) internal pure returns (uint256) {
         return (amount * rate) / 1e18;
     }

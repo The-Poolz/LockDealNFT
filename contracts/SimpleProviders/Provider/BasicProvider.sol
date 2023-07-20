@@ -25,21 +25,9 @@ abstract contract BasicProvider is IProvider, ProviderModifiers {
     function registerPool(
         uint256 poolId,
         uint256[] calldata params
-    ) public virtual onlyProvider {
+    ) public virtual onlyProvider validParamsLength(params.length, currentParamsTargetLenght()) {
         _registerPool(poolId, params);
     }
-
-    /**
-     * @dev used by LockedDealNFT contract to withdraw tokens from a pool.
-     * @param poolId The ID of the pool.
-     * @return withdrawnAmount The amount of tokens withdrawn.
-     * @return isFinal Boolean indicating whether the pool is empty after a withdrawal.
-     */
-    function withdraw(address, address, uint256 poolId, bytes calldata) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
-        (withdrawnAmount, isFinal) = _withdraw(poolId, getWithdrawableAmount(poolId));
-    }
-
-    function getWithdrawableAmount(uint256 poolId) public view virtual returns (uint256) {}
 
     /// @dev used by providers to implement cascading withdraw logic from the pool.
     function withdraw(
