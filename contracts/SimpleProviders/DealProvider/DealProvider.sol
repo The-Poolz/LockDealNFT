@@ -16,9 +16,7 @@ contract DealProvider is DealProviderModifiers, BasicProvider {
      * @return withdrawnAmount The amount of tokens withdrawn.
      * @return isFinal Boolean indicating whether the pool is empty after a withdrawal.
      */
-    function withdraw(
-        uint256 poolId
-    ) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
+    function withdraw(address, address, uint256 poolId, bytes calldata) public override onlyProvider returns (uint256 withdrawnAmount, bool isFinal) {
         (withdrawnAmount, isFinal) = _withdraw(poolId, poolIdToleftAmount[poolId]);
     }
 

@@ -69,15 +69,15 @@ contract LockDealBundleProvider is LockDealBundleProviderState, ProviderModifier
     }
 
     function withdraw(
-        uint256 poolId
+        address operator, address from, uint256 poolId, bytes calldata data
     ) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
         // withdraw the sub pools
         uint256 lastSubPoolId = bundlePoolIdToLastSubPoolId[poolId];
         isFinal = true;
         for (uint256 i = poolId + 1; i <= lastSubPoolId; ++i) {
-            // if the sub pool was already withdrawn and burnt, skip it
             if (lockDealNFT.exist(i)) {
-                (uint256 subPoolWithdrawnAmount, bool subPoolIsFinal) = lockDealNFT.withdraw(i);
+                IProvider provider = lockDealNFT.poolIdToProvider(i);
+                (uint256 subPoolWithdrawnAmount, bool subPoolIsFinal) = provider.withdraw(operator, from, i, data);
                 withdrawnAmount += subPoolWithdrawnAmount;
                 isFinal = isFinal && subPoolIsFinal;
             }

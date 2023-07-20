@@ -21,7 +21,6 @@ abstract contract BasicProvider is IProvider, ProviderModifiers {
         _registerPool(poolId, params);
     }
 
-    
     /// @dev used by providers to implement cascading pool creation logic.
     function registerPool(
         uint256 poolId,

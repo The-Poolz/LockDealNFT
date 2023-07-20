@@ -20,8 +20,8 @@ contract TimedDealProvider is BasicProvider, TimedProviderState {
 
     /// @dev use revert only for permissions
     function withdraw(
-        uint256 poolId
-    ) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
+        address, address, uint256 poolId, bytes calldata
+    ) public override onlyProvider returns (uint256 withdrawnAmount, bool isFinal) {
         (withdrawnAmount, isFinal) = _withdraw(poolId, getWithdrawableAmount(poolId));
     }
 
@@ -40,7 +40,7 @@ contract TimedDealProvider is BasicProvider, TimedProviderState {
         uint256 startAmount = params[3];
 
         if (block.timestamp < startTime) return 0;
-        if (finishTime < block.timestamp) return leftAmount;
+        if (finishTime <= block.timestamp) return leftAmount;
 
         uint256 totalPoolDuration = finishTime - startTime;
         uint256 timePassed = block.timestamp - startTime;

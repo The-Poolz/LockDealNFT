@@ -16,12 +16,9 @@ contract LockDealProvider is BasicProvider, LockDealState {
 
     /// @dev use revert only for permissions
     function withdraw(
-        uint256 poolId
-    ) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
-        uint256[] memory params = getParams(poolId);
-        uint256 leftAmount = params[0];
-        
-        (withdrawnAmount, isFinal) = _withdraw(poolId, leftAmount);
+        address, address, uint256 poolId, bytes calldata
+    ) public override onlyProvider returns (uint256 withdrawnAmount, bool isFinal) {
+        (withdrawnAmount, isFinal) = _withdraw(poolId, getParams(poolId)[0]);
     }
 
     function _withdraw(

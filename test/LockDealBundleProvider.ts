@@ -161,32 +161,45 @@ describe("Lock Deal Bundle Provider", function () {
     })
 
     describe("Lock Deal Bundle Withdraw", () => {
-        it("should withdraw all tokens before the startTime", async () => {
-            await time.increaseTo(startTime - 1)
-            const withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePoolId)).withdrawnAmount
-            expect(withdrawnAmount).to.equal(amount)    // from DealProvider
+        it("should withdraw all dealProvider tokens before the startTime", async () => {
+            await time.setNextBlockTimestamp(startTime - 1)
+            const beforeRemainingAmount = await bundleProvider.getTotalRemainingAmount(bundlePoolId) 
+            await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, lockDealNFT.address, bundlePoolId)
+            const afterRemainingAmount = await bundleProvider.getTotalRemainingAmount(bundlePoolId) 
+            expect(beforeRemainingAmount).to.equal(amount.mul(3))
+            expect(afterRemainingAmount).to.equal(amount.mul(2))
         })
 
-        it("should withdraw all tokens from bundle at the startTime", async () => {
-            await time.increaseTo(startTime)
-            const withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePoolId)).withdrawnAmount
-            expect(withdrawnAmount).to.equal(amount.mul(2)) // from DealProvider + LockDealProvider
+        it("should withdraw all dealProvider/lockProvider tokens from bundle at the startTime", async () => {
+            await time.setNextBlockTimestamp(startTime)
+            const beforeRemainingAmount = await bundleProvider.getTotalRemainingAmount(bundlePoolId)
+            await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, lockDealNFT.address, bundlePoolId)
+            const afterRemainingAmount = await bundleProvider.getTotalRemainingAmount(bundlePoolId) 
+            expect(beforeRemainingAmount).to.equal(amount.mul(3))
+            expect(afterRemainingAmount).to.equal(amount)
         })
 
-        it("should withdraw all tokens from bundle at the startTime + 1 day", async () => {
-            await time.increaseTo(startTime + ONE_DAY)
-            const withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePoolId)).withdrawnAmount
-            expect(withdrawnAmount).to.equal(BigNumber.from(amount.mul(2)).add(amount.div(7)))  // from DealProvider + LockDealProvider
+        it("should withdraw dealProvider, lockProvider and half timedProvider tokens", async () => {
+            const halfTime = (finishTime - startTime) / 2
+            await time.setNextBlockTimestamp(startTime + halfTime)
+            const beforeRemainingAmount = await bundleProvider.getTotalRemainingAmount(bundlePoolId)
+            await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, lockDealNFT.address, bundlePoolId)
+            const afterRemainingAmount = await bundleProvider.getTotalRemainingAmount(bundlePoolId) 
+            expect(beforeRemainingAmount).to.equal(amount.mul(3))
+            expect(afterRemainingAmount).to.equal(amount.div(2))
         })
 
         it("should withdraw all tokens after the finishTime", async () => {
-            await time.increaseTo(finishTime)
-            const withdrawnAmount = (await lockDealNFT.callStatic.withdraw(bundlePoolId)).withdrawnAmount
-            expect(withdrawnAmount).to.equal(amount.mul(3)) // from DealProvider + LockDealProvider + TimedDealProvider
+            await time.setNextBlockTimestamp(finishTime)
+            const beforeRemainingAmount = await bundleProvider.getTotalRemainingAmount(bundlePoolId)
+            await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, lockDealNFT.address, bundlePoolId)
+            const afterRemainingAmount = await bundleProvider.getTotalRemainingAmount(bundlePoolId) 
+            expect(beforeRemainingAmount).to.equal(amount.mul(3))
+            expect(afterRemainingAmount).to.equal(0)
         })
 
         it("should revert if not called from the lockDealNFT contract", async () => {
-            await expect(bundleProvider.withdraw(100)).to.be.revertedWith("only NFT contract can call this function")
+            await expect(bundleProvider.withdraw(constants.AddressZero, constants.AddressZero, 10, [])).to.be.revertedWith("only NFT contract can call this function")
         })
     })
 

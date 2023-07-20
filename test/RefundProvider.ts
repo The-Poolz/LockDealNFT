@@ -1,10 +1,10 @@
 import { MockVaultManager } from "../typechain-types"
-import { DealProvider } from "../typechain-types/contracts/DealProvider"
-import { LockDealNFT } from "../typechain-types/contracts/LockDealNFT"
-import { LockDealProvider } from "../typechain-types/contracts/LockProvider"
-import { RefundProvider } from "../typechain-types/contracts/RefundProvider"
-import { TimedDealProvider } from "../typechain-types/contracts/TimedDealProvider"
-import { CollateralProvider } from "../typechain-types/contracts/CollateralProvider"
+import { DealProvider } from "../typechain-types"
+import { LockDealNFT } from "../typechain-types"
+import { LockDealProvider } from "../typechain-types"
+import { RefundProvider } from "../typechain-types"
+import { TimedDealProvider } from "../typechain-types"
+import { CollateralProvider } from "../typechain-types"
 import { deployed, token } from "./helper"
 import { time } from "@nomicfoundation/hardhat-network-helpers"
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
@@ -155,16 +155,16 @@ describe("Refund Provider", function () {
     describe("Withdraw Pool", async () => {
         it("should withdraw tokens from pool after time", async () => {
             await time.setNextBlockTimestamp(finishTime + 1)
-            await lockDealNFT.withdraw(poolId)
+            await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, lockDealNFT.address, poolId)
             const poolData = await lockDealNFT.getData(poolId + 1)
 
-            expect(poolData.poolInfo).to.deep.equal([0, constants.AddressZero, constants.AddressZero])
-            expect(poolData.params.toString()).to.equal("")
+            expect(poolData.poolInfo).to.deep.equal([poolId + 1, refundProvider.address, token])
+            expect(poolData.params[0].toString()).to.equal("0")
         })
 
         it("should withdraw half tokens from pool after halfTime", async () => {
             await time.setNextBlockTimestamp(startTime + halfTime)
-            await lockDealNFT.withdraw(poolId)
+            await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, lockDealNFT.address, poolId)
 
             const poolData = await lockDealNFT.getData(poolId + 1)
             expect(poolData.poolInfo).to.deep.equal([poolId + 1, refundProvider.address, token])
@@ -176,7 +176,7 @@ describe("Refund Provider", function () {
 
         it("should increase token collector pool after halfTime", async () => {
             await time.setNextBlockTimestamp(startTime + halfTime)
-            await lockDealNFT.withdraw(poolId)
+            await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, lockDealNFT.address, poolId)
 
             const poolData = await lockDealNFT.getData(poolId + 3)
             expect(poolData.provider).to.equal(dealProvider.address)
