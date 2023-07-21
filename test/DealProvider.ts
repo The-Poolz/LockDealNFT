@@ -1,8 +1,8 @@
 import { expect } from "chai";
 import { constants } from "ethers";
 import { ethers } from 'hardhat';
-import { LockDealNFT } from "../typechain-types/contracts/LockDealNFT";
-import { DealProvider } from "../typechain-types/contracts/DealProvider";
+import { LockDealNFT } from "../typechain-types";
+import { DealProvider } from "../typechain-types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { MockVaultManager } from "../typechain-types";
 import { deployed, token } from "./helper";
