@@ -62,5 +62,5 @@ abstract contract BasicProvider is IProvider, ProviderModifiers {
         uint256 amount
     ) internal virtual returns (uint256 withdrawnAmount, bool isFinal) {}
 
-    function getWithdrawableAmount(uint256 poolId) public view virtual override returns(uint256) {}
+    function getWithdrawableAmount(uint256 poolId) public view virtual override returns(uint256);
 }

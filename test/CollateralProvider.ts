@@ -167,4 +167,8 @@ describe("Collateral Provider", function () {
         const withdrawAmount = await lockDealNFT.getWithdrawableAmount(poolId)
         expect(withdrawAmount).to.equal(amount / 2)
     })
+
+    it("should revert split in collater provider", async () => {
+        expect(lockDealNFT.split(poolId, amount, receiver.address)).to.be.revertedWith("not implemented")
+    })
 })
