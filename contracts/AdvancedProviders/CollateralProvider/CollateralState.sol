@@ -30,10 +30,10 @@ abstract contract CollateralState is LockDealState, ProviderModifiers, IProvider
     ) external view override returns (uint256 withdrawalAmount) {
         if (lockDealNFT.poolIdToProvider(poolId) == this) {
             (uint256 mainCoinCollectorId, , uint256 mainCoinHolderId) = getInnerIds(poolId);
+            withdrawalAmount = lockDealNFT.getWithdrawableAmount(mainCoinCollectorId);
             if (startTimes[poolId] <= block.timestamp) {
-                withdrawalAmount = lockDealNFT.getWithdrawableAmount(mainCoinHolderId);
+                withdrawalAmount += lockDealNFT.getWithdrawableAmount(mainCoinHolderId);
             }
-            withdrawalAmount += lockDealNFT.getWithdrawableAmount(mainCoinCollectorId);
         }
     }
 }

@@ -35,7 +35,7 @@ abstract contract BasicProvider is IProvider, ProviderModifiers {
      * @return withdrawnAmount The amount of tokens withdrawn.
      * @return isFinal Boolean indicating whether the pool is empty after a withdrawal.
      */
-    function withdraw(address, address, uint256 poolId, bytes calldata) public override virtual onlyProvider returns (uint256 withdrawnAmount, bool isFinal) {
+    function withdraw(address, address, uint256 poolId, bytes calldata) public override virtual onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
         (withdrawnAmount, isFinal) = _withdraw(poolId, getWithdrawableAmount(poolId));
     }
 
