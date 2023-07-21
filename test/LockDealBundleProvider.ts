@@ -6,7 +6,7 @@ import { MockVaultManager } from "../typechain-types"
 import { MockProvider } from "../typechain-types/"
 import { LockDealBundleProvider } from "../typechain-types/"
 import { deployed, token } from "./helper"
-import { time } from "@nomicfoundation/hardhat-network-helpers"
+import { time, mine } from "@nomicfoundation/hardhat-network-helpers"
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 import { expect } from "chai"
 import { BigNumber, constants } from "ethers"
@@ -196,6 +196,25 @@ describe("Lock Deal Bundle Provider", function () {
             const afterRemainingAmount = await bundleProvider.getTotalRemainingAmount(bundlePoolId) 
             expect(beforeRemainingAmount).to.equal(amount.mul(3))
             expect(afterRemainingAmount).to.equal(0)
+        })
+
+        it("should get only dealProvider amount", async () => {
+            const withdrawAmount = await lockDealNFT.getWithdrawableAmount(bundlePoolId)
+            expect(withdrawAmount).to.equal(amount)
+        })
+
+        it("should get dealProvider and lockProvider amount", async () => {
+            await time.setNextBlockTimestamp(startTime)
+            await mine(1)
+            const withdrawAmount = await lockDealNFT.getWithdrawableAmount(bundlePoolId)
+            expect(withdrawAmount).to.equal(amount.mul(2))
+        })
+
+        it("should get full amount", async () => {
+            await time.setNextBlockTimestamp(finishTime)
+            await mine(1)
+            const withdrawAmount = await lockDealNFT.getWithdrawableAmount(bundlePoolId)
+            expect(withdrawAmount).to.equal(amount.mul(3))
         })
 
         it("should revert if not called from the lockDealNFT contract", async () => {

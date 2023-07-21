@@ -6,7 +6,7 @@ import { RefundProvider } from "../typechain-types"
 import { TimedDealProvider } from "../typechain-types"
 import { CollateralProvider } from "../typechain-types"
 import { deployed, token } from "./helper"
-import { time } from "@nomicfoundation/hardhat-network-helpers"
+import { time, mine } from "@nomicfoundation/hardhat-network-helpers"
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 import { expect } from "chai"
 import { BigNumber, constants } from "ethers"
@@ -182,6 +182,25 @@ describe("Refund Provider", function () {
             expect(poolData.provider).to.equal(dealProvider.address)
             expect(poolData.poolInfo).to.deep.equal([poolId + 3, collateralProvider.address, BUSD])
             expect(poolData.params[0]).to.equal(mainCoinAmount.div(2))
+        })
+
+        it("should get zero tokens from pool before time", async () => {
+            const withdrawAmount = await lockDealNFT.getWithdrawableAmount(poolId)
+            expect(withdrawAmount).to.equal(0)
+        })
+
+        it("should get full amount after time", async () => {
+            await time.setNextBlockTimestamp(finishTime)
+            await mine(1)
+            const withdrawAmount = await lockDealNFT.getWithdrawableAmount(poolId)
+            expect(withdrawAmount).to.equal(amount)
+        })
+
+        it("should get half amount", async () => {
+            await time.setNextBlockTimestamp(startTime + halfTime)
+            await mine(1)
+            const withdrawAmount = await lockDealNFT.getWithdrawableAmount(poolId)
+            expect(withdrawAmount).to.equal(amount.div(2))
         })
     })
 
