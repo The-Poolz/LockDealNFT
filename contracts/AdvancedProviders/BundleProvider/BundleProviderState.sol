@@ -4,9 +4,9 @@ pragma solidity ^0.8.0;
 import "../../LockDealNFT/LockDealNFT.sol";
 import "../../SimpleProviders/Provider/ProviderModifiers.sol";
 
-/// @title LockDealBundleProviderState contract
+/// @title BundleProviderState contract
 /// @notice Contains storage variables
-abstract contract LockDealBundleProviderState is IProvider, ProviderModifiers {
+abstract contract BundleProviderState is IProvider, ProviderModifiers {
     mapping(uint256 => uint256) public bundlePoolIdToLastSubPoolId;
 
     function _calcTotalAmount(uint256[][] calldata params) internal pure returns (uint256 totalAmount) {

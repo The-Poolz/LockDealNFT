@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./LockDealBundleProviderState.sol";
+import "./BundleProviderState.sol";
 import "../../SimpleProviders/Provider/BasicProvider.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 
-contract LockDealBundleProvider is LockDealBundleProviderState, ERC721Holder {
+contract BundleProvider is BundleProviderState, ERC721Holder {
     constructor(address nft) {
         require(nft != address(0x0), "invalid address");
         lockDealNFT = LockDealNFT(nft);
