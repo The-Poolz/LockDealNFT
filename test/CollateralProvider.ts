@@ -42,6 +42,10 @@ describe("Collateral Provider", function () {
         await mockProvider.createNewPool(projectOwner.address, token, params)
     })
 
+    it("should return provider name", async () => {
+        expect(await collateralProvider.name()).to.equal("CollateralProvider")
+    })
+
     it("should revert invalid zero address before creation", async () => {
         await expect(deployed("CollateralProvider", lockDealNFT.address, constants.AddressZero)).to.be.revertedWith(
             "invalid address"
@@ -97,7 +101,7 @@ describe("Collateral Provider", function () {
     })
 
     it("only NFT can manage withdraw", async () => {
-        await expect(collateralProvider.withdraw(constants.AddressZero, constants.AddressZero, poolId, [])).to.be.revertedWith("only NFT contract can call this function")
+        await expect(collateralProvider["withdraw(address,address,uint256,bytes)"](constants.AddressZero, constants.AddressZero, poolId, [])).to.be.revertedWith("only NFT contract can call this function")
     })
 
     it("should withdraw before time main coins", async () => {

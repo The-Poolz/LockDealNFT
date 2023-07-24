@@ -30,6 +30,10 @@ describe("Deal Provider", function () {
         await dealProvider.createNewPool(receiver.address, token, params)
     })
 
+    it("should return provider name", async () => {
+        expect(await dealProvider.name()).to.equal("DealProvider")
+    })
+
     it("should get pool data", async () => {
         const poolData = await lockDealNFT.getData(poolId);
         expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token]);

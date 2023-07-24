@@ -49,6 +49,10 @@ describe("Timed Deal Provider", function () {
         halfTime = (finishTime - startTime) / 2
     })
 
+    it("should return provider name", async () => {
+        expect(await timedDealProvider.name()).to.equal("TimedDealProvider")
+    })
+
     it("should check lock deal provider address", async () => {
         const provider = await timedDealProvider.lockDealProvider()
         expect(provider.toString()).to.equal(lockProvider.address)

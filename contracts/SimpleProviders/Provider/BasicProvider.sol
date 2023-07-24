@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "./ProviderModifiers.sol";
 import "../../interfaces/IProvider.sol";
 
-abstract contract BasicProvider is IProvider, ProviderModifiers {
+abstract contract BasicProvider is ProviderModifiers {
     /**
      * @dev Creates a new pool with the specified parameters.
      * @param owner The address of the pool owner.

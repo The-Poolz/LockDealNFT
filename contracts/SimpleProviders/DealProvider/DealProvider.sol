@@ -8,6 +8,7 @@ contract DealProvider is DealProviderModifiers, BasicProvider {
     constructor(address _nftContract) {
         require(_nftContract != address(0x0), "invalid address");
         lockDealNFT = LockDealNFT(_nftContract);
+        name = "DealProvider";
     }
 
     function _withdraw(

@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./ProviderState.sol";
 
-contract ProviderModifiers is ProviderState {
+abstract contract ProviderModifiers is ProviderState {
     modifier onlyProvider() {
         _onlyProvider();
         _;

@@ -14,13 +14,14 @@ contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder 
         );
         lockDealNFT = LockDealNFT(_lockDealNFT);
         dealProvider = DealProvider(_dealProvider);
+        name = "CollateralProvider";
     }
 
     function registerPool(
         uint256 poolId,
         uint256[] calldata params
     )
-        external
+        public
         override
         onlyProvider
         validProviderId(poolId)
@@ -32,7 +33,7 @@ contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder 
     ///@dev each provider decides how many parameters it needs by overriding this function
     ///@param params[0] = StartAmount
     ///@param params[1] = FinishTime
-    function _registerPool(uint256 poolId, uint256[] memory params) internal {
+    function _registerPool(uint256 poolId, uint256[] calldata params) internal override {
         require(
             block.timestamp <= params[1],
             "start time must be in the future"

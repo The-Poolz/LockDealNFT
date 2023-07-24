@@ -54,6 +54,10 @@ describe("Lock Deal Bundle Provider", function () {
         await bundleProvider.createNewPool(receiver.address, token, bundleProviders, bundleProviderParams)
     })
 
+    it("should return provider name", async () => {
+        expect(await bundleProvider.name()).to.equal("BundleProvider")
+    })
+
     it("should check lock deal NFT address", async () => {
         const nftAddress = await bundleProvider.lockDealNFT()
         expect(nftAddress.toString()).to.equal(lockDealNFT.address)

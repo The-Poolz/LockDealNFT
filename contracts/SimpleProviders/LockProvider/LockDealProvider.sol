@@ -12,6 +12,7 @@ contract LockDealProvider is BasicProvider, LockDealState {
         );
         dealProvider = DealProvider(provider);
         lockDealNFT = LockDealNFT(nft);
+        name = "LockDealProvider";
     }
 
     /// @dev use revert only for permissions

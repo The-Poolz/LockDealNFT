@@ -2,9 +2,9 @@ import { expect } from "chai";
 import { constants } from "ethers";
 import { ethers } from 'hardhat';
 import { time } from "@nomicfoundation/hardhat-network-helpers";
-import { LockDealProvider } from "../typechain-types/contracts/LockProvider";
-import { LockDealNFT } from "../typechain-types/contracts/LockDealNFT";
-import { DealProvider } from "../typechain-types/contracts/DealProvider";
+import { LockDealProvider } from "../typechain-types";
+import { LockDealNFT } from "../typechain-types";
+import { DealProvider } from "../typechain-types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployed, token } from "./helper";
 import { MockVaultManager } from "../typechain-types";
@@ -35,6 +35,10 @@ describe("Lock Deal Provider", function () {
         params = [amount, startTime]
         poolId = (await lockDealNFT.totalSupply()).toNumber()
         await lockProvider.createNewPool(receiver.address, token, params)
+    })
+
+    it("should return provider name", async () => {
+        expect(await lockProvider.name()).to.equal("LockDealProvider")
     })
 
     it("should check deal provider address", async () => {
