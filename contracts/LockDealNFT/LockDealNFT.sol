@@ -8,10 +8,11 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 /// @notice Implements a non-fungible token (NFT) contract for locking deals
 contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
 
-    constructor(address _vaultManager) ERC721("LockDealNFT", "LDNFT") {
+    constructor(address _vaultManager, string memory _baseURI) ERC721("LockDealNFT", "LDNFT") {
         require(_vaultManager != address(0x0), "invalid vault manager address");
         vaultManager = IVaultManager(_vaultManager);
         approvedProviders[address(this)] = true;
+        baseURI = _baseURI;
     }
 
     function mintForProvider(
