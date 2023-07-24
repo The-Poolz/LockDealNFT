@@ -48,13 +48,23 @@ contract TimedDealProvider is BasicProvider, TimedProviderState {
         return debitableAmount - (startAmount - leftAmount);
     }
 
+    function _calcRate(uint256 tokenAValue, uint256 tokenBValue) internal pure returns (uint256) {
+        return tokenBValue != 0 ? (tokenAValue * 1e18) / tokenBValue : 0;
+    }
+
+    function _calcAmount(uint256 amount, uint256 rate) internal pure returns (uint256) {
+        return rate != 0 ? amount * 1e18 / rate : 0;
+    }
+
     function split(
         uint256 oldPoolId,
         uint256 newPoolId,
         uint256 splitAmount
     ) public onlyProvider {
+        uint256 leftAmount = lockDealProvider.dealProvider().getWithdrawableAmount(oldPoolId);
+        uint256 rate = _calcRate(leftAmount, splitAmount);
         lockDealProvider.split(oldPoolId, newPoolId, splitAmount);
-        uint256 newPoolStartAmount = poolIdToTimedDeal[oldPoolId].startAmount - splitAmount;
+        uint256 newPoolStartAmount = _calcAmount(poolIdToTimedDeal[oldPoolId].startAmount, rate);
         poolIdToTimedDeal[oldPoolId].startAmount -= newPoolStartAmount;
         poolIdToTimedDeal[newPoolId].startAmount = newPoolStartAmount;
         poolIdToTimedDeal[newPoolId].finishTime = poolIdToTimedDeal[oldPoolId].finishTime;
