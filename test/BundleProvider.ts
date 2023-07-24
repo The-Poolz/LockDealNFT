@@ -3,8 +3,8 @@ import { TimedDealProvider } from "../typechain-types"
 import { LockDealNFT } from "../typechain-types"
 import { DealProvider } from "../typechain-types"
 import { MockVaultManager } from "../typechain-types"
-import { MockProvider } from "../typechain-types/"
-import { LockDealBundleProvider } from "../typechain-types/"
+import { MockProvider } from "../typechain-types"
+import { BundleProvider } from "../typechain-types"
 import { deployed, token } from "./helper"
 import { time, mine } from "@nomicfoundation/hardhat-network-helpers"
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
@@ -13,7 +13,7 @@ import { BigNumber, constants } from "ethers"
 import { ethers } from "hardhat"
 
 describe("Lock Deal Bundle Provider", function () {
-    let bundleProvider: LockDealBundleProvider
+    let bundleProvider: BundleProvider
     let mockProvider: MockProvider
     let timedDealProvider: TimedDealProvider
     let lockProvider: LockDealProvider
@@ -33,7 +33,7 @@ describe("Lock Deal Bundle Provider", function () {
         dealProvider = await deployed("DealProvider", lockDealNFT.address)
         lockProvider = await deployed("LockDealProvider", lockDealNFT.address, dealProvider.address)
         timedDealProvider = await deployed("TimedDealProvider", lockDealNFT.address, lockProvider.address)
-        bundleProvider = await deployed("LockDealBundleProvider", lockDealNFT.address)
+        bundleProvider = await deployed("BundleProvider", lockDealNFT.address)
         mockProvider = await deployed("MockProvider", lockDealNFT.address, bundleProvider.address)
         await lockDealNFT.setApprovedProvider(dealProvider.address, true)
         await lockDealNFT.setApprovedProvider(lockProvider.address, true)
