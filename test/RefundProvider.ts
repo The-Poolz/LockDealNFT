@@ -53,7 +53,7 @@ describe("Refund Provider", function () {
         startTime = (await time.latest()) + ONE_DAY // plus 1 day
         finishTime = startTime + 7 * ONE_DAY // plus 7 days from `startTime`
         params = [amount, startTime, finishTime, mainCoinAmount, rate, finishTime]
-        poolId = (await lockDealNFT.tokenIdCounter()).toNumber()
+        poolId = (await lockDealNFT.totalSupply()).toNumber()
         await refundProvider
             .connect(projectOwner)
             .createNewRefundPool(token, receiver.address, BUSD, timedProvider.address, params)
@@ -213,7 +213,7 @@ describe("Refund Provider", function () {
         it("the user receives the main coins", async () => {
             await refundProvider.connect(projectOwner).createNewRefundPool(token, receiver.address, BUSD, lockProvider.address, params)
             await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, refundProvider.address, poolId)
-            const newMainCoinPoolId = (await lockDealNFT.tokenIdCounter()).toNumber() - 1
+            const newMainCoinPoolId = (await lockDealNFT.totalSupply()).toNumber() - 1
             
             const poolData = await lockDealNFT.getData(newMainCoinPoolId)
             expect(poolData.poolInfo).to.deep.equal([newMainCoinPoolId, receiver.address, BUSD])
