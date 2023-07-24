@@ -96,7 +96,8 @@ describe("Deal Provider", function () {
         })
 
         it("should check events after withdraw", async () => {
-            poolId = (await lockDealNFT.tokenIdCounter()).toNumber() - 1
+            poolId = (await lockDealNFT.totalSupply()).toNumber() - 1
+
             const tx = await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, lockDealNFT.address, poolId)
             await tx.wait()
             const events = await dealProvider.queryFilter(dealProvider.filters.TokenWithdrawn())

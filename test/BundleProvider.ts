@@ -277,7 +277,8 @@ describe("Lock Deal Bundle Provider", function () {
         let params: [number]
 
         beforeEach(async () => {
-            const lastSubPoolId = (await lockDealNFT.tokenIdCounter()).toNumber() - 1
+            const lastSubPoolId = (await lockDealNFT.totalSupply()).toNumber() - 1
+
             params = [lastSubPoolId]
         })
 
@@ -297,7 +298,7 @@ describe("Lock Deal Bundle Provider", function () {
 
         it("should revert invalid pool owner", async () => {
             await dealProvider.createNewPool(receiver.address, token, params)
-            params[0] = (await lockDealNFT.tokenIdCounter()).toNumber() - 1
+            params[0] = (await lockDealNFT.totalSupply()).toNumber() - 1
             await expect(mockProvider.registerPool(bundlePoolId, params)).to.be.revertedWith("invalid owner of sub pool")
         })
     })
