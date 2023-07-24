@@ -278,6 +278,7 @@ describe("Lock Deal Bundle Provider", function () {
 
         beforeEach(async () => {
             const lastSubPoolId = (await lockDealNFT.totalSupply()).toNumber() - 1
+
             params = [lastSubPoolId]
         })
 
