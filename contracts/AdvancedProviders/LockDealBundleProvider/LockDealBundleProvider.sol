@@ -9,6 +9,7 @@ contract LockDealBundleProvider is LockDealBundleProviderState, ERC721Holder {
     constructor(address nft) {
         require(nft != address(0x0), "invalid address");
         lockDealNFT = LockDealNFT(nft);
+        name = "BundleProvider";
     }
 
     ///@param providerParams[][0] = leftAmount

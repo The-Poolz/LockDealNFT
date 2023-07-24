@@ -6,7 +6,7 @@ import "../DealProvider/DealProvider.sol";
 
 /// @title LockDealState contract
 /// @notice Contains storage variables
-contract LockDealState {
+abstract contract LockDealState is BasicProvider {
     DealProvider public dealProvider;
     mapping(uint256 => uint256) public startTimes;
 }

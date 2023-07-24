@@ -16,6 +16,7 @@ contract TimedDealProvider is BasicProvider, TimedProviderState {
         );
         lockDealProvider = LockDealProvider(provider);
         lockDealNFT = LockDealNFT(nft);
+        name = "TimedDealProvider";
     }
 
     /// @dev use revert only for permissions

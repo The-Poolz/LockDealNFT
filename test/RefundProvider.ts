@@ -60,6 +60,11 @@ describe("Refund Provider", function () {
         halfTime = (finishTime - startTime) / 2
     })
 
+    it("should return provider name", async () => {
+        expect(await refundProvider.name()).to.equal("RefundProvider")
+    })
+
+
     describe("Pool Creation", async () => {
         it("should return refund pool data after creation", async () => {
             const poolData = await lockDealNFT.getData(poolId)

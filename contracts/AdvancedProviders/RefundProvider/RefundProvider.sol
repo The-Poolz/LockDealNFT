@@ -12,6 +12,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
         );
         lockDealNFT = LockDealNFT(nftContract);
         collateralProvider = CollateralProvider(provider);
+        name = "RefundProvider";
     }
 
     ///@dev refund implementation
