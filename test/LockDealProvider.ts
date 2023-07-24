@@ -2,9 +2,9 @@ import { expect } from "chai";
 import { constants } from "ethers";
 import { ethers } from 'hardhat';
 import { time } from "@nomicfoundation/hardhat-network-helpers";
-import { LockDealProvider } from "../typechain-types/contracts/LockProvider";
-import { LockDealNFT } from "../typechain-types/contracts/LockDealNFT";
-import { DealProvider } from "../typechain-types/contracts/DealProvider";
+import { LockDealProvider } from "../typechain-types";
+import { LockDealNFT } from "../typechain-types";
+import { DealProvider } from "../typechain-types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployed, token } from "./helper";
 import { MockVaultManager } from "../typechain-types";
@@ -35,6 +35,10 @@ describe("Lock Deal Provider", function () {
         params = [amount, startTime]
         poolId = (await lockDealNFT.totalSupply()).toNumber()
         await lockProvider.createNewPool(receiver.address, token, params)
+    })
+
+    it("should return provider name", async () => {
+        expect(await lockProvider.name()).to.equal("LockDealProvider")
     })
 
     it("should check deal provider address", async () => {
@@ -101,11 +105,23 @@ describe("Lock Deal Provider", function () {
     describe("Lock Deal Withdraw", () => {
         it("should withdraw tokens", async () => {
             await time.increase(3600)
-            await lockDealNFT.withdraw(poolId)
-            
-            const poolData = await lockDealNFT.getData(poolId);
-            expect(poolData.poolInfo).to.deep.equal([0, constants.AddressZero, constants.AddressZero]);
-            expect(poolData.params.toString()).to.equal("");
+            await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, lockDealNFT.address, poolId)
+
+            const poolData = await lockDealNFT.getData(poolId)
+            expect(poolData.poolInfo).to.deep.equal([poolId, lockDealNFT.address, token])
+            expect(poolData.params[0].toString()).to.equal("0")
+            expect(poolData.params[1].toString()).to.equal(startTime.toString())
+        })
+
+        it("getWithdrawableAmount should return zero before startTime", async () => {
+            const withdrawableAmount = await lockProvider.getWithdrawableAmount(poolId)
+            expect(withdrawableAmount.toString()).to.equal("0")
+        })
+
+        it("getWithdrawableAmount should return full amount after startTime", async () => {
+            await time.increase(3600)
+            const withdrawableAmount = await lockProvider.getWithdrawableAmount(poolId)
+            expect(withdrawableAmount).to.equal(amount)
         })
     })
 })

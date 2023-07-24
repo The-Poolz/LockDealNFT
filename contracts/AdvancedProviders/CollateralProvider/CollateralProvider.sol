@@ -14,13 +14,14 @@ contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder 
         );
         lockDealNFT = LockDealNFT(_lockDealNFT);
         dealProvider = DealProvider(_dealProvider);
+        name = "CollateralProvider";
     }
 
     function registerPool(
         uint256 poolId,
         uint256[] calldata params
     )
-        external
+        public
         override
         onlyProvider
         validProviderId(poolId)
@@ -32,7 +33,7 @@ contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder 
     ///@dev each provider decides how many parameters it needs by overriding this function
     ///@param params[0] = StartAmount
     ///@param params[1] = FinishTime
-    function _registerPool(uint256 poolId, uint256[] memory params) internal {
+    function _registerPool(uint256 poolId, uint256[] calldata params) internal override {
         require(
             block.timestamp <= params[1],
             "start time must be in the future"
@@ -53,21 +54,20 @@ contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder 
 
     // this need to give the project owner to get the tokens that in the poolId + 2
     function withdraw(
-        uint256 poolId
+        address, address from, uint256 poolId, bytes calldata
     ) public override onlyNFT returns (uint256, bool isFinal) {
-        address projectOwner = lockDealNFT.ownerOf(poolId);
         (uint256 mainCoinCollectorId, uint256 tokenCollectorId, uint256 mainCoinHolderId) = getInnerIds(poolId);
         //check for time
         if (startTimes[poolId] < block.timestamp) {
             // Finish Refund
-            lockDealNFT.transferFrom(address(this), projectOwner, mainCoinCollectorId);
-            lockDealNFT.transferFrom(address(this), projectOwner, tokenCollectorId);
-            lockDealNFT.transferFrom(address(this), projectOwner, mainCoinHolderId);
+            lockDealNFT.transferFrom(address(this), from, mainCoinCollectorId);
+            lockDealNFT.transferFrom(address(this), from, tokenCollectorId);
+            lockDealNFT.transferFrom(address(this), from, mainCoinHolderId);
             isFinal = true;
         } else {
             // the refund phase is not finished yet
-            _split(mainCoinCollectorId, projectOwner);
-            _split(tokenCollectorId, projectOwner);
+            _split(mainCoinCollectorId, from);
+            _split(tokenCollectorId, from);
         }
     }
 

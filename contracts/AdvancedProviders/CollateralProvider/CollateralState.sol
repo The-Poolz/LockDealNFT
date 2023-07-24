@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "../../SimpleProviders/LockProvider/LockDealState.sol";
 
-abstract contract CollateralState is LockDealState, ProviderModifiers, IProvider {
+abstract contract CollateralState is LockDealState {
     function getParams(
         uint256 poolId
     ) public override view returns (uint256[] memory params) {
@@ -23,5 +23,17 @@ abstract contract CollateralState is LockDealState, ProviderModifiers, IProvider
         mainCoinCollectorId = poolId + 1;
         tokenHolderId = poolId + 2;
         mainCoinHolderId = poolId + 3;
+    }
+
+    function getWithdrawableAmount(
+        uint256 poolId
+    ) public view override returns (uint256 withdrawalAmount) {
+        if (lockDealNFT.poolIdToProvider(poolId) == this) {
+            (uint256 mainCoinCollectorId, , uint256 mainCoinHolderId) = getInnerIds(poolId);
+            withdrawalAmount = lockDealNFT.getWithdrawableAmount(mainCoinCollectorId);
+            if (startTimes[poolId] <= block.timestamp) {
+                withdrawalAmount += lockDealNFT.getWithdrawableAmount(mainCoinHolderId);
+            }
+        }
     }
 }

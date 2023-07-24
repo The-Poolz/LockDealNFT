@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "./ProviderModifiers.sol";
 import "../../interfaces/IProvider.sol";
 
-abstract contract BasicProvider is IProvider, ProviderModifiers {
+abstract contract BasicProvider is ProviderModifiers {
     /**
      * @dev Creates a new pool with the specified parameters.
      * @param owner The address of the pool owner.
@@ -21,13 +21,22 @@ abstract contract BasicProvider is IProvider, ProviderModifiers {
         _registerPool(poolId, params);
     }
 
-    
     /// @dev used by providers to implement cascading pool creation logic.
     function registerPool(
         uint256 poolId,
         uint256[] calldata params
-    ) public virtual onlyProvider {
+    ) public virtual onlyProvider validParamsLength(params.length, currentParamsTargetLenght()) {
         _registerPool(poolId, params);
+    }
+
+    /**
+     * @dev used by LockedDealNFT contract to withdraw tokens from a pool.
+     * @param poolId The ID of the pool.
+     * @return withdrawnAmount The amount of tokens withdrawn.
+     * @return isFinal Boolean indicating whether the pool is empty after a withdrawal.
+     */
+    function withdraw(address, address, uint256 poolId, bytes calldata) public override virtual onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
+        (withdrawnAmount, isFinal) = _withdraw(poolId, getWithdrawableAmount(poolId));
     }
 
     /// @dev used by providers to implement cascading withdraw logic from the pool.
@@ -52,4 +61,6 @@ abstract contract BasicProvider is IProvider, ProviderModifiers {
         uint256 poolId,
         uint256 amount
     ) internal virtual returns (uint256 withdrawnAmount, bool isFinal) {}
+
+    function getWithdrawableAmount(uint256 poolId) public view virtual override returns(uint256);
 }

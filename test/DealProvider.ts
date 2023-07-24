@@ -1,8 +1,8 @@
 import { expect } from "chai";
 import { constants } from "ethers";
 import { ethers } from 'hardhat';
-import { LockDealNFT } from "../typechain-types/contracts/LockDealNFT";
-import { DealProvider } from "../typechain-types/contracts/DealProvider";
+import { LockDealNFT } from "../typechain-types";
+import { DealProvider } from "../typechain-types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { MockVaultManager } from "../typechain-types";
 import { deployed, token } from "./helper";
@@ -28,6 +28,10 @@ describe("Deal Provider", function () {
         poolId = (await lockDealNFT.totalSupply()).toNumber()
         params = [amount]
         await dealProvider.createNewPool(receiver.address, token, params)
+    })
+
+    it("should return provider name", async () => {
+        expect(await dealProvider.name()).to.equal("DealProvider")
     })
 
     it("should get pool data", async () => {
@@ -83,29 +87,28 @@ describe("Deal Provider", function () {
     })
 
     describe("Deal Withdraw", () => {
-        it("should return withdrawAmount and isFinal values", async () => {
-            const [withdrawnAmount, isFinal] = await lockDealNFT.callStatic.withdraw(poolId)
-            expect(withdrawnAmount.toString()).to.equal(amount.toString())
-            expect(isFinal).to.equal(true)
-        })
-
         it("should check data in pool after withdraw", async () => {
             await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, lockDealNFT.address, poolId)
 
             const poolData = await lockDealNFT.getData(poolId);
-            expect(poolData.poolInfo).to.deep.equal([0, constants.AddressZero, constants.AddressZero]);
-            expect(poolData.params.toString()).to.equal([].toString());
+            expect(poolData.poolInfo).to.deep.equal([poolId, lockDealNFT.address, token]);
+            expect(poolData.params.toString()).to.equal("0");
         })
 
         it("should check events after withdraw", async () => {
-            poolId = (await lockDealNFT.totalSupply()).toNumber()
+            poolId = (await lockDealNFT.totalSupply()).toNumber() - 1
             const tx = await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, lockDealNFT.address, poolId)
             await tx.wait()
             const events = await dealProvider.queryFilter(dealProvider.filters.TokenWithdrawn())
             expect(events[events.length - 1].args.poolId.toString()).to.equal(poolId.toString())
-            expect(events[events.length - 1].args.owner.toString()).to.equal(receiver.address.toString())
+            expect(events[events.length - 1].args.owner.toString()).to.equal(lockDealNFT.address.toString())
             expect(events[events.length - 1].args.withdrawnAmount.toString()).to.equal(amount.toString())
             expect(events[events.length - 1].args.leftAmount.toString()).to.equal("0".toString())
+        })
+
+        it("getWithdrawableAmount should get all amount", async () => {
+            const withdrawableAmount = await dealProvider.getWithdrawableAmount(poolId)
+            expect(withdrawableAmount).to.equal(amount)
         })
     })
 })

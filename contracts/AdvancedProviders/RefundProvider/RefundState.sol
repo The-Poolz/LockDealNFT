@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../../SimpleProviders/LockProvider/LockDealProvider.sol";
 import "../CollateralProvider/CollateralProvider.sol";
 
-abstract contract RefundState is ProviderModifiers, IProvider {
+abstract contract RefundState is ProviderModifiers {
     CollateralProvider public collateralProvider;
     mapping(uint256 => uint256) public poolIdToCollateralId;
     mapping(uint256 => uint256) public poolIdToRateToWei;
@@ -17,5 +16,14 @@ abstract contract RefundState is ProviderModifiers, IProvider {
 
     function currentParamsTargetLenght() public pure override returns (uint256) {
         return 2;
+    }
+
+    function getWithdrawableAmount(
+        uint256 poolId
+    ) external view override returns (uint256 withdrawalAmount) {
+        if (lockDealNFT.poolIdToProvider(poolId) == this) {
+            uint256 userPoolId = poolId + 1;
+            withdrawalAmount = lockDealNFT.getWithdrawableAmount(userPoolId); 
+        }
     }
 }

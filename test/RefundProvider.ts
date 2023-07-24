@@ -1,12 +1,12 @@
 import { MockVaultManager } from "../typechain-types"
-import { DealProvider } from "../typechain-types/contracts/DealProvider"
-import { LockDealNFT } from "../typechain-types/contracts/LockDealNFT"
-import { LockDealProvider } from "../typechain-types/contracts/LockProvider"
-import { RefundProvider } from "../typechain-types/contracts/RefundProvider"
-import { TimedDealProvider } from "../typechain-types/contracts/TimedDealProvider"
-import { CollateralProvider } from "../typechain-types/contracts/CollateralProvider"
+import { DealProvider } from "../typechain-types"
+import { LockDealNFT } from "../typechain-types"
+import { LockDealProvider } from "../typechain-types"
+import { RefundProvider } from "../typechain-types"
+import { TimedDealProvider } from "../typechain-types"
+import { CollateralProvider } from "../typechain-types"
 import { deployed, token } from "./helper"
-import { time } from "@nomicfoundation/hardhat-network-helpers"
+import { time, mine } from "@nomicfoundation/hardhat-network-helpers"
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 import { expect } from "chai"
 import { BigNumber, constants } from "ethers"
@@ -59,6 +59,11 @@ describe("Refund Provider", function () {
             .createNewRefundPool(token, receiver.address, BUSD, timedProvider.address, params)
         halfTime = (finishTime - startTime) / 2
     })
+
+    it("should return provider name", async () => {
+        expect(await refundProvider.name()).to.equal("RefundProvider")
+    })
+
 
     describe("Pool Creation", async () => {
         it("should return refund pool data after creation", async () => {
@@ -155,16 +160,16 @@ describe("Refund Provider", function () {
     describe("Withdraw Pool", async () => {
         it("should withdraw tokens from pool after time", async () => {
             await time.setNextBlockTimestamp(finishTime + 1)
-            await lockDealNFT.withdraw(poolId)
+            await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, lockDealNFT.address, poolId)
             const poolData = await lockDealNFT.getData(poolId + 1)
 
-            expect(poolData.poolInfo).to.deep.equal([0, constants.AddressZero, constants.AddressZero])
-            expect(poolData.params.toString()).to.equal("")
+            expect(poolData.poolInfo).to.deep.equal([poolId + 1, refundProvider.address, token])
+            expect(poolData.params[0].toString()).to.equal("0")
         })
 
         it("should withdraw half tokens from pool after halfTime", async () => {
             await time.setNextBlockTimestamp(startTime + halfTime)
-            await lockDealNFT.withdraw(poolId)
+            await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, lockDealNFT.address, poolId)
 
             const poolData = await lockDealNFT.getData(poolId + 1)
             expect(poolData.poolInfo).to.deep.equal([poolId + 1, refundProvider.address, token])
@@ -176,12 +181,31 @@ describe("Refund Provider", function () {
 
         it("should increase token collector pool after halfTime", async () => {
             await time.setNextBlockTimestamp(startTime + halfTime)
-            await lockDealNFT.withdraw(poolId)
+            await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, lockDealNFT.address, poolId)
 
             const poolData = await lockDealNFT.getData(poolId + 3)
             expect(poolData.provider).to.equal(dealProvider.address)
             expect(poolData.poolInfo).to.deep.equal([poolId + 3, collateralProvider.address, BUSD])
             expect(poolData.params[0]).to.equal(mainCoinAmount.div(2))
+        })
+
+        it("should get zero tokens from pool before time", async () => {
+            const withdrawAmount = await lockDealNFT.getWithdrawableAmount(poolId)
+            expect(withdrawAmount).to.equal(0)
+        })
+
+        it("should get full amount after time", async () => {
+            await time.setNextBlockTimestamp(finishTime)
+            await mine(1)
+            const withdrawAmount = await lockDealNFT.getWithdrawableAmount(poolId)
+            expect(withdrawAmount).to.equal(amount)
+        })
+
+        it("should get half amount", async () => {
+            await time.setNextBlockTimestamp(startTime + halfTime)
+            await mine(1)
+            const withdrawAmount = await lockDealNFT.getWithdrawableAmount(poolId)
+            expect(withdrawAmount).to.equal(amount.div(2))
         })
     })
 

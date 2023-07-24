@@ -8,18 +8,7 @@ contract DealProvider is DealProviderModifiers, BasicProvider {
     constructor(address _nftContract) {
         require(_nftContract != address(0x0), "invalid address");
         lockDealNFT = LockDealNFT(_nftContract);
-    }
-
-    /**
-     * @dev used by LockedDealNFT contract to withdraw tokens from a pool.
-     * @param poolId The ID of the pool.
-     * @return withdrawnAmount The amount of tokens withdrawn.
-     * @return isFinal Boolean indicating whether the pool is empty after a withdrawal.
-     */
-    function withdraw(
-        uint256 poolId
-    ) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
-        (withdrawnAmount, isFinal) = _withdraw(poolId, poolIdToleftAmount[poolId]);
+        name = "DealProvider";
     }
 
     function _withdraw(
@@ -80,5 +69,9 @@ contract DealProvider is DealProviderModifiers, BasicProvider {
         uint256 leftAmount = poolIdToleftAmount[poolId];
         params = new uint256[](1);
         params[0] = leftAmount; // leftAmount
+    }
+
+    function getWithdrawableAmount(uint256 poolId) public view override returns (uint256) {
+        return poolIdToleftAmount[poolId];
     }
 }

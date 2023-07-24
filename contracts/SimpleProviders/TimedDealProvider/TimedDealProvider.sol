@@ -16,12 +16,13 @@ contract TimedDealProvider is BasicProvider, TimedProviderState {
         );
         lockDealProvider = LockDealProvider(provider);
         lockDealNFT = LockDealNFT(nft);
+        name = "TimedDealProvider";
     }
 
     /// @dev use revert only for permissions
     function withdraw(
-        uint256 poolId
-    ) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
+        address, address, uint256 poolId, bytes calldata
+    ) public override onlyProvider returns (uint256 withdrawnAmount, bool isFinal) {
         (withdrawnAmount, isFinal) = _withdraw(poolId, getWithdrawableAmount(poolId));
     }
 
@@ -32,7 +33,7 @@ contract TimedDealProvider is BasicProvider, TimedProviderState {
         (withdrawnAmount, isFinal) = lockDealProvider.withdraw(poolId, amount);
     }
 
-    function getWithdrawableAmount(uint256 poolId) public view returns (uint256) {
+    function getWithdrawableAmount(uint256 poolId) public view override returns (uint256) {
         uint256[] memory params = getParams(poolId);
         uint256 leftAmount = params[0];
         uint256 startTime = params[1];
@@ -40,7 +41,7 @@ contract TimedDealProvider is BasicProvider, TimedProviderState {
         uint256 startAmount = params[3];
 
         if (block.timestamp < startTime) return 0;
-        if (finishTime < block.timestamp) return leftAmount;
+        if (finishTime <= block.timestamp) return leftAmount;
 
         uint256 totalPoolDuration = finishTime - startTime;
         uint256 timePassed = block.timestamp - startTime;
@@ -48,13 +49,23 @@ contract TimedDealProvider is BasicProvider, TimedProviderState {
         return debitableAmount - (startAmount - leftAmount);
     }
 
+    function _calcRate(uint256 tokenAValue, uint256 tokenBValue) internal pure returns (uint256) {
+        return tokenBValue != 0 ? (tokenAValue * 1e18) / tokenBValue : 0;
+    }
+
+    function _calcAmount(uint256 amount, uint256 rate) internal pure returns (uint256) {
+        return rate != 0 ? amount * 1e18 / rate : 0;
+    }
+
     function split(
         uint256 oldPoolId,
         uint256 newPoolId,
         uint256 splitAmount
     ) public onlyProvider {
+        uint256 leftAmount = lockDealProvider.dealProvider().getWithdrawableAmount(oldPoolId);
+        uint256 rate = _calcRate(leftAmount, splitAmount);
         lockDealProvider.split(oldPoolId, newPoolId, splitAmount);
-        uint256 newPoolStartAmount = poolIdToTimedDeal[oldPoolId].startAmount - splitAmount;
+        uint256 newPoolStartAmount = _calcAmount(poolIdToTimedDeal[oldPoolId].startAmount, rate);
         poolIdToTimedDeal[oldPoolId].startAmount -= newPoolStartAmount;
         poolIdToTimedDeal[newPoolId].startAmount = newPoolStartAmount;
         poolIdToTimedDeal[newPoolId].finishTime = poolIdToTimedDeal[oldPoolId].finishTime;

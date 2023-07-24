@@ -1,10 +1,10 @@
 import { MockVaultManager } from "../typechain-types"
-import { CollateralProvider } from "../typechain-types/contracts/CollateralProvider"
-import { DealProvider } from "../typechain-types/contracts/DealProvider"
-import { LockDealNFT } from "../typechain-types/contracts/LockDealNFT"
-import { MockProvider } from "../typechain-types/contracts/mock/MockProvider"
+import { CollateralProvider } from "../typechain-types"
+import { DealProvider } from "../typechain-types"
+import { LockDealNFT } from "../typechain-types"
+import { MockProvider } from "../typechain-types"
 import { deployed, token } from "./helper"
-import { time } from "@nomicfoundation/hardhat-network-helpers"
+import { time, mine } from "@nomicfoundation/hardhat-network-helpers"
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 import { expect } from "chai"
 import { constants } from "ethers"
@@ -40,6 +40,10 @@ describe("Collateral Provider", function () {
         params = [amount, finishTime]
         poolId = (await lockDealNFT.totalSupply()).toNumber()
         await mockProvider.createNewPool(projectOwner.address, token, params)
+    })
+
+    it("should return provider name", async () => {
+        expect(await collateralProvider.name()).to.equal("CollateralProvider")
     })
 
     it("should revert invalid zero address before creation", async () => {
@@ -97,7 +101,7 @@ describe("Collateral Provider", function () {
     })
 
     it("only NFT can manage withdraw", async () => {
-        await expect(collateralProvider.withdraw(poolId)).to.be.revertedWith("only NFT contract can call this function")
+        await expect(collateralProvider["withdraw(address,address,uint256,bytes)"](constants.AddressZero, constants.AddressZero, poolId, [])).to.be.revertedWith("only NFT contract can call this function")
     })
 
     it("should withdraw before time main coins", async () => {
@@ -122,7 +126,6 @@ describe("Collateral Provider", function () {
         await mockProvider.handleWithdraw(poolId, amount / 2)
         await mockProvider.handleRefund(poolId, amount / 2, amount / 2)
         await lockDealNFT.connect(projectOwner)["safeTransferFrom(address,address,uint256)"](projectOwner.address, lockDealNFT.address, poolId)
-        //await lockDealNFT.withdraw(poolId)
         const newMainCoinHolderId = poolId + 4
         const newTokenHolderId = poolId + 5
         // should create two pools with tokens and main coins
@@ -149,5 +152,27 @@ describe("Collateral Provider", function () {
 
         poolData = await lockDealNFT.getData(mainCoinHolderId)
         expect(poolData.poolInfo).to.deep.equal([mainCoinHolderId, projectOwner.address, constants.AddressZero])
+    })
+
+    it("should get zero amount before time", async () => {
+        const withdrawAmount = await lockDealNFT.getWithdrawableAmount(poolId)
+        expect(withdrawAmount).to.equal(0)
+    })
+
+    it("should get full amount after time", async () => {
+        await time.setNextBlockTimestamp(finishTime)
+        await mine(1)
+        const withdrawAmount = await lockDealNFT.getWithdrawableAmount(poolId)
+        expect(withdrawAmount).to.equal(amount)
+    })
+
+    it("should get half amount", async () => {
+        await mockProvider.handleWithdraw(poolId, amount / 2)
+        const withdrawAmount = await lockDealNFT.getWithdrawableAmount(poolId)
+        expect(withdrawAmount).to.equal(amount / 2)
+    })
+
+    it("should revert split in collater provider", async () => {
+        expect(lockDealNFT.split(poolId, amount, receiver.address)).to.be.revertedWith("not implemented")
     })
 })

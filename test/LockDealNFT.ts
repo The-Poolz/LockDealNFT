@@ -1,12 +1,12 @@
 import { expect } from "chai";
 import { ethers } from 'hardhat';
 import { time } from "@nomicfoundation/hardhat-network-helpers";
-import { LockDealNFT } from "../typechain-types/contracts/LockDealNFT";
-import { DealProvider } from "../typechain-types/contracts/DealProvider";
-import { LockDealProvider } from "../typechain-types/contracts/LockProvider";
-import { TimedDealProvider } from "../typechain-types/contracts/TimedDealProvider";
+import { LockDealNFT } from "../typechain-types";
+import { DealProvider } from "../typechain-types";
+import { LockDealProvider } from "../typechain-types";
+import { TimedDealProvider } from "../typechain-types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { MockVaultManager } from "../typechain-types/contracts/test/MockVaultManager";
+import { MockVaultManager } from "../typechain-types";
 import { deployed, token } from "./helper";
 
 describe("LockDealNFT", function () {
