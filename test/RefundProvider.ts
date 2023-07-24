@@ -34,7 +34,7 @@ describe("Refund Provider", function () {
     before(async () => {
         [receiver, projectOwner] = await ethers.getSigners()
         const mockVaultManager: MockVaultManager = await deployed("MockVaultManager")
-        lockDealNFT = await deployed("LockDealNFT", mockVaultManager.address)
+        lockDealNFT = await deployed("LockDealNFT", mockVaultManager.address, "")
         dealProvider = await deployed("DealProvider", lockDealNFT.address)
         lockProvider = await deployed("LockDealProvider", lockDealNFT.address, dealProvider.address)
         timedProvider = await deployed("TimedDealProvider", lockDealNFT.address, lockProvider.address)

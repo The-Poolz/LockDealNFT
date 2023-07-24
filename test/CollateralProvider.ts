@@ -25,7 +25,7 @@ describe("Collateral Provider", function () {
     before(async () => {
         [receiver, projectOwner] = await ethers.getSigners()
         const mockVaultManager: MockVaultManager = await deployed("MockVaultManager")
-        lockDealNFT = await deployed("LockDealNFT", mockVaultManager.address)
+        lockDealNFT = await deployed("LockDealNFT", mockVaultManager.address, "")
         dealProvider = await deployed("DealProvider", lockDealNFT.address)
         collateralProvider = await deployed("CollateralProvider", lockDealNFT.address, dealProvider.address)
         mockProvider = await deployed("MockProvider", lockDealNFT.address, collateralProvider.address)

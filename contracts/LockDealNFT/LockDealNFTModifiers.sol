@@ -2,9 +2,8 @@
 pragma solidity ^0.8.0;
 
 import "./LockDealNFTState.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 
-abstract contract LockDealNFTModifiers is LockDealNFTState, Ownable {
+abstract contract LockDealNFTModifiers is LockDealNFTState {
     modifier onlyApprovedProvider() {
         _onlyApprovedProvider(IProvider(msg.sender));
         _;

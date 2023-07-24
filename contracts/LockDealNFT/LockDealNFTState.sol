@@ -4,13 +4,15 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@poolzfinance/poolz-helper-v2/contracts/interfaces/IVaultManager.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "./ILockDealNFTEvents.sol";
 
 /**
  * @title LockDealNFTState
  * @dev An abstract contract that defines the state variables and mappings for the LockDealNFT contract.
  */
-abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents {
+abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Ownable {
+    string public baseURI;
     IVaultManager public vaultManager;
 
     mapping(uint256 => IProvider) public poolIdToProvider;
@@ -48,5 +50,13 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents {
         if (_exists(poolId)) {
             withdrawalAmount = poolIdToProvider[poolId].getWithdrawableAmount(poolId);
         }
+    }
+
+    function _baseURI() internal view override returns (string memory) {
+        return baseURI;
+    }
+
+    function setBaseURI(string memory newBaseURI) external onlyOwner {
+        baseURI = newBaseURI;
     }
 }

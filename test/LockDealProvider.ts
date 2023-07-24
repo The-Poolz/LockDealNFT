@@ -23,7 +23,7 @@ describe("Lock Deal Provider", function () {
     before(async () => {
         [receiver, newOwner] = await ethers.getSigners()
         const mockVaultManager: MockVaultManager = await deployed("MockVaultManager")
-        lockDealNFT = await deployed("LockDealNFT", mockVaultManager.address)
+        lockDealNFT = await deployed("LockDealNFT", mockVaultManager.address, "")
         dealProvider = await deployed("DealProvider", lockDealNFT.address)
         lockProvider = await deployed("LockDealProvider", lockDealNFT.address, dealProvider.address)
         await lockDealNFT.setApprovedProvider(lockProvider.address, true)

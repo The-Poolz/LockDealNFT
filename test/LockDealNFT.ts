@@ -22,9 +22,9 @@ describe("LockDealNFT", function () {
     const amount: string = "1000"
 
     before(async () => {
-        [notOwner, receiver] = await ethers.getSigners()
+        [receiver, notOwner] = await ethers.getSigners()
         mockVaultManager = await deployed("MockVaultManager")
-        lockDealNFT = await deployed("LockDealNFT", mockVaultManager.address)
+        lockDealNFT = await deployed("LockDealNFT", mockVaultManager.address, "")
         dealProvider = await deployed("DealProvider", lockDealNFT.address)
         lockDealProvider = await deployed("LockDealProvider", lockDealNFT.address, dealProvider.address)
         timedDealProvider = await deployed("TimedDealProvider", lockDealNFT.address, lockDealProvider.address)
@@ -120,5 +120,21 @@ describe("LockDealNFT", function () {
         expect(poolData.params[1]).to.equal(startTime)
         expect(poolData.params[2]).to.equal(finishTime)
         expect(poolData.params[3]).to.equal(amount)
+    })
+
+    it("should set baseURI", async () => {
+        const baseURI = "https://poolz.finance/"
+        await lockDealNFT.setBaseURI(baseURI)
+        expect(await lockDealNFT.baseURI()).to.equal(baseURI)
+    })
+
+    it("should revert set baseURI for not owner", async () => {
+        const baseURI = "https://notOwner.finance/"
+        await expect(lockDealNFT.connect(notOwner).setBaseURI(baseURI)).to.be.revertedWith("Ownable: caller is not the owner")
+    })
+
+    it("should return tokenURI", async () => {
+        const baseURI = await lockDealNFT.baseURI()
+        expect(await lockDealNFT.tokenURI(poolId)).to.equal(baseURI + poolId.toString())
     })
 })
