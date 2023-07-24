@@ -133,6 +133,11 @@ describe("LockDealNFT", function () {
         await expect(lockDealNFT.connect(notOwner).setBaseURI(baseURI)).to.be.revertedWith("Ownable: caller is not the owner")
     })
 
+    it("should revert the same baseURI", async () => {
+        const baseURI = await lockDealNFT.baseURI()
+        await expect(lockDealNFT.setBaseURI(baseURI)).to.be.revertedWith("can't set the same baseURI")
+    })
+
     it("should return tokenURI", async () => {
         const baseURI = await lockDealNFT.baseURI()
         expect(await lockDealNFT.tokenURI(poolId)).to.equal(baseURI + poolId.toString())
