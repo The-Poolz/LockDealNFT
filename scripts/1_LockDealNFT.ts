@@ -1,15 +1,14 @@
-import { deployed } from "../test/helper";
-import { LockDealNFT } from "../typechain-types/contracts/LockDealNFT";
+import { deployed } from "../test/helper"
+import { LockDealNFT } from "../typechain-types"
 
 async function main() {
-  const vaultManager = "0x240e127c67904984f8F42e49084e2Cc1b875D47D"// replace with your vaultManager address
-  const lockDealNFT: LockDealNFT = await deployed("LockDealNFT", vaultManager);
-  console.log(
-    `Contract deployed to ${lockDealNFT.address} with vaultManager ${vaultManager}`
-  );
+    const vaultManager = "0x2C7e92B7dD268C154c4de2558f4f32687863bB25" // replace with your vaultManager address
+    const baseURI = "https://poolz.finance/"
+    const lockDealNFT: LockDealNFT = await deployed("LockDealNFT", vaultManager, baseURI)
+    console.log(`Contract deployed to ${lockDealNFT.address} with vaultManager ${vaultManager}`)
 }
 
 main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+    console.error(error)
+    process.exitCode = 1
+})
