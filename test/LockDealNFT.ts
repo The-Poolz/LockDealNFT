@@ -95,31 +95,24 @@ describe("LockDealNFT", function () {
 
     it("should return data from DealProvider using LockedDealNFT", async () => {
         const poolData = await lockDealNFT.getData(poolId)
-        expect(poolData.provider).to.deep.equal(dealProvider.address)
-        expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token])
-        expect(poolData.params[0]).to.equal(amount)
+        const params = [amount]
+        expect(poolData).to.deep.equal([dealProvider.address, poolId, receiver.address, token, params])
     })
 
     it("should return data from LockDealProvider using LockedDealNFT", async () => {
         poolId = (await lockDealNFT.totalSupply()).toNumber()
-        await lockDealProvider.createNewPool(receiver.address, token, [amount, startTime])
+        const params = [amount, startTime]
+        await lockDealProvider.createNewPool(receiver.address, token, params)
         const poolData = await lockDealNFT.getData(poolId)
-        expect(poolData.provider).to.deep.equal(lockDealProvider.address)
-        expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token])
-        expect(poolData.params[0]).to.equal(amount)
-        expect(poolData.params[1]).to.equal(startTime)
+        expect(poolData).to.deep.equal([lockDealProvider.address, poolId, receiver.address, token, params])
     })
 
     it("should return data from TimedDealProvider using LockedDealNFT", async () => {
         poolId = (await lockDealNFT.totalSupply()).toNumber()
-        await timedDealProvider.createNewPool(receiver.address, token, [amount, startTime, finishTime, amount])
+        const params = [amount, startTime, finishTime, amount]
+        await timedDealProvider.createNewPool(receiver.address, token, params)
         const poolData = await lockDealNFT.getData(poolId)
-        expect(poolData.provider).to.deep.equal(timedDealProvider.address)
-        expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token])
-        expect(poolData.params[0]).to.equal(amount)
-        expect(poolData.params[1]).to.equal(startTime)
-        expect(poolData.params[2]).to.equal(finishTime)
-        expect(poolData.params[3]).to.equal(amount)
+        expect(poolData).to.deep.equal([timedDealProvider.address, poolId, receiver.address, token, params])
     })
 
     it("should set baseURI", async () => {

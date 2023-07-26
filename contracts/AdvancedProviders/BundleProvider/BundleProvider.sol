@@ -98,7 +98,7 @@ contract BundleProvider is BundleProviderState, ERC721Holder {
         // split the sub pools
         uint256 oldLastSubPoolId = bundlePoolIdToLastSubPoolId[oldPoolId];
         for (uint256 i = oldPoolId + 1; i <= oldLastSubPoolId; ++i) {
-            (,, uint256[] memory params) = lockDealNFT.getData(i);
+            uint256[] memory params = lockDealNFT.getData(i).params;
             uint256 oldSubPoolRemainingAmount = params[0];  // leftAmount
             uint256 subPoolSplitAmount = _calcAmount(oldSubPoolRemainingAmount, rate);
 
@@ -116,12 +116,12 @@ contract BundleProvider is BundleProviderState, ERC721Holder {
     }
 
     function getTotalRemainingAmount(uint256 poolId) public view returns (uint256 totalRemainingAmount) {
-        (IProvider provider,,) = lockDealNFT.getData(poolId);
+        IProvider provider = lockDealNFT.poolIdToProvider(poolId);
         require(provider == this, "not bundle poolId");
 
         uint256 lastSubPoolId = bundlePoolIdToLastSubPoolId[poolId];
         for (uint256 i = poolId + 1; i <= lastSubPoolId; ++i) {
-            (,, uint256[] memory params) = lockDealNFT.getData(i);
+            uint256[] memory params = lockDealNFT.getData(i).params;
             totalRemainingAmount += params[0];  // leftAmount
         }
     }

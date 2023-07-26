@@ -19,19 +19,19 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
     mapping(uint256 => uint256) public poolIdToVaultId;
     mapping(address => bool) public approvedProviders;
 
-    function getData(uint256 poolId)
-        public
-        view
-        returns (
-            IProvider provider,
-            BasePoolInfo memory poolInfo,
-            uint256[] memory params
-        )
-    {
+    function getData(
+        uint256 poolId
+    ) public view returns (BasePoolInfo memory poolInfo) {
         if (_exists(poolId)) {
-            provider = poolIdToProvider[poolId];
-            params = provider.getParams(poolId);
-            poolInfo = BasePoolInfo(poolId, ownerOf(poolId), tokenOf(poolId));
+            IProvider provider = poolIdToProvider[poolId];
+            uint256[] memory params = provider.getParams(poolId);
+            poolInfo = BasePoolInfo(
+                provider,
+                poolId,
+                ownerOf(poolId),
+                tokenOf(poolId),
+                params
+            );
         }
     }
 
