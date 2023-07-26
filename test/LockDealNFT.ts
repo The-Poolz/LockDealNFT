@@ -152,4 +152,8 @@ describe("LockDealNFT", function () {
         expect(events[events.length - 1].args.oldBaseURI).to.equal(oldBaseURI)
         expect(events[events.length - 1].args.newBaseURI).to.equal(baseURI)
     })
+
+    it("should revert not pool owner split call", async () => {
+        await expect(lockDealNFT.connect(notOwner).split(poolId, amount, receiver.address)).to.be.revertedWith("Caller is not the pool owner")
+    })
 })
