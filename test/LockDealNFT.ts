@@ -142,4 +142,14 @@ describe("LockDealNFT", function () {
         const baseURI = await lockDealNFT.baseURI()
         expect(await lockDealNFT.tokenURI(poolId)).to.equal(baseURI + poolId.toString())
     })
+
+    it("should return tokenURI event", async () => {
+        const oldBaseURI = await lockDealNFT.baseURI()
+        const baseURI = "https://nft.poolz.finance/test/metadata/"
+        const tx = await lockDealNFT.setBaseURI(baseURI)
+        await tx.wait()
+        const events = await lockDealNFT.queryFilter(lockDealNFT.filters.BaseURIChanged())
+        expect(events[events.length - 1].args.oldBaseURI).to.equal(oldBaseURI)
+        expect(events[events.length - 1].args.newBaseURI).to.equal(baseURI)
+    })
 })
