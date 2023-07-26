@@ -58,6 +58,8 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
 
     function setBaseURI(string memory newBaseURI) external onlyOwner {
         require(keccak256(abi.encodePacked(baseURI)) != keccak256(abi.encodePacked(newBaseURI)), "can't set the same baseURI");
+        string memory oldBaseURI = baseURI;
         baseURI = newBaseURI;
+        emit BaseURIChanged(oldBaseURI, newBaseURI);
     }
 }

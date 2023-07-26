@@ -8,6 +8,7 @@ import "../interfaces/IProvider.sol";
 interface ILockDealNFTEvents {
     event ProviderApproved(IProvider indexed provider, bool status);
     event MintInitiated(IProvider indexed provider);
+    event BaseURIChanged(string oldBaseURI, string newBaseURI);
 
     struct BasePoolInfo {
         uint256 poolId;
