@@ -98,8 +98,7 @@ contract BundleProvider is BundleProviderState, ERC721Holder {
         // split the sub pools
         uint256 oldLastSubPoolId = bundlePoolIdToLastSubPoolId[oldPoolId];
         for (uint256 i = oldPoolId + 1; i <= oldLastSubPoolId; ++i) {
-            uint256[] memory params = lockDealNFT.getData(i).params;
-            uint256 oldSubPoolRemainingAmount = params[0];  // leftAmount
+            uint256 oldSubPoolRemainingAmount = lockDealNFT.getData(i).params[0];  // leftAmount
             uint256 subPoolSplitAmount = _calcAmount(oldSubPoolRemainingAmount, rate);
 
             // split the sub poold
@@ -121,8 +120,7 @@ contract BundleProvider is BundleProviderState, ERC721Holder {
 
         uint256 lastSubPoolId = bundlePoolIdToLastSubPoolId[poolId];
         for (uint256 i = poolId + 1; i <= lastSubPoolId; ++i) {
-            uint256[] memory params = lockDealNFT.getData(i).params;
-            totalRemainingAmount += params[0];  // leftAmount
+            totalRemainingAmount += lockDealNFT.getData(i).params[0];  // leftAmount
         }
     }
 
