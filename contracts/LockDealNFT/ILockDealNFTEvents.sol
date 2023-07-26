@@ -11,8 +11,10 @@ interface ILockDealNFTEvents {
     event BaseURIChanged(string oldBaseURI, string newBaseURI);
 
     struct BasePoolInfo {
+        IProvider provider;
         uint256 poolId;
         address owner;
         address token;
+        uint256[] params;
     }
 }
