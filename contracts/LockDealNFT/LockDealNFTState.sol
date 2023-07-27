@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@poolzfinance/poolz-helper-v2/contracts/interfaces/IVaultManager.sol";
+import "@poolzfinance/poolz-helper-v2/contracts/Array.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./ILockDealNFTEvents.sol";
 
@@ -34,17 +35,18 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
         }
     }
 
-    function getData(
+    function getUserDataByTokens(
         address user,
         address[] memory tokens
     ) public view returns (BasePoolInfo[] memory poolInfo) {
-        uint256 poolInfoCount = getUserPoolIDs(user).length;
+        uint256 poolInfoCount = balanceOf(user);
         poolInfo = new BasePoolInfo[](poolInfoCount);
+        uint256 poolInfoIndex = 0;
         for(uint256 i = 0; i < tokens.length; ++i){
-            uint256[] memory poolIds = getUserPoolIDsByToken(user, tokens[i]);
-            for(uint256 j = 0; j < poolIds.length; ++j){
-                poolInfo[j] = getData(poolIds[j]);
-            }
+        uint256[] memory poolIds = getUserPoolIDsByToken(user, tokens[i]);
+             for(uint256 j = 0; j < poolIds.length; ++j){
+                 poolInfo[poolInfoIndex++] = getData(poolIds[j]);
+             }
         }
     }
 
@@ -74,12 +76,14 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
     ) public view returns (uint256[] memory poolIds) {
         uint256 poolCount = balanceOf(user);
         poolIds = new uint256[](poolCount);
+        uint256 poolIdsIndex = 0;
         for (uint256 i = 0; i < poolCount; ++i) {
             uint256 poolId = tokenOfOwnerByIndex(user, i);
             if (tokenOf(poolId) == token) {
-                poolIds[i] = poolId;
+                poolIds[poolIdsIndex++] = poolId;
             }
         }
+        return Array.KeepNElementsInArray(poolIds, poolIdsIndex);
     }
 
     function getAllPoolIdsByToken(address token) public view returns(uint256 [] memory poolIds) {
