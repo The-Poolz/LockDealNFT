@@ -34,6 +34,65 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
         }
     }
 
+    function getData(
+        address user,
+        address[] memory tokens
+    ) public view returns (BasePoolInfo[] memory poolInfo) {
+        uint256 poolInfoCount = getUserPoolIDs(user).length;
+        poolInfo = new BasePoolInfo[](poolInfoCount);
+        for(uint256 i = 0; i < tokens.length; ++i){
+            uint256[] memory poolIds = getUserPoolIDsByToken(user, tokens[i]);
+            for(uint256 j = 0; j < poolIds.length; ++j){
+                poolInfo[j] = getData(poolIds[j]);
+            }
+        }
+    }
+
+    function getDataByPoolIDs(
+        uint256[] memory poolIds
+    ) public view returns (BasePoolInfo[] memory poolInfo) {
+        uint256 poolCount = poolIds.length;
+        poolInfo = new BasePoolInfo[](poolCount);
+        for (uint256 i = 0; i < poolCount; ++i) {
+            poolInfo[i] = getData(poolIds[i]);
+        }
+    }
+
+    function getUserPoolIDs(
+        address user
+    ) public view returns (uint256[] memory poolIds) {
+        uint256 poolCount = balanceOf(user);
+        poolIds = new uint256[](poolCount);
+        for (uint256 i = 0; i < poolCount; ++i) {
+            poolIds[i] = tokenOfOwnerByIndex(user, i);
+        }
+    }
+
+    function getUserPoolIDsByToken(
+        address user,
+        address token
+    ) public view returns (uint256[] memory poolIds) {
+        uint256 poolCount = balanceOf(user);
+        poolIds = new uint256[](poolCount);
+        for (uint256 i = 0; i < poolCount; ++i) {
+            uint256 poolId = tokenOfOwnerByIndex(user, i);
+            if (tokenOf(poolId) == token) {
+                poolIds[i] = poolId;
+            }
+        }
+    }
+
+    function getAllPoolIdsByToken(address token) public view returns(uint256 [] memory poolIds) {
+        uint256 poolCount = totalSupply();
+        poolIds = new uint256[](poolCount);
+        for (uint256 i = 0; i < poolCount; ++i) {
+            uint256 poolId = tokenByIndex(i);
+            if (tokenOf(poolId) == token) {
+                poolIds[i] = poolId;
+            }
+        }
+    }
+
     function tokenOf(uint256 poolId) public view returns (address token) {
         token = vaultManager.vaultIdToTokenAddress(poolIdToVaultId[poolId]);
     }
