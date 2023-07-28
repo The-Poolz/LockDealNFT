@@ -9,8 +9,8 @@ abstract contract LockDealNFTModifiers is LockDealNFTState {
         _;
     }
 
-    modifier onlyOwnerOrAdmin(uint256 poolId) {
-        _onlyOwnerOrAdmin(poolId);
+    modifier onlyPoolOwner(uint256 poolId) {
+        _onlyPoolOwner(poolId);
         _;
     }
 
@@ -45,11 +45,8 @@ abstract contract LockDealNFTModifiers is LockDealNFTState {
         );
     }
 
-    function _onlyOwnerOrAdmin(uint256 poolId) internal view {
-        require(
-            msg.sender == ownerOf(poolId) || msg.sender == owner(),
-            "invalid caller address"
-        );
+    function _onlyPoolOwner(uint256 poolId) internal view {
+        require(msg.sender == ownerOf(poolId), "Caller is not the pool owner");
     }
 
     function _onlyApprovedProvider(IProvider provider) internal view {

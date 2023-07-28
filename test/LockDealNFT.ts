@@ -95,31 +95,24 @@ describe("LockDealNFT", function () {
 
     it("should return data from DealProvider using LockedDealNFT", async () => {
         const poolData = await lockDealNFT.getData(poolId)
-        expect(poolData.provider).to.deep.equal(dealProvider.address)
-        expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token])
-        expect(poolData.params[0]).to.equal(amount)
+        const params = [amount]
+        expect(poolData).to.deep.equal([dealProvider.address, poolId, receiver.address, token, params])
     })
 
     it("should return data from LockDealProvider using LockedDealNFT", async () => {
         poolId = (await lockDealNFT.totalSupply()).toNumber()
-        await lockDealProvider.createNewPool(receiver.address, token, [amount, startTime])
+        const params = [amount, startTime]
+        await lockDealProvider.createNewPool(receiver.address, token, params)
         const poolData = await lockDealNFT.getData(poolId)
-        expect(poolData.provider).to.deep.equal(lockDealProvider.address)
-        expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token])
-        expect(poolData.params[0]).to.equal(amount)
-        expect(poolData.params[1]).to.equal(startTime)
+        expect(poolData).to.deep.equal([lockDealProvider.address, poolId, receiver.address, token, params])
     })
 
     it("should return data from TimedDealProvider using LockedDealNFT", async () => {
         poolId = (await lockDealNFT.totalSupply()).toNumber()
-        await timedDealProvider.createNewPool(receiver.address, token, [amount, startTime, finishTime, amount])
+        const params = [amount, startTime, finishTime, amount]
+        await timedDealProvider.createNewPool(receiver.address, token, params)
         const poolData = await lockDealNFT.getData(poolId)
-        expect(poolData.provider).to.deep.equal(timedDealProvider.address)
-        expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token])
-        expect(poolData.params[0]).to.equal(amount)
-        expect(poolData.params[1]).to.equal(startTime)
-        expect(poolData.params[2]).to.equal(finishTime)
-        expect(poolData.params[3]).to.equal(amount)
+        expect(poolData).to.deep.equal([timedDealProvider.address, poolId, receiver.address, token, params])
     })
 
     it("should set baseURI", async () => {
@@ -141,5 +134,19 @@ describe("LockDealNFT", function () {
     it("should return tokenURI", async () => {
         const baseURI = await lockDealNFT.baseURI()
         expect(await lockDealNFT.tokenURI(poolId)).to.equal(baseURI + poolId.toString())
+    })
+
+    it("should return tokenURI event", async () => {
+        const oldBaseURI = await lockDealNFT.baseURI()
+        const baseURI = "https://nft.poolz.finance/test/metadata/"
+        const tx = await lockDealNFT.setBaseURI(baseURI)
+        await tx.wait()
+        const events = await lockDealNFT.queryFilter(lockDealNFT.filters.BaseURIChanged())
+        expect(events[events.length - 1].args.oldBaseURI).to.equal(oldBaseURI)
+        expect(events[events.length - 1].args.newBaseURI).to.equal(baseURI)
+    })
+
+    it("should revert not pool owner split call", async () => {
+        await expect(lockDealNFT.connect(notOwner).split(poolId, amount, receiver.address)).to.be.revertedWith("Caller is not the pool owner")
     })
 })
