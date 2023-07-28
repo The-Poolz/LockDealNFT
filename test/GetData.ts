@@ -58,7 +58,7 @@ describe("Data tests", function () {
         })
 
         it("should get user data by tokens", async () => {
-            const poolData = await lockDealNFT.getUserDataByTokens(lockReceiver.address, [token, BUSD], 2, 3)
+            const poolData = await lockDealNFT.getUserDataByTokens(lockReceiver.address, [token, BUSD], 0, 1)
             expect(poolData[0]).to.deep.equal([lockProvider.address, poolId, lockReceiver.address, token, params])
             expect(poolData[1]).to.deep.equal([lockProvider.address, poolId + 1, lockReceiver.address, BUSD, params])
         })

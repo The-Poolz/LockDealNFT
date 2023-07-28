@@ -42,14 +42,14 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
         uint256 to
     ) public view returns (BasePoolInfo[] memory userPoolInfo) {
         require(from <= to, "Invalid range");
+        require(to - from < balanceOf(user),"Range greater than user pool count");
         userPoolInfo = new BasePoolInfo[](to - from + 1);
         uint256 userPoolCount = 0;
-        for (uint256 poolId = from; poolId <= to; ++poolId) {
-            address tokenAddress = tokenOf(poolId);
-            for (uint256 j = 0; j < tokens.length; ++j) {
-                if (tokens[j] == tokenAddress && ownerOf(poolId) == user) {
+        for (uint256 j = from; j <= to; ++j) {
+            uint256 poolId = tokenOfOwnerByIndex(user, j);
+            for (uint256 i = 0; i < tokens.length; ++i) {
+                if (tokens[i] == tokenOf(poolId)) {
                     userPoolInfo[userPoolCount++] = getData(poolId);
-                    break;
                 }
             }
         }
