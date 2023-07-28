@@ -1,18 +1,18 @@
-import { expect, } from "chai";
-import { constants } from "ethers";
-import { ethers } from 'hardhat';
-import { time } from "@nomicfoundation/hardhat-network-helpers";
-import { LockDealProvider } from "../typechain-types";
-import { TimedDealProvider } from "../typechain-types";
-import { LockDealNFT } from "../typechain-types";
-import { DealProvider } from "../typechain-types";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { MockProvider } from "../typechain-types";
-import { deployed, token } from "./helper";
-import { MockVaultManager } from "../typechain-types";
+import { LockDealProvider } from "../typechain-types"
+import { TimedDealProvider } from "../typechain-types"
+import { LockDealNFT } from "../typechain-types"
+import { DealProvider } from "../typechain-types"
+import { MockProvider } from "../typechain-types"
+import { MockVaultManager } from "../typechain-types"
+import { deployed, token, BUSD } from "./helper"
+import { time } from "@nomicfoundation/hardhat-network-helpers"
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
+import { expect } from "chai"
+import { constants } from "ethers"
+import { ethers } from "hardhat"
 
 describe("Timed Deal Provider", function () {
-    let timedDealProvider: TimedDealProvider 
+    let timedDealProvider: TimedDealProvider
     let lockProvider: LockDealProvider
     let dealProvider: DealProvider
     let lockDealNFT: LockDealNFT
@@ -62,6 +62,41 @@ describe("Timed Deal Provider", function () {
         const poolData = await lockDealNFT.getData(poolId)
         const params = [amount, startTime, finishTime, amount]
         expect(poolData).to.deep.equal([timedDealProvider.address, poolId, receiver.address, token, params])
+    })
+
+    it("should get user data by one token", async () => {
+        const params = [amount, startTime, finishTime, amount]
+        await timedDealProvider.createNewPool(receiver.address, token, params)
+        const poolData = await lockDealNFT.getUserDataByTokens(receiver.address, [token], poolId, poolId)
+        expect(poolData[0]).to.deep.equal([timedDealProvider.address, poolId, receiver.address, token, params])
+        expect(poolData.length).to.equal(1)
+    })
+
+    it("should get user data with two tokens", async () => {
+        const params = [amount, startTime, finishTime, amount]
+        const from = (await lockDealNFT.totalSupply()).toNumber()
+        await timedDealProvider.createNewPool(receiver.address, token, params)
+        await timedDealProvider.createNewPool(receiver.address, BUSD, params)
+        const to = from + 1
+        const poolData = await lockDealNFT.getUserDataByTokens(receiver.address, [token, BUSD], from, to)
+        expect(poolData[0]).to.deep.equal([timedDealProvider.address, from, receiver.address, token, params])
+        expect(poolData[1]).to.deep.equal([timedDealProvider.address, to, receiver.address, BUSD, params])
+        expect(poolData.length).to.equal(2)
+    })
+
+    it("should get user data with three tokens", async () => {
+        const params = [amount, startTime, finishTime, amount]
+        const USDT = "0x55d398326f99059ff775485246999027b3197955"
+        const from = (await lockDealNFT.totalSupply()).toNumber()
+        await timedDealProvider.createNewPool(receiver.address, token, params)
+        await timedDealProvider.createNewPool(receiver.address, BUSD, params)
+        await timedDealProvider.createNewPool(receiver.address, USDT, params)
+        const to = from + 2
+        const poolData = await lockDealNFT.getUserDataByTokens(receiver.address, [BUSD, USDT], from + 1, to)
+        expect(poolData[0]).to.deep.equal([timedDealProvider.address, from, receiver.address, token, params])
+        expect(poolData[1]).to.deep.equal([timedDealProvider.address, from + 1, receiver.address, BUSD, params])
+        expect(poolData[2]).to.deep.equal([timedDealProvider.address, to, receiver.address, USDT, params])
+        expect(poolData.length).to.equal(3)
     })
 
     it("should check cascade NewPoolCreated event", async () => {
