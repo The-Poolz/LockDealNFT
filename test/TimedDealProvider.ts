@@ -92,7 +92,7 @@ describe("Timed Deal Provider", function () {
         await timedDealProvider.createNewPool(receiver.address, BUSD, params)
         await timedDealProvider.createNewPool(receiver.address, USDT, params)
         const to = from + 2
-        const poolData = await lockDealNFT.getUserDataByTokens(receiver.address, [BUSD, USDT], from + 1, to)
+        const poolData = await lockDealNFT.getUserDataByTokens(receiver.address, [token, BUSD, USDT], from + 1, to)
         expect(poolData[0]).to.deep.equal([timedDealProvider.address, from, receiver.address, token, params])
         expect(poolData[1]).to.deep.equal([timedDealProvider.address, from + 1, receiver.address, BUSD, params])
         expect(poolData[2]).to.deep.equal([timedDealProvider.address, to, receiver.address, USDT, params])
