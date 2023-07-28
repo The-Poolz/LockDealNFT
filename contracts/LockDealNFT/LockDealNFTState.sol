@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@poolzfinance/poolz-helper-v2/contracts/interfaces/IVaultManager.sol";
+import "@poolzfinance/poolz-helper-v2/contracts/Array.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./ILockDealNFTEvents.sol";
 
@@ -46,11 +47,8 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
         uint256 userPoolCount = 0;
         for (uint256 i = from; i <= to; ++i) {
             uint256 poolId = tokenOfOwnerByIndex(user, i);
-            for (uint256 j = 0; j < tokens.length; ++j) {
-                if (tokens[j] == tokenOf(poolId)) {
-                    userPoolInfo[userPoolCount++] = getData(poolId);
-                    break;
-                }
+            if (Array.isInArray(tokens, tokenOf(poolId))) {
+                userPoolInfo[userPoolCount++] = getData(poolId);
             }
         }
     }
