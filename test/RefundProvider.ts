@@ -5,7 +5,7 @@ import { LockDealProvider } from "../typechain-types"
 import { RefundProvider } from "../typechain-types"
 import { TimedDealProvider } from "../typechain-types"
 import { CollateralProvider } from "../typechain-types"
-import { deployed, token } from "./helper"
+import { deployed, token, BUSD } from "./helper"
 import { time, mine } from "@nomicfoundation/hardhat-network-helpers"
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 import { expect } from "chai"
@@ -25,7 +25,6 @@ describe("Refund Provider", function () {
     let poolId: number
     let receiver: SignerWithAddress
     let projectOwner: SignerWithAddress
-    let BUSD: string
     let params: [BigNumber, number, number, BigNumber, BigNumber, number]
     let startTime: number, finishTime: number
     const amount = ethers.utils.parseEther("100")
@@ -40,7 +39,6 @@ describe("Refund Provider", function () {
         timedProvider = await deployed("TimedDealProvider", lockDealNFT.address, lockProvider.address)
         collateralProvider = await deployed("CollateralProvider", lockDealNFT.address, dealProvider.address)
         refundProvider = await deployed("RefundProvider", lockDealNFT.address, collateralProvider.address)
-        BUSD = "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56"
         await lockDealNFT.setApprovedProvider(refundProvider.address, true)
         await lockDealNFT.setApprovedProvider(lockProvider.address, true)
         await lockDealNFT.setApprovedProvider(dealProvider.address, true)
