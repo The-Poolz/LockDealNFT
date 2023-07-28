@@ -4,7 +4,7 @@ import { LockDealNFT, DealProvider, LockDealProvider, TimedDealProvider, Collate
 async function deployAllContracts() {
   // if don't have vaultManager address, can deploy MockVaultManager from mock folder
   const vaultManager = "0x0000000000000000000000000000000000000000" // replace with your vaultManager address
-  const baseURI = "https://poolz.finance/"
+  const baseURI = "https://nft.poolz.finance/test/metadata/"
 
   // Deploy LockDealNFT contract
   const lockDealNFT: LockDealNFT = await deployed("LockDealNFT", vaultManager, baseURI)
