@@ -22,7 +22,25 @@ jobs:
         with:
           node-version: '18.15.0'  # Specify your Node.js version here
 
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Check if cache hit
+        id: cache-hit
+        run: |
+          if [ -d 'node_modules' ]; then
+            echo "CACHE_HIT=true" >> $GITHUB_ENV
+          else
+            echo "CACHE_HIT=false" >> $GITHUB_ENV
+          fi
+
       - name: Install dependencies
+        if: env.CACHE_HIT != 'true'
         run: yarn
 
       - name: Run tests and generate coverage
