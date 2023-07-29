@@ -26,7 +26,7 @@ jobs:
         run: yarn
 
       - name: Run tests and generate coverage
-        run: npx hardhat coverage
+        run: npx hardhat coverage --parallel
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
