@@ -41,7 +41,7 @@ jobs:
 
       - name: Install dependencies
         if: env.CACHE_HIT != 'true'
-        run: yarn install
+        run: yarn
 
       - name: Run tests and generate coverage
         run: npx hardhat coverage
