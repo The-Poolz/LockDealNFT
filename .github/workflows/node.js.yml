@@ -22,11 +22,29 @@ jobs:
         with:
           node-version: '18.15.0'  # Specify your Node.js version here
 
+      - name: Get Yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
+      - name: Cache Yarn directory
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
       - name: Install dependencies
-        run: yarn
+        run: |
+          if [ -d "${{ steps.yarn-cache-dir-path.outputs.dir }}" ]; then
+            echo "Cache hit, skipping installation"
+          else
+            echo "Cache not hit, installing dependencies"
+            yarn install
+          fi
 
       - name: Run tests and generate coverage
-        run: npx hardhat coverage --parallel
+        run: npx hardhat coverage
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
