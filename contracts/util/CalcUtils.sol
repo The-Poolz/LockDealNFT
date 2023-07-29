@@ -7,6 +7,6 @@ library CalcUtils {
     }
 
     function calcAmount(uint256 amount, uint256 rate) internal pure returns (uint256) {
-        return amount * 1e18 / rate;
+        return (amount * 1e18) / rate;
     }
 }
