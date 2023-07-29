@@ -22,21 +22,40 @@ jobs:
         with:
           node-version: '18.15.0'  # Specify your Node.js version here
 
+      - name: Cache Node.js modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm  # npm cache files are stored in `~/.npm` on Linux/macOS
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
       - name: Get Yarn cache directory path
         id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
+        run: echo "YARN_CACHE_DIR=$(yarn cache dir)" >> $GITHUB_ENV
 
       - name: Cache Yarn directory
         uses: actions/cache@v3
         with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          path: ${{ env.YARN_CACHE_DIR }}
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
 
+      - name: Check if cache is empty
+        id: check-cache
+        run: |
+          if [ "$(ls -A ${{ env.YARN_CACHE_DIR }})" ]; then
+            echo "Cache is not empty."
+            echo "CACHE_HIT=true" >> $GITHUB_ENV
+          else
+            echo "Cache is empty."
+            echo "CACHE_HIT=false" >> $GITHUB_ENV
+          fi
+
       - name: Install dependencies
         run: |
-          if [ -d "${{ steps.yarn-cache-dir-path.outputs.dir }}" ]; then
+          if ${{ env.CACHE_HIT }}; then
             echo "Cache hit, skipping installation"
           else
             echo "Cache not hit, installing dependencies"
