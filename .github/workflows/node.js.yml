@@ -20,19 +20,27 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18.15.0'
+          node-version: '18.15.0'  # Specify your Node.js version here
 
-      - name: Restore cache
-        id: restore-cache
-        uses: actions/cache/restore@v3
+      - name: Cache node modules
+        uses: actions/cache@v3
         with:
           path: node_modules
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/package.json') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
 
+      - name: Check if cache hit
+        id: cache-hit
+        run: |
+          if [ -d 'node_modules' ]; then
+            echo "CACHE_HIT=true" >> $GITHUB_ENV
+          else
+            echo "CACHE_HIT=false" >> $GITHUB_ENV
+          fi
+
       - name: Install dependencies
-        if: steps.restore-cache.outputs.cache-hit != 'true'
+        if: env.CACHE_HIT != 'true'
         run: yarn
 
       - name: Run tests and generate coverage
@@ -40,11 +48,3 @@ jobs:
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
-
-      # Save cache only if it was not restored before
-      - name: Save cache
-        if: steps.restore-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v3
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/package.json') }}
