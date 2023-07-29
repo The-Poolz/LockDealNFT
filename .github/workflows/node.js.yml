@@ -22,22 +22,30 @@ jobs:
         with:
           node-version: '18.15.0'  # Specify your Node.js version here
 
-      - name: Get Yarn cache directory path
+      - name: Get yarn cache directory path
         id: yarn-cache-dir-path
-        run: echo "YARN_CACHE_DIR=$(yarn cache dir)" >> $GITHUB_ENV
+        run: echo "::set-output name=dir::$(yarn cache dir)"
 
-      - name: Cache Yarn directory
-        id: yarn-cache
+      - name: Cache yarn dependencies
         uses: actions/cache@v3
         with:
-          path: ${{ env.YARN_CACHE_DIR }}
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
 
-      - name: Install dependencies
-        run: yarn install
+      - name: Check if cache hit
+        id: cache-hit
+        run: |
+          if [ -d "${{ steps.yarn-cache-dir-path.outputs.dir }}" ]; then
+            echo "CACHE_HIT=true" >> $GITHUB_ENV
+          else
+            echo "CACHE_HIT=false" >> $GITHUB_ENV
+          fi
 
+      - name: Install dependencies
+        if: env.CACHE_HIT != 'true'
+        run: yarn install
 
       - name: Run tests and generate coverage
         run: npx hardhat coverage
