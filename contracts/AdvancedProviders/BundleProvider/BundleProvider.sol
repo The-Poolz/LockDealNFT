@@ -4,8 +4,10 @@ pragma solidity ^0.8.0;
 import "./BundleProviderState.sol";
 import "../../SimpleProviders/Provider/BasicProvider.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
+import "../../util/CalcUtils.sol";
 
-contract BundleProvider is BundleProviderState, ERC721Holder {
+contract BundleProvider is BundleProviderState, ERC721Holder{
+using CalcUtils for uint256;
     constructor(address nft) {
         require(nft != address(0x0), "invalid address");
         lockDealNFT = LockDealNFT(nft);
@@ -92,14 +94,14 @@ contract BundleProvider is BundleProviderState, ERC721Holder {
         uint256 splitAmount
     ) public override onlyProvider {
         uint256 oldPoolTotalRemainingAmount = getTotalRemainingAmount(oldPoolId);
-        uint256 rate = _calcRate(oldPoolTotalRemainingAmount, splitAmount);
+        uint256 rate = CalcUtils.calcRate(oldPoolTotalRemainingAmount, splitAmount);
         require(rate > 1e18, "split amount exceeded");
 
         // split the sub pools
         uint256 oldLastSubPoolId = bundlePoolIdToLastSubPoolId[oldPoolId];
         for (uint256 i = oldPoolId + 1; i <= oldLastSubPoolId; ++i) {
             uint256 oldSubPoolRemainingAmount = lockDealNFT.getData(i).params[0];  // leftAmount
-            uint256 subPoolSplitAmount = _calcAmount(oldSubPoolRemainingAmount, rate);
+            uint256 subPoolSplitAmount = CalcUtils.calcAmount(oldSubPoolRemainingAmount, rate);
 
             // split the sub poold
             lockDealNFT.split(i, subPoolSplitAmount, address(this));
@@ -122,13 +124,5 @@ contract BundleProvider is BundleProviderState, ERC721Holder {
         for (uint256 i = poolId + 1; i <= lastSubPoolId; ++i) {
             totalRemainingAmount += lockDealNFT.getData(i).params[0];  // leftAmount
         }
-    }
-
-    function _calcRate(uint256 tokenAValue, uint256 tokenBValue) internal pure returns (uint256) {
-        return (tokenAValue * 1e18) / tokenBValue;
-    }
-
-    function _calcAmount(uint256 amount, uint256 rate) internal pure returns (uint256) {
-        return amount * 1e18 / rate;
     }
 }
