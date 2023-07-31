@@ -111,8 +111,6 @@ using CalcUtils for uint256;
 
         // finally, set the bundle provider state with the last sub pool Id
         bundlePoolIdToLastSubPoolId[newPoolId] = oldLastSubPoolId + (newPoolId - oldPoolId);
-        lockDealNFT.updateProviderMetadata(oldPoolId);
-        lockDealNFT.updateProviderMetadata(newPoolId);
     }
 
     function getParams(uint256 poolId) public view override returns (uint256[] memory params) {

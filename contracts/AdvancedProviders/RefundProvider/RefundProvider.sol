@@ -80,6 +80,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
         refundRegisterParams[0] = collateralPoolId;
         refundRegisterParams[1] = params[paramsLength - 2];
         _registerPool(poolId, refundRegisterParams);
+        lockDealNFT.updateProviderMetadata(poolId);
     }
 
     ///@param params[0] = collateralId
@@ -93,6 +94,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
         onlyProvider
     {
         _registerPool(poolId, params);
+        lockDealNFT.updateProviderMetadata(poolId);
     }
 
     function _registerPool(uint256 poolId, uint256[] memory params)
@@ -101,7 +103,6 @@ contract RefundProvider is RefundState, IERC721Receiver {
     {
         poolIdToCollateralId[poolId] = params[0];
         poolIdToRateToWei[poolId] = params[1];
-        lockDealNFT.updateProviderMetadata(poolId);
     }
 
     ///@dev split tokens and main coins into new pools
