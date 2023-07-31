@@ -112,6 +112,8 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         uint256 newPoolId = _mint(newOwner, provider);
         poolIdToVaultId[newPoolId] = poolIdToVaultId[poolId];
         provider.split(poolId, newPoolId, splitAmount);
+        emit MetadataUpdate(poolId);
+        emit MetadataUpdate(newPoolId);
     }
 
     /// @param owner The address to assign the token to
@@ -125,5 +127,13 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         _safeMint(owner, newPoolId);
         poolIdToProvider[newPoolId] = provider;
         emit MintInitiated(provider);
+    }
+
+    function updateProviderMetadata(uint256 poolId) external onlyApprovedProvider {
+        emit MetadataUpdate(poolId);
+    }
+
+    function updateAllMetadata() external onlyOwner {
+        emit MetadataUpdate(type(uint256).max);
     }
 }

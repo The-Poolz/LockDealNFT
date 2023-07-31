@@ -55,6 +55,7 @@ using CalcUtils for uint256;
             require(lockDealNFT.ownerOf(i) == address(this), "invalid owner of sub pool");
         }
         _registerPool(poolId, params);
+        lockDealNFT.updateProviderMetadata(poolId);
     }
 
     ///@param params[0] = lastSubPoolId
@@ -86,6 +87,7 @@ using CalcUtils for uint256;
                 isFinal = isFinal && subPoolIsFinal;
             }
         }
+        lockDealNFT.updateProviderMetadata(poolId);
     }
 
     function split(

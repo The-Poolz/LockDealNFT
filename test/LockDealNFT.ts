@@ -1,13 +1,15 @@
-import { expect } from "chai";
-import { ethers } from 'hardhat';
-import { time } from "@nomicfoundation/hardhat-network-helpers";
-import { LockDealNFT } from "../typechain-types";
-import { DealProvider } from "../typechain-types";
-import { LockDealProvider } from "../typechain-types";
-import { TimedDealProvider } from "../typechain-types";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { MockVaultManager } from "../typechain-types";
-import { deployed, token } from "./helper";
+import { expect } from "chai"
+import { ethers } from 'hardhat'
+import { time } from "@nomicfoundation/hardhat-network-helpers"
+import { LockDealNFT } from "../typechain-types"
+import { DealProvider } from "../typechain-types"
+import { LockDealProvider } from "../typechain-types"
+import { TimedDealProvider } from "../typechain-types"
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
+import { MockVaultManager } from "../typechain-types"
+import { deployed, token } from "./helper"
+import { constants } from "ethers"
+
 
 describe("LockDealNFT", function () {
     let lockDealNFT: LockDealNFT
@@ -148,5 +150,12 @@ describe("LockDealNFT", function () {
 
     it("should revert not pool owner split call", async () => {
         await expect(lockDealNFT.connect(notOwner).split(poolId, amount, receiver.address)).to.be.revertedWith("Caller is not the pool owner")
+    })
+
+    it("should refresh all metadata", async () => {
+        const tx = await lockDealNFT.updateAllMetadata()
+        await tx.wait()
+        const events = await lockDealNFT.queryFilter(lockDealNFT.filters.MetadataUpdate())
+        expect(events[events.length - 1].args._tokenId).to.equal(constants.MaxUint256)
     })
 })

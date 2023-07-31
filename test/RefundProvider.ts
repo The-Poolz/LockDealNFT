@@ -5,6 +5,7 @@ import { LockDealProvider } from "../typechain-types"
 import { RefundProvider } from "../typechain-types"
 import { TimedDealProvider } from "../typechain-types"
 import { CollateralProvider } from "../typechain-types"
+import { MockProvider } from "../typechain-types"
 import { deployed, token, BUSD } from "./helper"
 import { time, mine } from "@nomicfoundation/hardhat-network-helpers"
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
@@ -15,6 +16,7 @@ import { ethers } from "hardhat"
 describe("Refund Provider", function () {
     let lockProvider: LockDealProvider
     let dealProvider: DealProvider
+    let mockProvider: MockProvider
     let refundProvider: RefundProvider
     let timedProvider: TimedDealProvider
     let collateralProvider: CollateralProvider
@@ -39,12 +41,14 @@ describe("Refund Provider", function () {
         timedProvider = await deployed("TimedDealProvider", lockDealNFT.address, lockProvider.address)
         collateralProvider = await deployed("CollateralProvider", lockDealNFT.address, dealProvider.address)
         refundProvider = await deployed("RefundProvider", lockDealNFT.address, collateralProvider.address)
+        mockProvider = await deployed("MockProvider", lockDealNFT.address, refundProvider.address)
         await lockDealNFT.setApprovedProvider(refundProvider.address, true)
         await lockDealNFT.setApprovedProvider(lockProvider.address, true)
         await lockDealNFT.setApprovedProvider(dealProvider.address, true)
         await lockDealNFT.setApprovedProvider(timedProvider.address, true)
         await lockDealNFT.setApprovedProvider(collateralProvider.address, true)
         await lockDealNFT.setApprovedProvider(lockDealNFT.address, true)
+        await lockDealNFT.setApprovedProvider(mockProvider.address, true)
     })
 
     beforeEach(async () => {
@@ -98,6 +102,13 @@ describe("Refund Provider", function () {
             const poolData = await lockDealNFT.getData(poolId + 5)
             const params = [mainCoinAmount]
             expect(poolData).to.deep.equal([dealProvider.address, poolId + 5, collateralProvider.address, BUSD, params])
+        })
+
+        it("should return metada register after creation", async () => {
+            const tx = await mockProvider.registerPool(poolId, params)
+            await tx.wait()
+            const events = await lockDealNFT.queryFilter(lockDealNFT.filters.MetadataUpdate())
+            expect(events[events.length - 1].args._tokenId).to.equal(poolId)
         })
     })
 
