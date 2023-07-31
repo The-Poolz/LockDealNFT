@@ -94,14 +94,14 @@ using CalcUtils for uint256;
         uint256 splitAmount
     ) public override onlyProvider {
         uint256 oldPoolTotalRemainingAmount = getTotalRemainingAmount(oldPoolId);
-        uint256 rate = CalcUtils.calcRate(oldPoolTotalRemainingAmount, splitAmount);
+        uint256 rate = oldPoolTotalRemainingAmount.calcRate(splitAmount);
         require(rate > 1e18, "split amount exceeded");
 
         // split the sub pools
         uint256 oldLastSubPoolId = bundlePoolIdToLastSubPoolId[oldPoolId];
         for (uint256 i = oldPoolId + 1; i <= oldLastSubPoolId; ++i) {
             uint256 oldSubPoolRemainingAmount = lockDealNFT.getData(i).params[0];  // leftAmount
-            uint256 subPoolSplitAmount = CalcUtils.calcAmount(oldSubPoolRemainingAmount, rate);
+            uint256 subPoolSplitAmount = oldSubPoolRemainingAmount.calcAmount(rate);
 
             // split the sub poold
             lockDealNFT.split(i, subPoolSplitAmount, address(this));

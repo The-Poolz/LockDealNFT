@@ -57,9 +57,9 @@ using CalcUtils for uint256;
         uint256 splitAmount
     ) public onlyProvider {
         uint256 leftAmount = lockDealProvider.dealProvider().getWithdrawableAmount(oldPoolId);
-        uint256 rate = CalcUtils.calcRate(leftAmount, splitAmount);
+        uint256 rate = leftAmount.calcRate(splitAmount);
         lockDealProvider.split(oldPoolId, newPoolId, splitAmount);
-        uint256 newPoolStartAmount = CalcUtils.calcAmount(poolIdToTimedDeal[oldPoolId].startAmount, rate);
+        uint256 newPoolStartAmount = poolIdToTimedDeal[oldPoolId].startAmount.calcAmount(rate);
         poolIdToTimedDeal[oldPoolId].startAmount -= newPoolStartAmount;
         poolIdToTimedDeal[newPoolId].startAmount = newPoolStartAmount;
         poolIdToTimedDeal[newPoolId].finishTime = poolIdToTimedDeal[oldPoolId].finishTime;
