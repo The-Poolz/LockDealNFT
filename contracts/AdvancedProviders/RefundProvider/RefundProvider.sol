@@ -101,6 +101,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
     {
         poolIdToCollateralId[poolId] = params[0];
         poolIdToRateToWei[poolId] = params[1];
+        lockDealNFT.updateProviderMetadata(poolId);
     }
 
     ///@dev split tokens and main coins into new pools
@@ -129,5 +130,6 @@ contract RefundProvider is RefundState, IERC721Receiver {
             uint256 mainCoinAmount = _calcMainCoinAmount(withdrawnAmount, poolIdToRateToWei[poolId]);
             collateralProvider.handleWithdraw(poolIdToCollateralId[poolId], mainCoinAmount);
         }
+        lockDealNFT.updateProviderMetadata(poolId);
     }
 }

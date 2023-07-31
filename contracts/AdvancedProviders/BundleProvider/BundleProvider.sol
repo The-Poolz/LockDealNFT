@@ -55,6 +55,7 @@ using CalcUtils for uint256;
             require(lockDealNFT.ownerOf(i) == address(this), "invalid owner of sub pool");
         }
         _registerPool(poolId, params);
+        lockDealNFT.updateProviderMetadata(poolId);
     }
 
     ///@param params[0] = lastSubPoolId
@@ -86,6 +87,7 @@ using CalcUtils for uint256;
                 isFinal = isFinal && subPoolIsFinal;
             }
         }
+        lockDealNFT.updateProviderMetadata(poolId);
     }
 
     function split(
@@ -109,6 +111,8 @@ using CalcUtils for uint256;
 
         // finally, set the bundle provider state with the last sub pool Id
         bundlePoolIdToLastSubPoolId[newPoolId] = oldLastSubPoolId + (newPoolId - oldPoolId);
+        lockDealNFT.updateProviderMetadata(oldPoolId);
+        lockDealNFT.updateProviderMetadata(newPoolId);
     }
 
     function getParams(uint256 poolId) public view override returns (uint256[] memory params) {

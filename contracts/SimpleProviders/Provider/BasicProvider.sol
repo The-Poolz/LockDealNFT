@@ -19,6 +19,7 @@ abstract contract BasicProvider is ProviderModifiers {
     ) public virtual validParamsLength(params.length, currentParamsTargetLenght()) returns (uint256 poolId) {
         poolId = lockDealNFT.mintAndTransfer(owner, token, msg.sender, params[0], this);
         _registerPool(poolId, params);
+        lockDealNFT.updateProviderMetadata(poolId);
     }
 
     /// @dev used by providers to implement cascading pool creation logic.
@@ -27,6 +28,7 @@ abstract contract BasicProvider is ProviderModifiers {
         uint256[] calldata params
     ) public virtual onlyProvider validParamsLength(params.length, currentParamsTargetLenght()) {
         _registerPool(poolId, params);
+        lockDealNFT.updateProviderMetadata(poolId);
     }
 
     /**
@@ -37,6 +39,7 @@ abstract contract BasicProvider is ProviderModifiers {
      */
     function withdraw(address, address, uint256 poolId, bytes calldata) public override virtual onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
         (withdrawnAmount, isFinal) = _withdraw(poolId, getWithdrawableAmount(poolId));
+        lockDealNFT.updateProviderMetadata(poolId);
     }
 
     /// @dev used by providers to implement cascading withdraw logic from the pool.
@@ -50,6 +53,7 @@ abstract contract BasicProvider is ProviderModifiers {
         returns (uint256 withdrawnAmount, bool isFinal)
     {
         (withdrawnAmount, isFinal) = _withdraw(poolId, amount);
+        lockDealNFT.updateProviderMetadata(poolId);
     }
 
     function _registerPool(

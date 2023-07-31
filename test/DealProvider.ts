@@ -50,6 +50,13 @@ describe("Deal Provider", function () {
         expect(events[events.length - 1].args.params[0]).to.equal(amount) //assuming amount is at index 0 in the params array
     })
 
+    it("should check pool creation metadata event", async () => {
+        const tx = await dealProvider.createNewPool(receiver.address, token, params)
+        await tx.wait()
+        const events = await lockDealNFT.queryFilter(lockDealNFT.filters.MetadataUpdate())
+        expect(events[events.length - 1].args._tokenId).to.equal(poolId + 1)
+    })
+
     it("should revert zero owner address", async () => {
         await expect(dealProvider.createNewPool(receiver.address, constants.AddressZero, params)).to.be.revertedWith(
             "Zero Address is not allowed"
@@ -82,6 +89,14 @@ describe("Deal Provider", function () {
             const poolData = await lockDealNFT.getData(poolId + 1);
             expect(poolData).to.deep.equal([dealProvider.address, poolId + 1, newOwner.address, token, params]);
         })
+
+        it("should return split metadata event", async () => {
+            const tx = await lockDealNFT.split(poolId, amount / 2, newOwner.address)
+            await tx.wait()
+            const events = await lockDealNFT.queryFilter(lockDealNFT.filters.MetadataUpdate())
+            expect(events[events.length - 2].args._tokenId).to.equal(poolId)
+            expect(events[events.length - 1].args._tokenId).to.equal(poolId + 1)
+        })
     })
 
     describe("Deal Withdraw", () => {
@@ -107,6 +122,13 @@ describe("Deal Provider", function () {
         it("getWithdrawableAmount should get all amount", async () => {
             const withdrawableAmount = await dealProvider.getWithdrawableAmount(poolId)
             expect(withdrawableAmount).to.equal(amount)
+        })
+
+        it("should return withdraw metadata event", async () => {
+            const tx = await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, lockDealNFT.address, poolId)
+            await tx.wait()
+            const events = await lockDealNFT.queryFilter(lockDealNFT.filters.MetadataUpdate())
+            expect(events[events.length - 1].args._tokenId).to.equal(poolId)
         })
     })
 })

@@ -49,6 +49,8 @@ contract DealProvider is DealProviderModifiers, BasicProvider {
             poolIdToleftAmount[oldPoolId],
             poolIdToleftAmount[newPoolId]
         );
+        lockDealNFT.updateProviderMetadata(oldPoolId);
+        lockDealNFT.updateProviderMetadata(newPoolId);
     }
 
     /**@dev Providers overrides this function to add additional parameters when creating a pool.

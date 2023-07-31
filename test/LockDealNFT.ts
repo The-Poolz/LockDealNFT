@@ -1,13 +1,15 @@
-import { expect } from "chai";
-import { ethers } from 'hardhat';
-import { time } from "@nomicfoundation/hardhat-network-helpers";
-import { LockDealNFT } from "../typechain-types";
-import { DealProvider } from "../typechain-types";
-import { LockDealProvider } from "../typechain-types";
-import { TimedDealProvider } from "../typechain-types";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { MockVaultManager } from "../typechain-types";
-import { deployed, token } from "./helper";
+import { expect } from "chai"
+import { ethers } from 'hardhat'
+import { time } from "@nomicfoundation/hardhat-network-helpers"
+import { LockDealNFT } from "../typechain-types"
+import { DealProvider } from "../typechain-types"
+import { LockDealProvider } from "../typechain-types"
+import { TimedDealProvider } from "../typechain-types"
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
+import { MockVaultManager } from "../typechain-types"
+import { deployed, token } from "./helper"
+import { constants } from "ethers"
+
 
 describe("LockDealNFT", function () {
     let lockDealNFT: LockDealNFT
@@ -150,29 +152,10 @@ describe("LockDealNFT", function () {
         await expect(lockDealNFT.connect(notOwner).split(poolId, amount, receiver.address)).to.be.revertedWith("Caller is not the pool owner")
     })
 
-    it("should update tokenId metadata", async () => {
-        const tx = await lockDealNFT.updateMetadata(poolId)
+    it("should refresh all metadata", async () => {
+        const tx = await lockDealNFT.updateAllMetadata()
         await tx.wait()
         const events = await lockDealNFT.queryFilter(lockDealNFT.filters.MetadataUpdate())
-        expect(events[events.length - 1].args._tokenId).to.equal(poolId)
-    })
-
-    it("should return batch Metadata event", async () => {
-        await dealProvider.createNewPool(receiver.address, token, [amount])
-        await dealProvider.createNewPool(receiver.address, token, [amount])
-        const toPoolId = (await lockDealNFT.totalSupply()).toNumber() - 1  
-        const tx = await lockDealNFT.updateBatchMetadata(poolId, toPoolId)
-        await tx.wait()
-        const events = await lockDealNFT.queryFilter(lockDealNFT.filters.BatchMetadataUpdate())
-        expect(events[events.length - 1].args._fromTokenId).to.equal(poolId)
-        expect(events[events.length - 1].args._toTokenId).to.equal(toPoolId)
-    })
-
-    it("should refresh all metadata", async () => {
-        const tx = await lockDealNFT.refreshAllMetadata()
-        await tx.wait()
-        const events = await lockDealNFT.queryFilter(lockDealNFT.filters.BatchMetadataUpdate())
-        expect(events[events.length - 1].args._fromTokenId).to.equal(0)
-        expect(events[events.length - 1].args._toTokenId).to.equal(poolId)
+        expect(events[events.length - 1].args._tokenId).to.equal(constants.MaxUint256)
     })
 })
