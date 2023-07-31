@@ -138,6 +138,7 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         uint256 toPoolId
         /// the contract doesn't burn tokens, so we can check the first and last valid poolId id
     ) external onlyOwner validPoolId(fromPoolId) validPoolId(toPoolId) {
+        require(fromPoolId <= toPoolId, "Invalid range");
         emit BatchMetadataUpdate(fromPoolId, toPoolId);
     }
 
