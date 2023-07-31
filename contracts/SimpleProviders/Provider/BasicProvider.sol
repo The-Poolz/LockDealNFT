@@ -16,8 +16,19 @@ abstract contract BasicProvider is ProviderModifiers {
         address owner,
         address token,
         uint256[] calldata params
-    ) public virtual validParamsLength(params.length, currentParamsTargetLenght()) returns (uint256 poolId) {
-        poolId = lockDealNFT.mintAndTransfer(owner, token, msg.sender, params[0], this);
+    )
+        public
+        virtual
+        validParamsLength(params.length, currentParamsTargetLenght())
+        returns (uint256 poolId)
+    {
+        poolId = lockDealNFT.mintAndTransfer(
+            owner,
+            token,
+            msg.sender,
+            params[0],
+            this
+        );
         _registerPool(poolId, params);
     }
 
@@ -25,7 +36,12 @@ abstract contract BasicProvider is ProviderModifiers {
     function registerPool(
         uint256 poolId,
         uint256[] calldata params
-    ) public virtual onlyProvider validParamsLength(params.length, currentParamsTargetLenght()) {
+    )
+        public
+        virtual
+        onlyProvider
+        validParamsLength(params.length, currentParamsTargetLenght())
+    {
         _registerPool(poolId, params);
     }
 
@@ -35,8 +51,22 @@ abstract contract BasicProvider is ProviderModifiers {
      * @return withdrawnAmount The amount of tokens withdrawn.
      * @return isFinal Boolean indicating whether the pool is empty after a withdrawal.
      */
-    function withdraw(address, address, uint256 poolId, bytes calldata) public override virtual onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
-        (withdrawnAmount, isFinal) = _withdraw(poolId, getWithdrawableAmount(poolId));
+    function withdraw(
+        address,
+        address,
+        uint256 poolId,
+        bytes calldata
+    )
+        public
+        virtual
+        override
+        onlyNFT
+        returns (uint256 withdrawnAmount, bool isFinal)
+    {
+        (withdrawnAmount, isFinal) = _withdraw(
+            poolId,
+            getWithdrawableAmount(poolId)
+        );
     }
 
     /// @dev used by providers to implement cascading withdraw logic from the pool.
@@ -55,12 +85,14 @@ abstract contract BasicProvider is ProviderModifiers {
     function _registerPool(
         uint256 poolId,
         uint256[] calldata params
-    ) internal virtual {}
+    ) internal virtual;
 
     function _withdraw(
         uint256 poolId,
         uint256 amount
     ) internal virtual returns (uint256 withdrawnAmount, bool isFinal) {}
 
-    function getWithdrawableAmount(uint256 poolId) public view virtual override returns(uint256);
+    function getWithdrawableAmount(
+        uint256 poolId
+    ) public view virtual override returns (uint256);
 }
