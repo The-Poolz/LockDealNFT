@@ -143,6 +143,7 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
     }
 
     function refreshAllMetadata() external onlyOwner {
+        if (totalSupply() == 0) return;
         uint256 fromPoolId = 0;
         uint256 toPoolId = totalSupply() - 1;
         emit BatchMetadataUpdate(fromPoolId, toPoolId);
