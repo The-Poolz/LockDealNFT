@@ -149,4 +149,30 @@ describe("LockDealNFT", function () {
     it("should revert not pool owner split call", async () => {
         await expect(lockDealNFT.connect(notOwner).split(poolId, amount, receiver.address)).to.be.revertedWith("Caller is not the pool owner")
     })
+
+    it("should update tokenId metadata", async () => {
+        const tx = await lockDealNFT.updateMetadata(poolId)
+        await tx.wait()
+        const events = await lockDealNFT.queryFilter(lockDealNFT.filters.MetadataUpdate())
+        expect(events[events.length - 1].args._tokenId).to.equal(poolId)
+    })
+
+    it("should return batch Metadata event", async () => {
+        await dealProvider.createNewPool(receiver.address, token, [amount])
+        await dealProvider.createNewPool(receiver.address, token, [amount])
+        const toPoolId = (await lockDealNFT.totalSupply()).toNumber() - 1  
+        const tx = await lockDealNFT.updateBatchMetadata(poolId, toPoolId)
+        await tx.wait()
+        const events = await lockDealNFT.queryFilter(lockDealNFT.filters.BatchMetadataUpdate())
+        expect(events[events.length - 1].args._fromTokenId).to.equal(poolId)
+        expect(events[events.length - 1].args._toTokenId).to.equal(toPoolId)
+    })
+
+    it("should refresh all metadata", async () => {
+        const tx = await lockDealNFT.refreshAllMetadata()
+        await tx.wait()
+        const events = await lockDealNFT.queryFilter(lockDealNFT.filters.BatchMetadataUpdate())
+        expect(events[events.length - 1].args._fromTokenId).to.equal(0)
+        expect(events[events.length - 1].args._toTokenId).to.equal(poolId)
+    })
 })
