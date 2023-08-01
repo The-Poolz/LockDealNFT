@@ -80,7 +80,6 @@ contract RefundProvider is RefundState, IERC721Receiver {
         refundRegisterParams[0] = collateralPoolId;
         refundRegisterParams[1] = params[paramsLength - 2];
         _registerPool(poolId, refundRegisterParams);
-        lockDealNFT.updateProviderMetadata(poolId);
     }
 
     ///@param params[0] = collateralId
