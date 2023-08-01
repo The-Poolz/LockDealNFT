@@ -8,6 +8,7 @@ import "@poolzfinance/poolz-helper-v2/contracts/interfaces/IVaultManager.sol";
 import "@poolzfinance/poolz-helper-v2/contracts/Array.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./ILockDealNFTEvents.sol";
+import "hardhat/console.sol";
 
 /**
  * @title LockDealNFTState
@@ -80,5 +81,22 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
         string memory oldBaseURI = baseURI;
         baseURI = newBaseURI;
         emit BaseURIChanged(oldBaseURI, newBaseURI);
+    }
+
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 poolId
+    ) public virtual override(ERC721, IERC721) {
+        // aproved providers can transfer pools
+        if (
+            ownerOf(poolId) != msg.sender  &&
+            !isApprovedForAll(from, msg.sender) &&
+            getApproved(poolId) != msg.sender && 
+            approvedProviders[msg.sender]
+        ) {
+            _approve(msg.sender, poolId);
+        }
+        super.safeTransferFrom(from, to, poolId);
     }
 }

@@ -60,12 +60,17 @@ contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder 
         (uint256 mainCoinCollectorId, uint256 tokenCollectorId, uint256 mainCoinHolderId) = getInnerIds(poolId);
         //check for time
         if (startTimes[poolId] < block.timestamp) {
-            // Finish Refund
+            // Project owner receive NFTs
             lockDealNFT.transferFrom(address(this), from, mainCoinCollectorId);
             lockDealNFT.transferFrom(address(this), from, tokenCollectorId);
             lockDealNFT.transferFrom(address(this), from, mainCoinHolderId);
-            isFinal = true;
+            // Project owner sends NFTs to LDNFT to take the tokens
+            lockDealNFT.safeTransferFrom(from, address(lockDealNFT), mainCoinCollectorId);
+            lockDealNFT.safeTransferFrom(from, address(lockDealNFT), tokenCollectorId);
+            lockDealNFT.safeTransferFrom(from, address(lockDealNFT), mainCoinHolderId);
+
             lockDealNFT.updateProviderMetadata(poolId);
+            isFinal = true;
         } else {
             // the refund phase is not finished yet
             _split(mainCoinCollectorId, from);
