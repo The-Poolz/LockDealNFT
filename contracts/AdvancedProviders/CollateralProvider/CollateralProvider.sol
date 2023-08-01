@@ -65,9 +65,9 @@ contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder 
             lockDealNFT.transferFrom(address(this), from, tokenCollectorId);
             lockDealNFT.transferFrom(address(this), from, mainCoinHolderId);
             // Project owner sends NFTs to LDNFT to take the tokens
-            lockDealNFT.safeTransferFrom(from, address(lockDealNFT), mainCoinCollectorId);
-            lockDealNFT.safeTransferFrom(from, address(lockDealNFT), tokenCollectorId);
-            lockDealNFT.safeTransferFrom(from, address(lockDealNFT), mainCoinHolderId);
+            lockDealNFT.transferFromProvider(from, address(lockDealNFT), mainCoinCollectorId);
+            lockDealNFT.transferFromProvider(from, address(lockDealNFT), tokenCollectorId);
+            lockDealNFT.transferFromProvider(from, address(lockDealNFT), mainCoinHolderId);
 
             lockDealNFT.updateProviderMetadata(poolId);
             isFinal = true;

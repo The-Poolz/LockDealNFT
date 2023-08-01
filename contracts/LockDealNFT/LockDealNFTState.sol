@@ -82,21 +82,4 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
         baseURI = newBaseURI;
         emit BaseURIChanged(oldBaseURI, newBaseURI);
     }
-
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 poolId
-    ) public virtual override(ERC721, IERC721) {
-        // aproved providers can transfer pools
-        if (
-            ownerOf(poolId) != msg.sender  &&
-            !isApprovedForAll(from, msg.sender) &&
-            getApproved(poolId) != msg.sender && 
-            approvedProviders[msg.sender]
-        ) {
-            _approve(msg.sender, poolId);
-        }
-        super.safeTransferFrom(from, to, poolId);
-    }
 }

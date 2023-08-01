@@ -136,4 +136,14 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
     function updateAllMetadata() external onlyOwner {
         emit MetadataUpdate(type(uint256).max);
     }
+
+    ///@dev don't use it if the provider is the owner or an approved caller
+    function transferFromProvider(
+        address from,
+        address to,
+        uint256 poolId
+    ) public onlyApprovedProvider {
+        _approve(msg.sender, poolId);
+        super.safeTransferFrom(from, to, poolId);
+    }
 }
