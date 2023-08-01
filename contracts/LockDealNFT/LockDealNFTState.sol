@@ -8,7 +8,6 @@ import "@poolzfinance/poolz-helper-v2/contracts/interfaces/IVaultManager.sol";
 import "@poolzfinance/poolz-helper-v2/contracts/Array.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./ILockDealNFTEvents.sol";
-import "hardhat/console.sol";
 
 /**
  * @title LockDealNFTState

@@ -147,7 +147,7 @@ describe("Collateral Provider", function () {
         expect(poolData).to.deep.equal([dealProvider.address, tokenCollectorId, lockDealNFT.address, constants.AddressZero, params])
 
         poolData = await lockDealNFT.getData(mainCoinHolderId)
-        expect(poolData).to.deep.equal([dealProvider.address, mainCoinHolderId, lockDealNFT.address, constants.AddressZero, ["0"]])
+        expect(poolData).to.deep.equal([dealProvider.address, mainCoinHolderId, lockDealNFT.address, constants.AddressZero, params])
     })
 
     it("should get zero amount before time", async () => {
