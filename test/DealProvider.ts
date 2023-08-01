@@ -50,13 +50,6 @@ describe("Deal Provider", function () {
         expect(events[events.length - 1].args.params[0]).to.equal(amount) //assuming amount is at index 0 in the params array
     })
 
-    it("should check pool creation metadata event", async () => {
-        const tx = await dealProvider.createNewPool(receiver.address, token, params)
-        await tx.wait()
-        const events = await lockDealNFT.queryFilter(lockDealNFT.filters.MetadataUpdate())
-        expect(events[events.length - 1].args._tokenId).to.equal(poolId + 1)
-    })
-
     it("should revert zero owner address", async () => {
         await expect(dealProvider.createNewPool(receiver.address, constants.AddressZero, params)).to.be.revertedWith(
             "Zero Address is not allowed"

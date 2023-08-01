@@ -30,7 +30,6 @@ abstract contract BasicProvider is ProviderModifiers {
             this
         );
         _registerPool(poolId, params);
-        lockDealNFT.updateProviderMetadata(poolId);
     }
 
     /// @dev used by providers to implement cascading pool creation logic.
