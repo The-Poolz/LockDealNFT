@@ -111,7 +111,7 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         newPoolId = _mint(newOwner, provider);
         poolIdToVaultId[newPoolId] = poolIdToVaultId[poolId];
         provider.split(poolId, newPoolId, splitAmount);
-        uint256 leftAmount = poolIdToProvider[newPoolId].getParams(poolId)[0];
+        uint256 leftAmount = provider.getParams(poolId)[0];
         isFinal = leftAmount == 0;
         emit MetadataUpdate(poolId);
         emit MetadataUpdate(newPoolId);
