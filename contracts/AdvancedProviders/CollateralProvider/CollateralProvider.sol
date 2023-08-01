@@ -60,15 +60,10 @@ contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder 
         (uint256 mainCoinCollectorId, uint256 tokenCollectorId, uint256 mainCoinHolderId) = getInnerIds(poolId);
         //check for time
         if (startTimes[poolId] < block.timestamp) {
-            // Project owner receive NFTs
-            lockDealNFT.transferFrom(address(this), from, mainCoinCollectorId);
-            lockDealNFT.transferFrom(address(this), from, tokenCollectorId);
-            lockDealNFT.transferFrom(address(this), from, mainCoinHolderId);
-            // Project owner sends NFTs to LDNFT to take the tokens
-            lockDealNFT.transferFromProvider(from, address(lockDealNFT), mainCoinCollectorId);
-            lockDealNFT.transferFromProvider(from, address(lockDealNFT), tokenCollectorId);
-            lockDealNFT.transferFromProvider(from, address(lockDealNFT), mainCoinHolderId);
-
+            // Project owner receives tokens
+            _withdraw(from, mainCoinCollectorId);
+            _withdraw(from, tokenCollectorId);
+            _withdraw(from, mainCoinHolderId);
             lockDealNFT.updateProviderMetadata(poolId);
             isFinal = true;
         } else {
@@ -76,6 +71,11 @@ contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder 
             _split(mainCoinCollectorId, from);
             _split(tokenCollectorId, from);
         }
+    }
+
+    function _withdraw(address projectOwner, uint256 poolId) internal {
+        lockDealNFT.transferFrom(address(this), projectOwner, poolId);
+        lockDealNFT.transferFromProvider(projectOwner, address(lockDealNFT), poolId);
     }
 
     function split(
