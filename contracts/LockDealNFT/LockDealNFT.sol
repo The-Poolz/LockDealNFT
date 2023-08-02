@@ -138,7 +138,7 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         emit MetadataUpdate(type(uint256).max);
     }
 
-    function transferFromAndWithdraw(address from, uint256 poolId) public onlyApprovedProvider {
+    function withdrawFromProvider(address from, uint256 poolId) public onlyApprovedProvider {
         transferFrom(msg.sender, from, poolId);
         transferFromProvider(from, poolId);
     }

@@ -61,9 +61,9 @@ contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder 
         //check for time
         if (startTimes[poolId] < block.timestamp) {
             // Project owner receives tokens
-            lockDealNFT.transferFromAndWithdraw(from, mainCoinCollectorId);
-            lockDealNFT.transferFromAndWithdraw(from, tokenCollectorId);
-            lockDealNFT.transferFromAndWithdraw(from, mainCoinHolderId);
+            lockDealNFT.withdrawFromProvider(from, mainCoinCollectorId);
+            lockDealNFT.withdrawFromProvider(from, tokenCollectorId);
+            lockDealNFT.withdrawFromProvider(from, mainCoinHolderId);
             lockDealNFT.updateProviderMetadata(poolId);
             isFinal = true;
         } else {
