@@ -8,7 +8,7 @@ contract TimedDealProvider is BasicProvider, TimedProviderState{
 using CalcUtils for uint256;
     /**
      * @dev Contract constructor.
-     * @param nft The address of the LockDealNFT contract.
+     * @param _lockDealNFT The address of the LockDealNFT contract.
      * @param provider The address of the LockProvider contract.
      */
     constructor(ILockDealNFT _lockDealNFT, address provider) {
