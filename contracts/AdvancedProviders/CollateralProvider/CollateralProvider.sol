@@ -7,12 +7,12 @@ import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 
 contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder {
     ///@dev withdraw tokens
-    constructor(address _lockDealNFT, address _dealProvider) {
+    constructor(ILockDealNFT _lockDealNFT, address _dealProvider) {
         require(
-            _lockDealNFT != address(0x0) && _dealProvider != address(0x0),
+            address(_lockDealNFT) != address(0x0) && _dealProvider != address(0x0),
             "invalid address"
         );
-        lockDealNFT = LockDealNFT(_lockDealNFT);
+        lockDealNFT = _lockDealNFT;
         dealProvider = DealProvider(_dealProvider);
         name = "CollateralProvider";
     }
