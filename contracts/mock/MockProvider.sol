@@ -7,10 +7,10 @@ import "../interfaces/IFundsManager.sol";
 /// @dev MockProvider is a contract for testing purposes.
 contract MockProvider is IFundsManager {
     address public provider;
-    LockDealNFT public lockDealNFT;
+    ILockDealNFT public lockDealNFT;
 
-    constructor(address _lockDealNFT, address _provider) {
-        lockDealNFT = LockDealNFT(_lockDealNFT);
+    constructor(ILockDealNFT _lockDealNFT, address _provider) {
+        lockDealNFT = _lockDealNFT;
         provider = _provider;
     }
 

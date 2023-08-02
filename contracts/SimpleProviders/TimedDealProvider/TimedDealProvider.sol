@@ -8,16 +8,16 @@ contract TimedDealProvider is BasicProvider, TimedProviderState{
 using CalcUtils for uint256;
     /**
      * @dev Contract constructor.
-     * @param nft The address of the LockDealNFT contract.
+     * @param _lockDealNFT The address of the LockDealNFT contract.
      * @param provider The address of the LockProvider contract.
      */
-    constructor(address nft, address provider) {
+    constructor(ILockDealNFT _lockDealNFT, address provider) {
         require(
-            nft != address(0x0) && provider != address(0x0),
+            address(_lockDealNFT) != address(0x0) && provider != address(0x0),
             "invalid address"
         );
         lockDealProvider = LockDealProvider(provider);
-        lockDealNFT = LockDealNFT(nft);
+        lockDealNFT = _lockDealNFT;
         name = "TimedDealProvider";
     }
 

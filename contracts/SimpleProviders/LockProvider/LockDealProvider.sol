@@ -5,13 +5,13 @@ import "../Provider/BasicProvider.sol";
 import "./LockDealState.sol";
 
 contract LockDealProvider is BasicProvider, LockDealState {
-    constructor(address nft, address provider) {
+    constructor(ILockDealNFT _lockDealNFT, address provider) {
         require(
-            nft != address(0x0) && provider != address(0x0),
+            address(_lockDealNFT) != address(0x0) && provider != address(0x0),
             "invalid address"
         );
         dealProvider = DealProvider(provider);
-        lockDealNFT = LockDealNFT(nft);
+        lockDealNFT = _lockDealNFT;
         name = "LockDealProvider";
     }
 

@@ -5,12 +5,12 @@ import "./RefundState.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 contract RefundProvider is RefundState, IERC721Receiver {
-    constructor(address nftContract, address provider) {
+    constructor(ILockDealNFT nftContract, address provider) {
         require(
-            nftContract != address(0x0) && provider != address(0x0),
+            address(nftContract) != address(0x0) && provider != address(0x0),
             "invalid address"
         );
-        lockDealNFT = LockDealNFT(nftContract);
+        lockDealNFT = nftContract;
         collateralProvider = CollateralProvider(provider);
         name = "RefundProvider";
     }

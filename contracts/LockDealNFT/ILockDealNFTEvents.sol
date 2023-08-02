@@ -9,13 +9,4 @@ interface ILockDealNFTEvents {
     event ProviderApproved(IProvider indexed provider, bool status);
     event MintInitiated(IProvider indexed provider);
     event BaseURIChanged(string oldBaseURI, string newBaseURI);
-
-    struct BasePoolInfo {
-        IProvider provider;
-        uint256 poolId;
-        uint256 vaultId;
-        address owner;
-        address token;
-        uint256[] params;
-    }
 }
