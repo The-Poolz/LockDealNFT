@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { constants } from "ethers";
+import { BigNumber, constants } from "ethers"
 import { ethers } from 'hardhat';
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 import { LockDealProvider } from "../typechain-types";
@@ -13,16 +13,18 @@ describe("Lock Deal Provider", function () {
     let lockProvider: LockDealProvider 
     let dealProvider: DealProvider
     let lockDealNFT: LockDealNFT
+    let mockVaultManager: MockVaultManager
     let poolId: number
     let params: [number, number]
     let receiver: SignerWithAddress
     let newOwner: SignerWithAddress
     let startTime: number
+    let vaultId: BigNumber
     const amount = 10000
 
     before(async () => {
         [receiver, newOwner] = await ethers.getSigners()
-        const mockVaultManager: MockVaultManager = await deployed("MockVaultManager")
+        mockVaultManager = await deployed("MockVaultManager")
         lockDealNFT = await deployed("LockDealNFT", mockVaultManager.address, "")
         dealProvider = await deployed("DealProvider", lockDealNFT.address)
         lockProvider = await deployed("LockDealProvider", lockDealNFT.address, dealProvider.address)
@@ -35,6 +37,7 @@ describe("Lock Deal Provider", function () {
         params = [amount, startTime]
         poolId = (await lockDealNFT.totalSupply()).toNumber()
         await lockProvider.createNewPool(receiver.address, token, params)
+        vaultId = await mockVaultManager.Id()
     })
 
     it("should return provider name", async () => {
@@ -59,7 +62,7 @@ describe("Lock Deal Provider", function () {
     it("should get lock provider data after creation", async () => {       
         const poolData = await lockDealNFT.getData(poolId)
         const params = [amount, startTime]
-        expect(poolData).to.deep.equal([lockProvider.address, poolId, receiver.address, token, params])
+        expect(poolData).to.deep.equal([lockProvider.address, poolId, vaultId, receiver.address, token, params])
     })
 
     it("should revert if the start time is invalid", async () => {
@@ -86,14 +89,14 @@ describe("Lock Deal Provider", function () {
             await lockDealNFT.split(poolId, amount / 2, newOwner.address)
             const params = [amount / 2, startTime]
             const poolData = await lockDealNFT.getData(poolId);
-            expect(poolData).to.deep.equal([lockProvider.address, poolId, receiver.address, token, params]);
+            expect(poolData).to.deep.equal([lockProvider.address, poolId, vaultId, receiver.address, token, params]);
         })
 
         it("should check data in new pool after split", async () => {
             await lockDealNFT.split(poolId, amount / 2, newOwner.address)
             const params = [amount / 2, startTime]
             const poolData = await lockDealNFT.getData(poolId + 1);
-            expect(poolData).to.deep.equal([lockProvider.address, poolId + 1, newOwner.address, token, params])
+            expect(poolData).to.deep.equal([lockProvider.address, poolId + 1, vaultId, newOwner.address, token, params])
         })
     })
 
@@ -103,7 +106,7 @@ describe("Lock Deal Provider", function () {
             await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, lockDealNFT.address, poolId)
             const params = ["0", startTime]
             const poolData = await lockDealNFT.getData(poolId)
-            expect(poolData).to.deep.equal([lockProvider.address, poolId, lockDealNFT.address, token, params])
+            expect(poolData).to.deep.equal([lockProvider.address, poolId, vaultId, lockDealNFT.address, token, params])
         })
 
         it("getWithdrawableAmount should return zero before startTime", async () => {
