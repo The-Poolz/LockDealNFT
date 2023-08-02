@@ -149,6 +149,6 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         uint256 poolId
     ) public onlyApprovedProvider {
         _approve(msg.sender, poolId);
-        super.safeTransferFrom(from, address(this), poolId);
+        safeTransferFrom(from, address(this), poolId);
     }
 }
