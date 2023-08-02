@@ -61,9 +61,9 @@ contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder 
         //check for time
         if (startTimes[poolId] < block.timestamp) {
             // Project owner receives tokens
-            _withdraw(from, mainCoinCollectorId);
-            _withdraw(from, tokenCollectorId);
-            _withdraw(from, mainCoinHolderId);
+            lockDealNFT.transferFromAndWithdraw(from, mainCoinCollectorId);
+            lockDealNFT.transferFromAndWithdraw(from, tokenCollectorId);
+            lockDealNFT.transferFromAndWithdraw(from, mainCoinHolderId);
             lockDealNFT.updateProviderMetadata(poolId);
             isFinal = true;
         } else {
@@ -71,11 +71,6 @@ contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder 
             _split(mainCoinCollectorId, from);
             _split(tokenCollectorId, from);
         }
-    }
-
-    function _withdraw(address projectOwner, uint256 poolId) internal {
-        lockDealNFT.transferFrom(address(this), projectOwner, poolId);
-        lockDealNFT.transferFromProvider(projectOwner, address(lockDealNFT), poolId);
     }
 
     function split(
@@ -90,7 +85,7 @@ contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder 
         uint256 amount = dealProvider.getParams(poolId)[0];
         if (amount > 0) {
             (uint256 newPoolID, ) = lockDealNFT.split(poolId, amount, owner);
-            lockDealNFT.transferFromProvider(owner, address(lockDealNFT), newPoolID);
+            lockDealNFT.transferFromProvider(owner, newPoolID);
         }
     }
 
