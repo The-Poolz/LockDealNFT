@@ -8,9 +8,9 @@ import "../../util/CalcUtils.sol";
 
 contract BundleProvider is BundleProviderState, ERC721Holder{
 using CalcUtils for uint256;
-    constructor(address nft) {
-        require(nft != address(0x0), "invalid address");
-        lockDealNFT = LockDealNFT(nft);
+    constructor(ILockDealNFT _lockDealNFT) {
+        require(address(_lockDealNFT) != address(0x0), "invalid address");
+        lockDealNFT = _lockDealNFT;
         name = "BundleProvider";
     }
 

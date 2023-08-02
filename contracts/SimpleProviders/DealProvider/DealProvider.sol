@@ -5,9 +5,9 @@ import "./DealProviderModifiers.sol";
 import "../Provider/BasicProvider.sol";
 
 contract DealProvider is DealProviderModifiers, BasicProvider {
-    constructor(address _nftContract) {
-        require(_nftContract != address(0x0), "invalid address");
-        lockDealNFT = LockDealNFT(_nftContract);
+    constructor(ILockDealNFT _nftContract) {
+        require(address(_nftContract) != address(0x0), "invalid address");
+        lockDealNFT = _nftContract;
         name = "DealProvider";
     }
 
