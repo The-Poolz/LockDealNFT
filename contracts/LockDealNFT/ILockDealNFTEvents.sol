@@ -13,6 +13,7 @@ interface ILockDealNFTEvents {
     struct BasePoolInfo {
         IProvider provider;
         uint256 poolId;
+        uint256 vaultId;
         address owner;
         address token;
         uint256[] params;

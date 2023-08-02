@@ -8,7 +8,7 @@ import { TimedDealProvider } from "../typechain-types"
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 import { MockVaultManager } from "../typechain-types"
 import { deployed, token } from "./helper"
-import { constants } from "ethers"
+import { BigNumber, constants } from "ethers"
 
 
 describe("LockDealNFT", function () {
@@ -20,6 +20,7 @@ describe("LockDealNFT", function () {
     let timedDealProvider: TimedDealProvider
     let receiver: SignerWithAddress
     let notOwner: SignerWithAddress
+    let vaultId: BigNumber
     let startTime: number, finishTime: number;
     const amount: string = "1000"
 
@@ -41,6 +42,7 @@ describe("LockDealNFT", function () {
         finishTime = startTime + 100
         poolId = (await lockDealNFT.totalSupply()).toNumber()
         await dealProvider.createNewPool(receiver.address, token, [amount])
+        vaultId = await mockVaultManager.Id()
     })
 
     it("check NFT name", async () => {
@@ -98,23 +100,25 @@ describe("LockDealNFT", function () {
     it("should return data from DealProvider using LockedDealNFT", async () => {
         const poolData = await lockDealNFT.getData(poolId)
         const params = [amount]
-        expect(poolData).to.deep.equal([dealProvider.address, poolId, receiver.address, token, params])
+        expect(poolData).to.deep.equal([dealProvider.address, poolId, vaultId, receiver.address, token, params])
     })
 
     it("should return data from LockDealProvider using LockedDealNFT", async () => {
         poolId = (await lockDealNFT.totalSupply()).toNumber()
         const params = [amount, startTime]
         await lockDealProvider.createNewPool(receiver.address, token, params)
+        const vaultId = await mockVaultManager.Id()
         const poolData = await lockDealNFT.getData(poolId)
-        expect(poolData).to.deep.equal([lockDealProvider.address, poolId, receiver.address, token, params])
+        expect(poolData).to.deep.equal([lockDealProvider.address, poolId, vaultId, receiver.address, token, params])
     })
 
     it("should return data from TimedDealProvider using LockedDealNFT", async () => {
         poolId = (await lockDealNFT.totalSupply()).toNumber()
         const params = [amount, startTime, finishTime, amount]
         await timedDealProvider.createNewPool(receiver.address, token, params)
+        const vaultId = await mockVaultManager.Id()
         const poolData = await lockDealNFT.getData(poolId)
-        expect(poolData).to.deep.equal([timedDealProvider.address, poolId, receiver.address, token, params])
+        expect(poolData).to.deep.equal([timedDealProvider.address, poolId, vaultId, receiver.address, token, params])
     })
 
     it("should set baseURI", async () => {

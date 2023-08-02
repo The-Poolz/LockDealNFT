@@ -19,6 +19,7 @@ describe("Lock Deal Bundle Provider", function () {
     let lockProvider: LockDealProvider
     let dealProvider: DealProvider
     let lockDealNFT: LockDealNFT
+    let mockVaultManager: MockVaultManager
     let bundlePoolId: number
     let receiver: SignerWithAddress
     let newOwner: SignerWithAddress
@@ -29,7 +30,7 @@ describe("Lock Deal Bundle Provider", function () {
 
     before(async () => {
         [receiver, newOwner] = await ethers.getSigners()
-        const mockVaultManager: MockVaultManager = await deployed("MockVaultManager")
+        mockVaultManager = await deployed("MockVaultManager")
         lockDealNFT = await deployed("LockDealNFT", mockVaultManager.address, "")
         dealProvider = await deployed("DealProvider", lockDealNFT.address)
         lockProvider = await deployed("LockDealProvider", lockDealNFT.address, dealProvider.address)
@@ -67,8 +68,9 @@ describe("Lock Deal Bundle Provider", function () {
     it("should get bundle provider data after creation", async () => {
         const poolData = await lockDealNFT.getData(bundlePoolId);
         const params = [bundlePoolId + 3]
+        const vaultId = await mockVaultManager.Id()
         // check the pool data
-        expect(poolData).to.deep.equal([bundleProvider.address, bundlePoolId, receiver.address, token, params])
+        expect(poolData).to.deep.equal([bundleProvider.address, bundlePoolId, vaultId, receiver.address, token, params])
 
         // check the NFT ownership
         expect(await lockDealNFT.ownerOf(bundlePoolId)).to.equal(receiver.address);
@@ -230,11 +232,12 @@ describe("Lock Deal Bundle Provider", function () {
             const splitAmount = amount.mul(3).div(10);  // totalAmount = amount*3, splitAmount = amount*3/10, rate = 10
             await lockDealNFT.split(bundlePoolId, splitAmount, newOwner.address)
             const params = [bundlePoolId + 3]
+            const vaultId = await mockVaultManager.Id()
             const oldPoolData = await lockDealNFT.getData(bundlePoolId);
             const newPoolData = await lockDealNFT.getData(newPoolId);
 
             // check the old bundle pool data
-            expect(oldPoolData).to.deep.equal([bundleProvider.address, bundlePoolId, receiver.address, token, params])
+            expect(oldPoolData).to.deep.equal([bundleProvider.address, bundlePoolId, vaultId, receiver.address, token, params])
 
             expect(await lockDealNFT.ownerOf(bundlePoolId)).to.equal(receiver.address); // old bundle pool
             expect(await lockDealNFT.ownerOf(bundlePoolId + 1)).to.equal(bundleProvider.address); // first sub pool
@@ -246,7 +249,7 @@ describe("Lock Deal Bundle Provider", function () {
             expect((await lockDealNFT.getData(bundlePoolId + 3)).params[0]).to.equal(amount.mul(9).div(10));  // third sub pool
 
             // check the new bundle pool data
-            expect(newPoolData).to.deep.equal([bundleProvider.address, newPoolId, newOwner.address, token, [newPoolId + 3]])
+            expect(newPoolData).to.deep.equal([bundleProvider.address, newPoolId, vaultId, newOwner.address, token, [newPoolId + 3]])
 
             expect(await lockDealNFT.ownerOf(newPoolId)).to.equal(newOwner.address);    // new bundle pool
             expect(await lockDealNFT.ownerOf(newPoolId + 1)).to.equal(bundleProvider.address);  // first sub pool
@@ -280,9 +283,10 @@ describe("Lock Deal Bundle Provider", function () {
 
         it("should register pool", async () => {
             await mockProvider.registerPool(bundlePoolId, params)
+            const vaultId = await mockVaultManager.Id()
 
             const poolData = await lockDealNFT.getData(bundlePoolId)
-            expect(poolData).to.deep.equal([bundleProvider.address, bundlePoolId, receiver.address, token, params])
+            expect(poolData).to.deep.equal([bundleProvider.address, bundlePoolId, vaultId, receiver.address, token, params])
         })
 
         it("should revert invalid last sub pool id", async () => {
