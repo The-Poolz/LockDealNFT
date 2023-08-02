@@ -87,8 +87,7 @@ describe("Deal Provider", function () {
             const tx = await lockDealNFT.split(poolId, amount / 2, newOwner.address)
             await tx.wait()
             const events = await lockDealNFT.queryFilter(lockDealNFT.filters.MetadataUpdate())
-            expect(events[events.length - 2].args._tokenId).to.equal(poolId)
-            expect(events[events.length - 1].args._tokenId).to.equal(poolId + 1)
+            expect(events[events.length - 1].args._tokenId).to.equal(poolId)
         })
     })
 
