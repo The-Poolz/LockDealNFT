@@ -15,15 +15,15 @@ contract DealProvider is DealProviderModifiers, BasicProvider {
         uint256 poolId,
         uint256 amount
     ) internal override returns (uint256 withdrawnAmount, bool isFinal) {
-        if (poolIdToleftAmount[poolId] >= amount) {
-            poolIdToleftAmount[poolId] -= amount;
+        if (poolIdToAmount[poolId] >= amount) {
+            poolIdToAmount[poolId] -= amount;
             withdrawnAmount = amount;
-            isFinal = poolIdToleftAmount[poolId] == 0;
+            isFinal = poolIdToAmount[poolId] == 0;
             emit TokenWithdrawn(
                 poolId,
                 lockDealNFT.ownerOf(poolId),
                 withdrawnAmount,
-                poolIdToleftAmount[poolId]
+                poolIdToAmount[poolId]
             );
         }
     }
@@ -37,17 +37,17 @@ contract DealProvider is DealProviderModifiers, BasicProvider {
         public
         override
         onlyProvider
-        invalidSplitAmount(poolIdToleftAmount[oldPoolId], splitAmount)
+        invalidSplitAmount(poolIdToAmount[oldPoolId], splitAmount)
     {
-        poolIdToleftAmount[oldPoolId] -= splitAmount;
-        poolIdToleftAmount[newPoolId] = splitAmount;
+        poolIdToAmount[oldPoolId] -= splitAmount;
+        poolIdToAmount[newPoolId] = splitAmount;
         emit PoolSplit(
             oldPoolId,
             lockDealNFT.ownerOf(oldPoolId),
             newPoolId,
             lockDealNFT.ownerOf(newPoolId),
-            poolIdToleftAmount[oldPoolId],
-            poolIdToleftAmount[newPoolId]
+            poolIdToAmount[oldPoolId],
+            poolIdToAmount[newPoolId]
         );
     }
 
@@ -59,19 +59,19 @@ contract DealProvider is DealProviderModifiers, BasicProvider {
         uint256 poolId,
         uint256[] calldata params
     ) internal override {
-        poolIdToleftAmount[poolId] = params[0];
+        poolIdToAmount[poolId] = params[0];
         address owner = lockDealNFT.ownerOf(poolId);
         address token = lockDealNFT.tokenOf(poolId);
         emit NewPoolCreated(poolId, owner, token, params);
     }
 
     function getParams(uint256 poolId) external view override returns (uint256[] memory params) {
-        uint256 leftAmount = poolIdToleftAmount[poolId];
+        uint256 leftAmount = poolIdToAmount[poolId];
         params = new uint256[](1);
         params[0] = leftAmount; // leftAmount
     }
 
     function getWithdrawableAmount(uint256 poolId) public view override returns (uint256) {
-        return poolIdToleftAmount[poolId];
+        return poolIdToAmount[poolId];
     }
 }

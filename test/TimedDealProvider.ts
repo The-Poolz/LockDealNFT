@@ -55,12 +55,7 @@ describe("Timed Deal Provider", function () {
     it("should return provider name", async () => {
         expect(await timedDealProvider.name()).to.equal("TimedDealProvider")
     })
-
-    it("should check lock deal provider address", async () => {
-        const provider = await timedDealProvider.lockDealProvider()
-        expect(provider.toString()).to.equal(lockProvider.address)
-    })
-
+    
     it("should get timed provider data after creation", async () => {
         const poolData = await lockDealNFT.getData(poolId)
         const params = [amount, startTime, finishTime, amount]

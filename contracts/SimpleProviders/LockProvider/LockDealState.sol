@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../DealProvider/DealProvider.sol";
+import "../Provider/BasicProvider.sol";
 
 /// @title LockDealState contract
 /// @notice Contains storage variables
 abstract contract LockDealState is BasicProvider {
-    DealProvider public dealProvider;
-    mapping(uint256 => uint256) public startTimes;
+    ISimpleProvider public provider;
+    mapping(uint256 => uint256) public poolIdToTime;
 }

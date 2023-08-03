@@ -5,12 +5,12 @@ import "../Provider/BasicProvider.sol";
 import "./LockDealState.sol";
 
 contract LockDealProvider is BasicProvider, LockDealState {
-    constructor(ILockDealNFT _lockDealNFT, address provider) {
+    constructor(ILockDealNFT _lockDealNFT, address _provider) {
         require(
-            address(_lockDealNFT) != address(0x0) && provider != address(0x0),
+            address(_lockDealNFT) != address(0x0) && _provider != address(0x0),
             "invalid address"
         );
-        dealProvider = DealProvider(provider);
+        provider = ISimpleProvider(_provider);
         lockDealNFT = _lockDealNFT;
         name = "LockDealProvider";
     }
@@ -26,8 +26,8 @@ contract LockDealProvider is BasicProvider, LockDealState {
         uint256 poolId,
         uint256 amount
     ) internal override returns (uint256 withdrawnAmount, bool isFinal) {
-        if (startTimes[poolId] <= block.timestamp) {
-            (withdrawnAmount, isFinal) = dealProvider.withdraw(poolId, amount);
+        if (poolIdToTime[poolId] <= block.timestamp) {
+            (withdrawnAmount, isFinal) = provider.withdraw(poolId, amount);
         }
     }
 
@@ -36,12 +36,12 @@ contract LockDealProvider is BasicProvider, LockDealState {
         uint256 newPoolId,
         uint256 splitAmount
     ) public override onlyProvider {
-        dealProvider.split(oldPoolId, newPoolId, splitAmount);
-        startTimes[newPoolId] = startTimes[oldPoolId];
+        provider.split(oldPoolId, newPoolId, splitAmount);
+        poolIdToTime[newPoolId] = poolIdToTime[oldPoolId];
     }
         
     function currentParamsTargetLenght() public override view returns (uint256) {
-        return 1 + dealProvider.currentParamsTargetLenght();
+        return 1 + provider.currentParamsTargetLenght();
     }
 
     ///@param params[0] = amount
@@ -52,8 +52,8 @@ contract LockDealProvider is BasicProvider, LockDealState {
     ) internal override {
         require(block.timestamp <= params[1], "Invalid start time");
         
-        startTimes[poolId] = params[1];
-        dealProvider.registerPool(poolId, params);
+        poolIdToTime[poolId] = params[1];
+        provider.registerPool(poolId, params);
     }
     
     /**
@@ -62,11 +62,11 @@ contract LockDealProvider is BasicProvider, LockDealState {
     */
     function getParams(uint256 poolId) public view override returns (uint256[] memory params) {
         params = new uint256[](2);
-        params[0] = dealProvider.getParams(poolId)[0];  // leftAmount
-        params[1] = startTimes[poolId];    // startTime
+        params[0] = provider.getParams(poolId)[0];  // leftAmount
+        params[1] = poolIdToTime[poolId];    // startTime
     }
 
     function getWithdrawableAmount(uint256 poolId) public view override returns (uint256) {
-        return startTimes[poolId] <= block.timestamp ? dealProvider.getWithdrawableAmount(poolId) : 0;
+        return poolIdToTime[poolId] <= block.timestamp ? provider.getWithdrawableAmount(poolId) : 0;
     }
 }
