@@ -15,7 +15,7 @@ abstract contract CollateralState is LockDealState {
         }
     }
 
-    function currentParamsTargetLenght() public pure override returns (uint256) {
+    function currentParamsTargetLenght() public pure override(IProvider, ProviderState) returns (uint256) {
         return 2;
     }
 

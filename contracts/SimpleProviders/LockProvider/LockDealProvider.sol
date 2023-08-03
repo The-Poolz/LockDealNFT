@@ -40,7 +40,7 @@ contract LockDealProvider is BasicProvider, LockDealState {
         poolIdToTime[newPoolId] = poolIdToTime[oldPoolId];
     }
         
-    function currentParamsTargetLenght() public override view returns (uint256) {
+    function currentParamsTargetLenght() public override(IProvider, ProviderState) view returns (uint256) {
         return 1 + provider.currentParamsTargetLenght();
     }
 

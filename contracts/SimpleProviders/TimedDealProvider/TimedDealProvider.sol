@@ -93,7 +93,7 @@ using CalcUtils for uint256;
         params[3] = poolIdToAmount[poolId]; // startAmount
     }
 
-    function currentParamsTargetLenght() public override view returns (uint256) {
+    function currentParamsTargetLenght() public override(IProvider, ProviderState) view returns (uint256) {
         return 1 + provider.currentParamsTargetLenght();
     }
 }
