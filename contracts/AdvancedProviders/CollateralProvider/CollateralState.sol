@@ -10,12 +10,12 @@ abstract contract CollateralState is LockDealState {
         (, , uint256 mainCoinHolderId) = getInnerIds(poolId);
         if (lockDealNFT.exist(mainCoinHolderId)) {
             params = new uint256[](2);
-            params[0] = dealProvider.getParams(mainCoinHolderId)[0];
-            params[1] = startTimes[poolId];
+            params[0] = provider.getParams(mainCoinHolderId)[0];
+            params[1] = poolIdToTime[poolId];
         }
     }
 
-    function currentParamsTargetLenght() public pure override returns (uint256) {
+    function currentParamsTargetLenght() public pure override(IProvider, ProviderState) returns (uint256) {
         return 2;
     }
 
@@ -31,7 +31,7 @@ abstract contract CollateralState is LockDealState {
         if (lockDealNFT.poolIdToProvider(poolId) == this) {
             (uint256 mainCoinCollectorId, , uint256 mainCoinHolderId) = getInnerIds(poolId);
             withdrawalAmount = lockDealNFT.getWithdrawableAmount(mainCoinCollectorId);
-            if (startTimes[poolId] <= block.timestamp) {
+            if (poolIdToTime[poolId] <= block.timestamp) {
                 withdrawalAmount += lockDealNFT.getWithdrawableAmount(mainCoinHolderId);
             }
         }

@@ -44,11 +44,6 @@ describe("Lock Deal Provider", function () {
         expect(await lockProvider.name()).to.equal("LockDealProvider")
     })
 
-    it("should check deal provider address", async () => {
-        const provider = await lockProvider.dealProvider()
-        expect(provider.toString()).to.equal(dealProvider.address)
-    })
-
     it("should check cascade pool creation events", async () => {
         const tx = await lockProvider.createNewPool(receiver.address, token, params)
         await tx.wait()

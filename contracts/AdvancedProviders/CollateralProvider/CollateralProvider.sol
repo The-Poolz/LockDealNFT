@@ -13,7 +13,7 @@ contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder 
             "invalid address"
         );
         lockDealNFT = _lockDealNFT;
-        dealProvider = DealProvider(_dealProvider);
+        provider = ISimpleProvider(_dealProvider);
         name = "CollateralProvider";
     }
 
@@ -40,14 +40,14 @@ contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder 
             "start time must be in the future"
         );
         require(poolId == lockDealNFT.totalSupply() - 1, "invalid params");
-        startTimes[poolId] = params[1];
-        lockDealNFT.mintForProvider(address(this), dealProvider); //Main Coin Collector poolId + 1
-        lockDealNFT.mintForProvider(address(this), dealProvider); //Token Collector poolId + 2
+        poolIdToTime[poolId] = params[1];
+        lockDealNFT.mintForProvider(address(this), provider); //Main Coin Collector poolId + 1
+        lockDealNFT.mintForProvider(address(this), provider); //Token Collector poolId + 2
         uint256 mainCoinHolderId = lockDealNFT.mintForProvider(
             address(this),
-            dealProvider
+            provider
         ); //hold main coin for the project owner poolId + 3
-        dealProvider.registerPool(mainCoinHolderId, params); // just need the 0 index, left amount
+        provider.registerPool(mainCoinHolderId, params); // just need the 0 index, left amount
         assert(mainCoinHolderId == poolId + 3);
         //need to call this from the refund, then call copyVaultId to this Id's
         //poolId + 1 and poolId + 3 is the main coin and poolId + 2 is the token
@@ -59,7 +59,7 @@ contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder 
     ) public override onlyNFT returns (uint256, bool isFinal) {
         (uint256 mainCoinCollectorId, uint256 tokenCollectorId, uint256 mainCoinHolderId) = getInnerIds(poolId);
         //check for time
-        if (startTimes[poolId] < block.timestamp) {
+        if (poolIdToTime[poolId] < block.timestamp) {
             // Project owner receives tokens
             lockDealNFT.withdrawFromProvider(from, mainCoinCollectorId);
             lockDealNFT.withdrawFromProvider(from, tokenCollectorId);
@@ -82,7 +82,7 @@ contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder 
     }
 
     function _split(uint256 poolId, address owner) internal {
-        uint256 amount = dealProvider.getParams(poolId)[0];
+        uint256 amount = provider.getParams(poolId)[0];
         if (amount > 0) {
             (uint256 newPoolID, ) = lockDealNFT.split(poolId, amount, owner);
             lockDealNFT.transferFromProvider(owner, newPoolID);
@@ -95,7 +95,7 @@ contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder 
         uint256 mainCoinAmount
     ) public override onlyProvider validProviderId(poolId) {
         (, uint256 tokenCollectorId, uint256 mainCoinHolderId) = getInnerIds(poolId);
-        dealProvider.withdraw(mainCoinHolderId, mainCoinAmount);
+        provider.withdraw(mainCoinHolderId, mainCoinAmount);
         _deposit(tokenCollectorId, tokenAmount);
     }
 
@@ -105,13 +105,13 @@ contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder 
     ) public override onlyProvider validProviderId(poolId) {
         uint256 mainCoinCollectorId = poolId + 1;
         uint256 mainCoinHolderId = poolId + 3;
-        dealProvider.withdraw(mainCoinHolderId, mainCoinAmount);
+        provider.withdraw(mainCoinHolderId, mainCoinAmount);
         _deposit(mainCoinCollectorId, mainCoinAmount);
     }
 
     function _deposit(uint256 poolId, uint256 amount) internal {
-        uint256[] memory params = dealProvider.getParams(poolId);
+        uint256[] memory params = provider.getParams(poolId);
         params[0] += amount;
-        dealProvider.registerPool(poolId, params);
+        provider.registerPool(poolId, params);
     }
 }

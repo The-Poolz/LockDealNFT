@@ -26,10 +26,10 @@ contract RefundProvider is RefundState, IERC721Receiver {
         if (provider == user) {
             uint256 collateralPoolId = poolIdToCollateralId[poolId];
             require(
-                collateralProvider.startTimes(collateralPoolId) > block.timestamp,
+                collateralProvider.poolIdToTime(collateralPoolId) > block.timestamp,
                 "too late"
             );
-            DealProvider dealProvider = collateralProvider.dealProvider();
+            ISimpleProvider dealProvider = collateralProvider.provider();
             uint256 userDataPoolId = poolId + 1;
             // user withdraws his tokens
             uint256 amount = dealProvider.getParams(userDataPoolId)[0];
@@ -126,7 +126,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
         uint256 userDataPoolId = poolId + 1;
         // user withdraws his tokens
         (withdrawnAmount, isFinal) = lockDealNFT.poolIdToProvider(userDataPoolId).withdraw(operator, from, userDataPoolId, data);
-        if(collateralProvider.startTimes(poolIdToCollateralId[poolId]) >= block.timestamp) {
+        if(collateralProvider.poolIdToTime(poolIdToCollateralId[poolId]) >= block.timestamp) {
             uint256 mainCoinAmount = _calcMainCoinAmount(withdrawnAmount, poolIdToRateToWei[poolId]);
             collateralProvider.handleWithdraw(poolIdToCollateralId[poolId], mainCoinAmount);
         }
