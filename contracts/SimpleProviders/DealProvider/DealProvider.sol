@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./DealProviderModifiers.sol";
+import "./DealProviderState.sol";
 import "../Provider/BasicProvider.sol";
 import "../../util/CalcUtils.sol";
 
-contract DealProvider is DealProviderModifiers, BasicProvider {
+contract DealProvider is DealProviderState, BasicProvider {
     using CalcUtils for uint256;
 
     constructor(ILockDealNFT _nftContract) {
@@ -42,10 +42,7 @@ contract DealProvider is DealProviderModifiers, BasicProvider {
         onlyProvider
     {
         uint256 splitAmount = poolIdToAmount[oldPoolId].calcAmount(ratio);
-        require(
-            poolIdToAmount[oldPoolId] > 0 && poolIdToAmount[oldPoolId] >= splitAmount,
-            "Split amount exceeds the available amount"
-        );
+        require(poolIdToAmount[oldPoolId] >= splitAmount, "Split amount exceeds the available amount");
         poolIdToAmount[oldPoolId] -= splitAmount;
         poolIdToAmount[newPoolId] = splitAmount;
         emit PoolSplit(
