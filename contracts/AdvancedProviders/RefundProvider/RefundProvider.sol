@@ -37,7 +37,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
             // user withdraws his tokens
             uint256 amount = dealProvider.getParams(userDataPoolId)[0];
             (uint256 withdrawnAmount, ) = dealProvider.withdraw(userDataPoolId, amount);
-            uint256 mainCoinAmount = withdrawnAmount.calcAmountByMul(poolIdToRateToWei[poolId]);
+            uint256 mainCoinAmount = withdrawnAmount.calcAmount(poolIdToRateToWei[poolId]);
             collateralProvider.handleRefund(collateralPoolId, withdrawnAmount, mainCoinAmount);
             uint256 newMainCoinPoolId = lockDealNFT.mintForProvider(user, dealProvider);
             uint256[] memory params = new uint256[](1);
@@ -126,7 +126,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
         // user withdraws his tokens
         (withdrawnAmount, isFinal) = lockDealNFT.poolIdToProvider(userDataPoolId).withdraw(operator, from, userDataPoolId, data);
         if(collateralProvider.poolIdToTime(poolIdToCollateralId[poolId]) >= block.timestamp) {
-            uint256 mainCoinAmount = withdrawnAmount.calcAmountByMul(poolIdToRateToWei[poolId]);
+            uint256 mainCoinAmount = withdrawnAmount.calcAmount(poolIdToRateToWei[poolId]);
             collateralProvider.handleWithdraw(poolIdToCollateralId[poolId], mainCoinAmount);
         }
         lockDealNFT.updateProviderMetadata(poolId);

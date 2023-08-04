@@ -41,7 +41,7 @@ contract DealProvider is DealProviderModifiers, BasicProvider {
         override
         onlyProvider
     {
-        uint256 splitAmount = poolIdToAmount[oldPoolId].calcAmountByMul(ratio);
+        uint256 splitAmount = poolIdToAmount[oldPoolId].calcAmount(ratio);
         require(
             poolIdToAmount[oldPoolId] > 0 && poolIdToAmount[oldPoolId] >= splitAmount,
             "Split amount exceeds the available amount"

@@ -58,7 +58,7 @@ contract TimedDealProvider is LockDealState, DealProviderState {
         uint256 ratio
     ) public onlyProvider {
         provider.split(oldPoolId, newPoolId, ratio);
-        uint256 newPoolStartAmount = poolIdToAmount[oldPoolId].calcAmountByMul(ratio);
+        uint256 newPoolStartAmount = poolIdToAmount[oldPoolId].calcAmount(ratio);
         poolIdToAmount[oldPoolId] -= newPoolStartAmount;
         poolIdToAmount[newPoolId] = newPoolStartAmount;
         poolIdToTime[newPoolId] = poolIdToTime[oldPoolId];
