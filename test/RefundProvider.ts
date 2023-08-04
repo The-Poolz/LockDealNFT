@@ -6,7 +6,7 @@ import { RefundProvider } from "../typechain-types"
 import { TimedDealProvider } from "../typechain-types"
 import { CollateralProvider } from "../typechain-types"
 import { MockProvider } from "../typechain-types"
-import { deployed, token, BUSD } from "./helper"
+import { deployed, token, BUSD, MAX_RATIO } from "./helper"
 import { time, mine } from "@nomicfoundation/hardhat-network-helpers"
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 import { expect } from "chai"
@@ -118,28 +118,32 @@ describe("Refund Provider", function () {
 
     describe("Split Pool", async () => {
         it("should return currect pool data after split", async () => {
-            await lockDealNFT.split(poolId, amount.div(2), receiver.address)
+            const ratio = MAX_RATIO.div(2)
+            await lockDealNFT.split(poolId, ratio, receiver.address)
             const params = [poolId + 2, rate]
             const poolData = await lockDealNFT.getData(poolId)
             expect(poolData).to.deep.equal([refundProvider.address, poolId, 0, receiver.address, constants.AddressZero, params])
         })
 
         it("should return new pool data after split", async () => {
-            await lockDealNFT.split(poolId, amount.div(2), receiver.address)
+            const ratio = MAX_RATIO.div(2)
+            await lockDealNFT.split(poolId, ratio, receiver.address)
             const params = [poolId + 2, rate]
             const poolData = await lockDealNFT.getData(poolId + 6)
             expect(poolData).to.deep.equal([refundProvider.address, poolId + 6, 0, receiver.address, constants.AddressZero, params])
         })
 
         it("should return old data for user after split", async () => {
-            await lockDealNFT.split(poolId, amount.div(2), receiver.address)
+            const ratio = MAX_RATIO.div(2)
+            await lockDealNFT.split(poolId, ratio, receiver.address)
             const params = [amount.div(2), startTime, finishTime, amount.div(2)]
             const poolData = await lockDealNFT.getData(poolId + 1)
             expect(poolData).to.deep.equal([timedProvider.address, poolId + 1, vaultId.sub(1), refundProvider.address, token, params])
         })
 
         it("should return new data for user after split", async () => {
-            await lockDealNFT.split(poolId, amount.div(2), receiver.address)
+            const ratio = MAX_RATIO.div(2)
+            await lockDealNFT.split(poolId, ratio, receiver.address)
             const params = [amount.div(2), startTime, finishTime, amount.div(2)]
             const poolData = await lockDealNFT.getData(poolId + 7)
             expect(poolData).to.deep.equal([timedProvider.address, poolId + 7, vaultId.sub(1), refundProvider.address, token, params])

@@ -5,7 +5,7 @@ import { LockDealNFT } from "../typechain-types";
 import { DealProvider } from "../typechain-types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { MockVaultManager } from "../typechain-types";
-import { deployed, token } from "./helper";
+import { deployed, token, MAX_RATIO } from "./helper";
 
 describe("Deal Provider", function () {
     let dealProvider: DealProvider
@@ -73,21 +73,24 @@ describe("Deal Provider", function () {
 
     describe("Split Amount", () => {
         it("should check data in old pool after split", async () => {
-            await lockDealNFT.split(poolId, amount / 2, newOwner.address)
+            const ratio = MAX_RATIO.div(2) // half of the amount
+            await lockDealNFT.split(poolId, ratio, newOwner.address)
             const params = [amount / 2]
             const poolData = await lockDealNFT.getData(poolId);
             expect(poolData).to.deep.equal([dealProvider.address, poolId, vaultId, receiver.address, token, params]);
         })
 
         it("should check data in new pool after split", async () => {
-            await lockDealNFT.split(poolId, amount / 2, newOwner.address)
+            const ratio = MAX_RATIO.div(2) // half of the amount
+            await lockDealNFT.split(poolId, ratio, newOwner.address)
             const params = [amount / 2]
             const poolData = await lockDealNFT.getData(poolId + 1);
             expect(poolData).to.deep.equal([dealProvider.address, poolId + 1, vaultId, newOwner.address, token, params]);
         })
 
         it("should return split metadata event", async () => {
-            const tx = await lockDealNFT.split(poolId, amount / 2, newOwner.address)
+            const ratio = MAX_RATIO.div(2) // half of the amount
+            const tx = await lockDealNFT.split(poolId, ratio, newOwner.address)
             await tx.wait()
             const events = await lockDealNFT.queryFilter(lockDealNFT.filters.MetadataUpdate())
             expect(events[events.length - 1].args._tokenId).to.equal(poolId)

@@ -6,7 +6,7 @@ import { LockDealProvider } from "../typechain-types";
 import { LockDealNFT } from "../typechain-types";
 import { DealProvider } from "../typechain-types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { deployed, token } from "./helper";
+import { deployed, token, MAX_RATIO } from "./helper";
 import { MockVaultManager } from "../typechain-types";
 
 describe("Lock Deal Provider", function () {
@@ -81,14 +81,16 @@ describe("Lock Deal Provider", function () {
 
     describe("Lock Split Amount", () => {
         it("should check data in old pool after split", async () => {
-            await lockDealNFT.split(poolId, amount / 2, newOwner.address)
+            const ratio = MAX_RATIO.div(2) // half of the amount
+            await lockDealNFT.split(poolId, ratio, newOwner.address)
             const params = [amount / 2, startTime]
             const poolData = await lockDealNFT.getData(poolId);
             expect(poolData).to.deep.equal([lockProvider.address, poolId, vaultId, receiver.address, token, params]);
         })
 
         it("should check data in new pool after split", async () => {
-            await lockDealNFT.split(poolId, amount / 2, newOwner.address)
+            const ratio = MAX_RATIO.div(2) // half of the amount
+            await lockDealNFT.split(poolId, ratio, newOwner.address)
             const params = [amount / 2, startTime]
             const poolData = await lockDealNFT.getData(poolId + 1);
             expect(poolData).to.deep.equal([lockProvider.address, poolId + 1, vaultId, newOwner.address, token, params])

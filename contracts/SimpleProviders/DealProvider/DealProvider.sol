@@ -3,8 +3,11 @@ pragma solidity ^0.8.0;
 
 import "./DealProviderModifiers.sol";
 import "../Provider/BasicProvider.sol";
+import "../../util/CalcUtils.sol";
 
 contract DealProvider is DealProviderModifiers, BasicProvider {
+    using CalcUtils for uint256;
+
     constructor(ILockDealNFT _nftContract) {
         require(address(_nftContract) != address(0x0), "invalid address");
         lockDealNFT = _nftContract;
@@ -32,13 +35,17 @@ contract DealProvider is DealProviderModifiers, BasicProvider {
     function split(
         uint256 oldPoolId,
         uint256 newPoolId,
-        uint256 splitAmount
+        uint256 ratio
     )
         public
         override
         onlyProvider
-        invalidSplitAmount(poolIdToAmount[oldPoolId], splitAmount)
     {
+        uint256 splitAmount = poolIdToAmount[oldPoolId].calcAmountByMul(ratio);
+        require(
+            poolIdToAmount[oldPoolId] > 0 && poolIdToAmount[oldPoolId] >= splitAmount,
+            "Split amount exceeds the available amount"
+        );
         poolIdToAmount[oldPoolId] -= splitAmount;
         poolIdToAmount[newPoolId] = splitAmount;
         emit PoolSplit(

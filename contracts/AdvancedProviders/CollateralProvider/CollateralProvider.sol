@@ -84,7 +84,8 @@ contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder 
     function _split(uint256 poolId, address owner) internal {
         uint256 amount = provider.getParams(poolId)[0];
         if (amount > 0) {
-            (uint256 newPoolID, ) = lockDealNFT.split(poolId, amount, owner);
+            uint256 rate = 1e18; // 100% of the left amount
+            (uint256 newPoolID, ) = lockDealNFT.split(poolId, rate, owner);
             lockDealNFT.transferFromProvider(owner, newPoolID);
         }
     }

@@ -34,9 +34,9 @@ contract LockDealProvider is BasicProvider, LockDealState {
     function split(
         uint256 oldPoolId,
         uint256 newPoolId,
-        uint256 splitAmount
+        uint256 ratio
     ) public override onlyProvider {
-        provider.split(oldPoolId, newPoolId, splitAmount);
+        provider.split(oldPoolId, newPoolId, ratio);
         poolIdToTime[newPoolId] = poolIdToTime[oldPoolId];
     }
         
