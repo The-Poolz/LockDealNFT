@@ -100,17 +100,18 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
 
     /// @dev Splits a pool into two pools with adjusted amounts
     /// @param poolId The ID of the pool to split
-    /// @param splitAmount The amount of funds to split into the new pool
+    /// @param ratio The ratio of funds to split into the new pool
     /// @param newOwner The address to assign the new pool to
     function split(
         uint256 poolId,
-        uint256 splitAmount,
+        uint256 ratio,
         address newOwner
-    ) external onlyPoolOwner(poolId) notZeroAmount(splitAmount) returns(uint256 newPoolId, bool isFinal) {
+    ) external onlyPoolOwner(poolId) notZeroAmount(ratio) returns(uint256 newPoolId, bool isFinal) {
+        require(ratio <= 1e18, "split amount exceeded");
         IProvider provider = poolIdToProvider[poolId];
         newPoolId = _mint(newOwner, provider);
         poolIdToVaultId[newPoolId] = poolIdToVaultId[poolId];
-        provider.split(poolId, newPoolId, splitAmount);
+        provider.split(poolId, newPoolId, ratio);
         uint256 leftAmount = provider.getParams(poolId)[0];
         isFinal = leftAmount == 0;
         emit MetadataUpdate(poolId);

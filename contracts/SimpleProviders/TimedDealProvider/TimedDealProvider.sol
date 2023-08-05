@@ -6,7 +6,7 @@ import "../DealProvider/DealProviderState.sol";
 import "../../util/CalcUtils.sol";
 
 contract TimedDealProvider is LockDealState, DealProviderState {
-using CalcUtils for uint256;
+    using CalcUtils for uint256;
     /**
      * @dev Contract constructor.
      * @param _lockDealNFT The address of the LockDealNFT contract.
@@ -55,12 +55,10 @@ using CalcUtils for uint256;
     function split(
         uint256 oldPoolId,
         uint256 newPoolId,
-        uint256 splitAmount
+        uint256 ratio
     ) public onlyProvider {
-        uint256 leftAmount = provider.getParams(oldPoolId)[0];
-        uint256 rate = leftAmount.calcRate(splitAmount);
-        provider.split(oldPoolId, newPoolId, splitAmount);
-        uint256 newPoolStartAmount = poolIdToAmount[oldPoolId].calcAmount(rate);
+        provider.split(oldPoolId, newPoolId, ratio);
+        uint256 newPoolStartAmount = poolIdToAmount[oldPoolId].calcAmount(ratio);
         poolIdToAmount[oldPoolId] -= newPoolStartAmount;
         poolIdToAmount[newPoolId] = newPoolStartAmount;
         poolIdToTime[newPoolId] = poolIdToTime[oldPoolId];

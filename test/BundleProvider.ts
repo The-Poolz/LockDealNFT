@@ -5,7 +5,7 @@ import { DealProvider } from "../typechain-types"
 import { MockVaultManager } from "../typechain-types"
 import { MockProvider } from "../typechain-types"
 import { BundleProvider } from "../typechain-types"
-import { deployed, token } from "./helper"
+import { deployed, token, MAX_RATIO } from "./helper";
 import { time, mine } from "@nomicfoundation/hardhat-network-helpers"
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 import { expect } from "chai"
@@ -229,8 +229,8 @@ describe("Lock Deal Bundle Provider", function () {
     describe("Lock Deal Bundle Split Amount", () => {
         it("should check the pool data after split", async () => {
             const newPoolId = (await lockDealNFT.totalSupply()).toNumber();
-            const splitAmount = amount.mul(3).div(10);  // totalAmount = amount*3, splitAmount = amount*3/10, rate = 10
-            await lockDealNFT.split(bundlePoolId, splitAmount, newOwner.address)
+            const ratio = MAX_RATIO.div(10) // 10%
+            await lockDealNFT.split(bundlePoolId, ratio, newOwner.address)
             const params = [bundlePoolId + 3]
             const vaultId = await mockVaultManager.Id()
             const oldPoolData = await lockDealNFT.getData(bundlePoolId);
@@ -262,13 +262,13 @@ describe("Lock Deal Bundle Provider", function () {
         })
 
         it("should revert if the split amount is invalid", async () => {
-            const splitAmount = amount.mul(3);  // totalAmount = amount*3, splitAmount = amount*3, rate = 1
-            await expect(lockDealNFT.split(bundlePoolId, splitAmount, newOwner.address)).to.be.revertedWith("split amount exceeded")  
+            const ratio = MAX_RATIO.mul(2) // 200%
+            await expect(lockDealNFT.split(bundlePoolId, ratio, newOwner.address)).to.be.revertedWith("split amount exceeded")  
         })
 
         it("should revert if not called from the lockDealNFT contract", async () => {
-            const splitAmount = amount.mul(3).div(10);  // totalAmount = amount*3, splitAmount = amount*3/10, rate = 10
-            await expect(bundleProvider.split(bundlePoolId, splitAmount, newOwner.address)).to.be.revertedWith("invalid provider address")  
+            const ratio = MAX_RATIO.div(10)
+            await expect(bundleProvider.split(bundlePoolId, ratio, newOwner.address)).to.be.revertedWith("invalid provider address")  
         })
     })
 

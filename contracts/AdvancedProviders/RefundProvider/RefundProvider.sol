@@ -3,8 +3,11 @@ pragma solidity ^0.8.0;
 
 import "./RefundState.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "../../util/CalcUtils.sol";
 
 contract RefundProvider is RefundState, IERC721Receiver {
+    using CalcUtils for uint256;
+
     constructor(ILockDealNFT nftContract, address provider) {
         require(
             address(nftContract) != address(0x0) && provider != address(0x0),
@@ -34,7 +37,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
             // user withdraws his tokens
             uint256 amount = dealProvider.getParams(userDataPoolId)[0];
             (uint256 withdrawnAmount, ) = dealProvider.withdraw(userDataPoolId, amount);
-            uint256 mainCoinAmount = _calcMainCoinAmount(withdrawnAmount, poolIdToRateToWei[poolId]);
+            uint256 mainCoinAmount = withdrawnAmount.calcAmount(poolIdToRateToWei[poolId]);
             collateralProvider.handleRefund(collateralPoolId, withdrawnAmount, mainCoinAmount);
             uint256 newMainCoinPoolId = lockDealNFT.mintForProvider(user, dealProvider);
             uint256[] memory params = new uint256[](1);
@@ -108,15 +111,11 @@ contract RefundProvider is RefundState, IERC721Receiver {
     function split(
         uint256 poolId,
         uint256 newPoolId,
-        uint256 splitAmount
+        uint256 ratio
     ) external onlyNFT {
         _registerPool(newPoolId, getParams(poolId));
         uint256 userPoolId = poolId + 1;
-        lockDealNFT.split(userPoolId, splitAmount, address(this));
-    }
-
-    function _calcMainCoinAmount(uint256 amount, uint256 rate) internal pure returns (uint256) {
-        return amount * rate / 1e18;
+        lockDealNFT.split(userPoolId, ratio, address(this));
     }
 
     ///@dev user withdraws his tokens
@@ -127,7 +126,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
         // user withdraws his tokens
         (withdrawnAmount, isFinal) = lockDealNFT.poolIdToProvider(userDataPoolId).withdraw(operator, from, userDataPoolId, data);
         if(collateralProvider.poolIdToTime(poolIdToCollateralId[poolId]) >= block.timestamp) {
-            uint256 mainCoinAmount = _calcMainCoinAmount(withdrawnAmount, poolIdToRateToWei[poolId]);
+            uint256 mainCoinAmount = withdrawnAmount.calcAmount(poolIdToRateToWei[poolId]);
             collateralProvider.handleWithdraw(poolIdToCollateralId[poolId], mainCoinAmount);
         }
         lockDealNFT.updateProviderMetadata(poolId);

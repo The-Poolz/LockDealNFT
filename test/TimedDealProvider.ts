@@ -4,7 +4,7 @@ import { LockDealNFT } from "../typechain-types"
 import { DealProvider } from "../typechain-types"
 import { MockProvider } from "../typechain-types"
 import { MockVaultManager } from "../typechain-types"
-import { deployed, token, BUSD } from "./helper"
+import { deployed, token, BUSD, MAX_RATIO } from "./helper"
 import { time } from "@nomicfoundation/hardhat-network-helpers"
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 import { expect } from "chai"
@@ -124,21 +124,24 @@ describe("Timed Deal Provider", function () {
 
     describe("Timed Split Amount", () => {
         it("should check data in old pool after split", async () => {
-            await lockDealNFT.split(poolId, amount / 2, newOwner.address)
+            const ratio = MAX_RATIO.div(2)
+            await lockDealNFT.split(poolId, ratio, newOwner.address)
             const params = [amount / 2, startTime, finishTime, amount / 2]
             const poolData = await lockDealNFT.getData(poolId);
             expect(poolData).to.deep.equal([timedDealProvider.address, poolId, vaultId, receiver.address, token, params])
         })
 
         it("should check data in new pool after split", async () => {
-            await lockDealNFT.split(poolId, amount / 2, newOwner.address)
+            const ratio = MAX_RATIO.div(2)
+            await lockDealNFT.split(poolId, ratio, newOwner.address)
             const params = [amount / 2, startTime, finishTime, amount / 2]
             const poolData = await lockDealNFT.getData(poolId + 1);
             expect(poolData).to.deep.equal([timedDealProvider.address, poolId + 1, vaultId, newOwner.address, token, params])
         })
 
         it("should check event data after split", async () => {
-            const tx = await lockDealNFT.split(poolId, amount / 2, newOwner.address)
+            const ratio = MAX_RATIO.div(2)
+            const tx = await lockDealNFT.split(poolId, ratio, newOwner.address)
             await tx.wait()
             const events = await dealProvider.queryFilter(dealProvider.filters.PoolSplit())
             expect(events[events.length - 1].args.poolId).to.equal(poolId)
@@ -151,25 +154,25 @@ describe("Timed Deal Provider", function () {
 
         it("should withdraw 10% and then split 50% tokens", async () => {
             await time.setNextBlockTimestamp(startTime + halfTime / 5) // 10% of time
-
+            const ratio = MAX_RATIO.div(2)
             await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, lockDealNFT.address, poolId)
-            await lockDealNFT.split(poolId, amount / 2, newOwner.address)
+            await lockDealNFT.split(poolId, ratio, newOwner.address)
             const poolData = await lockDealNFT.getData(poolId);
             const newPoolData = await lockDealNFT.getData(poolId + 1)
             expect(poolData.params[3].add(newPoolData.params[3])).to.equal(amount)
-            expect(newPoolData.params[0]).to.equal(amount / 2)
+            expect(poolData.params[0].add(newPoolData.params[0])).to.equal(amount - amount / 10)
         })
 
         it("should withdraw 25% and then split 25% tokens", async () => {
             await time.setNextBlockTimestamp(startTime + halfTime / 2) // 25% of time
-
+            const ratio = MAX_RATIO.div(4)
             await lockDealNFT.connect(receiver)["safeTransferFrom(address,address,uint256)"](receiver.address, lockDealNFT.address, poolId)
-            await lockDealNFT.split(poolId, amount / 4, newOwner.address)
-            const poolData = await lockDealNFT.getData(poolId);
+            await lockDealNFT.split(poolId, ratio, newOwner.address)
+            const poolData = await lockDealNFT.getData(poolId)
             const newPoolData = await lockDealNFT.getData(poolId + 1)
 
             expect(poolData.params[3].add(newPoolData.params[3])).to.equal(amount)
-            expect(newPoolData.params[0]).to.equal(amount / 4)
+            expect(poolData.params[0].add(newPoolData.params[0])).to.equal(amount - amount / 4)
         })
     })
 
