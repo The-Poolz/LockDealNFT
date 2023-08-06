@@ -162,4 +162,9 @@ describe("LockDealNFT", function () {
         const events = await lockDealNFT.queryFilter(lockDealNFT.filters.MetadataUpdate())
         expect(events[events.length - 1].args._tokenId).to.equal(constants.MaxUint256)
     })
+
+    it("shuld return royalty", async () => {
+        const royalty = await lockDealNFT.royaltyInfo(0,100);
+        expect(royalty).to.lengthOf(2);
+    })
 })
