@@ -15,13 +15,11 @@ abstract contract BundleProviderState is IProvider, ProviderModifiers {
         }
     }
 
-    function getWithdrawableAmount(
-        uint256 poolId
-    ) external view override returns (uint256 withdrawalAmount) {
+    function getWithdrawableAmount(uint256 poolId) external view override returns (uint256 withdrawalAmount) {
         if (lockDealNFT.poolIdToProvider(poolId) == this) {
             uint256 lastSubPoolId = bundlePoolIdToLastSubPoolId[poolId];
             for (uint256 i = poolId + 1; i <= lastSubPoolId; ++i) {
-                (uint256 subPoolwithdrawalAmount) = lockDealNFT.getWithdrawableAmount(i);
+                uint256 subPoolwithdrawalAmount = lockDealNFT.getWithdrawableAmount(i);
                 withdrawalAmount += subPoolwithdrawalAmount;
             }
         }

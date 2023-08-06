@@ -20,23 +20,14 @@ abstract contract ProviderModifiers is ProviderState {
     }
 
     function _onlyNFT() internal view {
-        require(
-            msg.sender == address(lockDealNFT),
-            "only NFT contract can call this function"
-        );
+        require(msg.sender == address(lockDealNFT), "only NFT contract can call this function");
     }
 
-    function _validParamsLength(
-        uint256 paramsLength,
-        uint256 minLength
-    ) private pure {
+    function _validParamsLength(uint256 paramsLength, uint256 minLength) private pure {
         require(paramsLength >= minLength, "invalid params length");
     }
 
     function _onlyProvider() private view {
-        require(
-            lockDealNFT.approvedProviders(msg.sender),
-            "invalid provider address"
-        );
+        require(lockDealNFT.approvedProviders(msg.sender), "invalid provider address");
     }
 }

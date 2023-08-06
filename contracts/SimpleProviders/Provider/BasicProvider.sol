@@ -17,19 +17,8 @@ abstract contract BasicProvider is ProviderModifiers, ISimpleProvider {
         address owner,
         address token,
         uint256[] calldata params
-    )
-        public
-        virtual
-        validParamsLength(params.length, currentParamsTargetLenght())
-        returns (uint256 poolId)
-    {
-        poolId = lockDealNFT.mintAndTransfer(
-            owner,
-            token,
-            msg.sender,
-            params[0],
-            this
-        );
+    ) public virtual validParamsLength(params.length, currentParamsTargetLenght()) returns (uint256 poolId) {
+        poolId = lockDealNFT.mintAndTransfer(owner, token, msg.sender, params[0], this);
         _registerPool(poolId, params);
     }
 
@@ -37,12 +26,7 @@ abstract contract BasicProvider is ProviderModifiers, ISimpleProvider {
     function registerPool(
         uint256 poolId,
         uint256[] calldata params
-    )
-        public
-        virtual
-        onlyProvider
-        validParamsLength(params.length, currentParamsTargetLenght())
-    {
+    ) public virtual onlyProvider validParamsLength(params.length, currentParamsTargetLenght()) {
         _registerPool(poolId, params);
         lockDealNFT.updateProviderMetadata(poolId);
     }
@@ -53,7 +37,12 @@ abstract contract BasicProvider is ProviderModifiers, ISimpleProvider {
      * @return withdrawnAmount The amount of tokens withdrawn.
      * @return isFinal Boolean indicating whether the pool is empty after a withdrawal.
      */
-    function withdraw(address, address, uint256 poolId, bytes calldata) public override virtual onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
+    function withdraw(
+        address,
+        address,
+        uint256 poolId,
+        bytes calldata
+    ) public virtual override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
         (withdrawnAmount, isFinal) = _withdraw(poolId, getWithdrawableAmount(poolId));
         lockDealNFT.updateProviderMetadata(poolId);
     }
@@ -62,27 +51,17 @@ abstract contract BasicProvider is ProviderModifiers, ISimpleProvider {
     function withdraw(
         uint256 poolId,
         uint256 amount
-    )
-        public
-        virtual
-        onlyProvider
-        returns (uint256 withdrawnAmount, bool isFinal)
-    {
+    ) public virtual onlyProvider returns (uint256 withdrawnAmount, bool isFinal) {
         (withdrawnAmount, isFinal) = _withdraw(poolId, amount);
         lockDealNFT.updateProviderMetadata(poolId);
     }
 
-    function _registerPool(
-        uint256 poolId,
-        uint256[] calldata params
-    ) internal virtual;
+    function _registerPool(uint256 poolId, uint256[] calldata params) internal virtual;
 
     function _withdraw(
         uint256 poolId,
         uint256 amount
     ) internal virtual returns (uint256 withdrawnAmount, bool isFinal) {}
 
-    function getWithdrawableAmount(
-        uint256 poolId
-    ) public view virtual override returns (uint256);
+    function getWithdrawableAmount(uint256 poolId) public view virtual override returns (uint256);
 }
