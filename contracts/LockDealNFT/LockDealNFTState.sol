@@ -8,7 +8,7 @@ import "@poolzfinance/poolz-helper-v2/contracts/Array.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./ILockDealNFTEvents.sol";
 import "../interfaces/ILockDealNFT.sol";
-import "../interfaces/IVaultManager.sol";
+import "../interfaces/IVaultManagerWith2981.sol";
 
 /**
  * @title LockDealNFTState
@@ -16,7 +16,7 @@ import "../interfaces/IVaultManager.sol";
  */
 abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Ownable, IERC4906, ILockDealNFT, IERC2981 {
     string public baseURI;
-    IFullVault public vaultManager;
+    IVaultManagerWith2981 public vaultManager;
 
     mapping(uint256 => IProvider) public poolIdToProvider;
     mapping(uint256 => uint256) public poolIdToVaultId;
