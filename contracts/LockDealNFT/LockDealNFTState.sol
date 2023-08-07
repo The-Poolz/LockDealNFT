@@ -14,7 +14,7 @@ import "../interfaces/ILockDealNFT.sol";
  * @title LockDealNFTState
  * @dev An abstract contract that defines the state variables and mappings for the LockDealNFT contract.
  */
-abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Ownable, IERC4906, ILockDealNFT {
+abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Ownable, IERC4906, ILockDealNFT, IERC2981 {
     string public baseURI;
     IVaultManager public vaultManager;
 
@@ -83,5 +83,13 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
         string memory oldBaseURI = baseURI;
         baseURI = newBaseURI;
         emit BaseURIChanged(oldBaseURI, newBaseURI);
+    }
+
+    function royaltyInfo(
+        uint256 tokenId,
+        uint256 salePrice
+    ) external override view returns (address receiver, uint256 royaltyAmount)
+    {
+       (receiver,royaltyAmount) = vaultManager.royaltyInfo(poolIdToVaultId[tokenId], salePrice);
     }
 }
