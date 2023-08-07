@@ -12,7 +12,7 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         string memory _baseURI
     ) ERC721("LockDealNFT", "LDNFT") {
         require(_vaultManager != address(0x0), "invalid vault manager address");
-        vaultManager = IVaultManagerWith2981(_vaultManager);
+        vaultManager = IVaultManager(_vaultManager);
         approvedProviders[address(this)] = true;
         baseURI = _baseURI;
         //_registerInterface(_INTERFACE_ID_ERC2981); //TODO add IERC165 on Issue #226

@@ -4,11 +4,11 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/interfaces/IERC4906.sol";
+import "@poolzfinance/poolz-helper-v2/contracts/interfaces/IVaultManager.sol";
 import "@poolzfinance/poolz-helper-v2/contracts/Array.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./ILockDealNFTEvents.sol";
 import "../interfaces/ILockDealNFT.sol";
-import "../interfaces/IVaultManagerWith2981.sol";
 
 /**
  * @title LockDealNFTState
@@ -16,7 +16,7 @@ import "../interfaces/IVaultManagerWith2981.sol";
  */
 abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Ownable, IERC4906, ILockDealNFT, IERC2981 {
     string public baseURI;
-    IVaultManagerWith2981 public vaultManager;
+    IVaultManager public vaultManager;
 
     mapping(uint256 => IProvider) public poolIdToProvider;
     mapping(uint256 => uint256) public poolIdToVaultId;
