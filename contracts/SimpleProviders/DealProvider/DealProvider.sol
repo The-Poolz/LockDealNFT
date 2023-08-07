@@ -22,25 +22,12 @@ contract DealProvider is DealProviderState, BasicProvider {
             poolIdToAmount[poolId] -= amount;
             withdrawnAmount = amount;
             isFinal = poolIdToAmount[poolId] == 0;
-            emit TokenWithdrawn(
-                poolId,
-                lockDealNFT.ownerOf(poolId),
-                withdrawnAmount,
-                poolIdToAmount[poolId]
-            );
+            emit TokenWithdrawn(poolId, lockDealNFT.ownerOf(poolId), withdrawnAmount, poolIdToAmount[poolId]);
         }
     }
-    
+
     /// @dev Splits a pool into two pools. Used by the LockedDealNFT contract or Provider
-    function split(
-        uint256 oldPoolId,
-        uint256 newPoolId,
-        uint256 ratio
-    )
-        public
-        override
-        onlyProvider
-    {
+    function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) public override onlyProvider {
         uint256 splitAmount = poolIdToAmount[oldPoolId].calcAmount(ratio);
         require(poolIdToAmount[oldPoolId] >= splitAmount, "Split amount exceeds the available amount");
         poolIdToAmount[oldPoolId] -= splitAmount;
@@ -59,10 +46,7 @@ contract DealProvider is DealProviderState, BasicProvider {
      * @param poolId The ID of the pool.
      * @param params An array of additional parameters.
      */
-    function _registerPool(
-        uint256 poolId,
-        uint256[] calldata params
-    ) internal override {
+    function _registerPool(uint256 poolId, uint256[] calldata params) internal override {
         poolIdToAmount[poolId] = params[0];
         address owner = lockDealNFT.ownerOf(poolId);
         address token = lockDealNFT.tokenOf(poolId);

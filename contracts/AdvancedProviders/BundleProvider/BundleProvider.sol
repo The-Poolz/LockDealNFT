@@ -6,8 +6,9 @@ import "../../SimpleProviders/Provider/BasicProvider.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "../../util/CalcUtils.sol";
 
-contract BundleProvider is BundleProviderState, ERC721Holder{
-using CalcUtils for uint256;
+contract BundleProvider is BundleProviderState, ERC721Holder {
+    using CalcUtils for uint256;
+
     constructor(ILockDealNFT _lockDealNFT) {
         require(address(_lockDealNFT) != address(0x0), "invalid address");
         lockDealNFT = _lockDealNFT;
@@ -50,7 +51,7 @@ using CalcUtils for uint256;
         uint256[] calldata params
     ) external override onlyProvider validParamsLength(params.length, currentParamsTargetLenght()) {
         uint256 lastSubPoolId = params[0];
-        require(poolId < lastSubPoolId,"poolId can't be greater than lastSubPoolId");
+        require(poolId < lastSubPoolId, "poolId can't be greater than lastSubPoolId");
         for (uint256 i = poolId + 1; i <= lastSubPoolId; ++i) {
             require(lockDealNFT.ownerOf(i) == address(this), "invalid owner of sub pool");
         }
@@ -73,7 +74,10 @@ using CalcUtils for uint256;
     }
 
     function withdraw(
-        address, address, uint256 poolId, bytes calldata
+        address,
+        address,
+        uint256 poolId,
+        bytes calldata
     ) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
         // withdraw the sub pools
         uint256 lastSubPoolId = bundlePoolIdToLastSubPoolId[poolId];
@@ -90,11 +94,7 @@ using CalcUtils for uint256;
         lockDealNFT.updateProviderMetadata(poolId);
     }
 
-    function split(
-        uint256 oldPoolId,
-        uint256 newPoolId,
-        uint256 ratio
-    ) public override onlyProvider {
+    function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) public override onlyProvider {
         uint256 oldLastSubPoolId = bundlePoolIdToLastSubPoolId[oldPoolId];
         for (uint256 i = oldPoolId + 1; i <= oldLastSubPoolId; ++i) {
             // split the sub poold
@@ -115,7 +115,7 @@ using CalcUtils for uint256;
 
         uint256 lastSubPoolId = bundlePoolIdToLastSubPoolId[poolId];
         for (uint256 i = poolId + 1; i <= lastSubPoolId; ++i) {
-            totalRemainingAmount += lockDealNFT.getData(i).params[0];  // leftAmount
+            totalRemainingAmount += lockDealNFT.getData(i).params[0]; // leftAmount
         }
     }
 }

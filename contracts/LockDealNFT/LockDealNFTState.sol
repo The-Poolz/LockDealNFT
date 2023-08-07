@@ -22,9 +22,7 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
     mapping(uint256 => uint256) public poolIdToVaultId;
     mapping(address => bool) public approvedProviders;
 
-    function getData(
-        uint256 poolId
-    ) public view returns (BasePoolInfo memory poolInfo) {
+    function getData(uint256 poolId) public view returns (BasePoolInfo memory poolInfo) {
         if (_exists(poolId)) {
             IProvider provider = poolIdToProvider[poolId];
             poolInfo = BasePoolInfo(
@@ -45,7 +43,7 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
         uint256 to
     ) public view returns (BasePoolInfo[] memory userPoolInfo) {
         require(from <= to, "Invalid range");
-        require(to - from < balanceOf(user),"Range greater than user pool count");
+        require(to - from < balanceOf(user), "Range greater than user pool count");
         userPoolInfo = new BasePoolInfo[](to - from + 1);
         uint256 userPoolIndex = 0;
         for (uint256 i = from; i <= to; ++i) {
@@ -67,7 +65,7 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
         return _exists(poolId);
     }
 
-    function getWithdrawableAmount(uint256 poolId) external view returns(uint256 withdrawalAmount) {
+    function getWithdrawableAmount(uint256 poolId) external view returns (uint256 withdrawalAmount) {
         if (_exists(poolId)) {
             withdrawalAmount = poolIdToProvider[poolId].getWithdrawableAmount(poolId);
         }
@@ -78,7 +76,10 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
     }
 
     function setBaseURI(string memory newBaseURI) external onlyOwner {
-        require(keccak256(abi.encodePacked(baseURI)) != keccak256(abi.encodePacked(newBaseURI)), "can't set the same baseURI");
+        require(
+            keccak256(abi.encodePacked(baseURI)) != keccak256(abi.encodePacked(newBaseURI)),
+            "can't set the same baseURI"
+        );
         string memory oldBaseURI = baseURI;
         baseURI = newBaseURI;
         emit BaseURIChanged(oldBaseURI, newBaseURI);

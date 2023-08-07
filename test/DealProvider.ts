@@ -1,5 +1,10 @@
-import { expect } from "chai";
-import { BigNumber, constants } from "ethers"
+import { LockDealNFT } from '../typechain-types';
+import { DealProvider } from '../typechain-types';
+import { MockVaultManager } from '../typechain-types';
+import { deployed, token, MAX_RATIO } from './helper';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { expect } from 'chai';
+import { BigNumber, constants } from 'ethers';
 import { ethers } from 'hardhat';
 import { LockDealNFT } from "../typechain-types";
 import { DealProvider } from "../typechain-types";
@@ -138,3 +143,4 @@ describe("Deal Provider", function () {
         })
     })
 })
+

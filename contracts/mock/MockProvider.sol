@@ -18,25 +18,16 @@ contract MockProvider is IFundsManager {
         TimedDealProvider(provider).withdraw(poolId, amount);
     }
 
-    function createNewPool(
-        address owner,
-        address token,
-        uint256[] memory params
-    ) public returns (uint256 poolId) {
+    function createNewPool(address owner, address token, uint256[] memory params) public returns (uint256 poolId) {
         poolId = lockDealNFT.mintAndTransfer(owner, token, owner, params[0], IProvider(provider));
         TimedDealProvider(provider).registerPool(poolId, params);
     }
 
-    function registerPool(
-        uint256 poolId,
-        uint256[] memory params
-    ) external {
+    function registerPool(uint256 poolId, uint256[] memory params) external {
         IProvider(provider).registerPool(poolId, params);
     }
 
-    function getParams(
-        uint256 poolId
-    ) public view returns (uint256[] memory params) {
+    function getParams(uint256 poolId) public view returns (uint256[] memory params) {
         return TimedDealProvider(provider).getParams(poolId);
     }
 
@@ -44,11 +35,7 @@ contract MockProvider is IFundsManager {
         IFundsManager(provider).handleWithdraw(poolId, mainCoinAmount);
     }
 
-    function handleRefund(
-        uint256 poolId,
-        uint256 tokenAmount,
-        uint256 mainCoinAmount
-    ) external {
+    function handleRefund(uint256 poolId, uint256 tokenAmount, uint256 mainCoinAmount) external {
         IFundsManager(provider).handleRefund(poolId, tokenAmount, mainCoinAmount);
     }
 }

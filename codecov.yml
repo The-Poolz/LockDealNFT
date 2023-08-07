@@ -1,0 +1,11 @@
+ignore:
+  - 'contracts/mock'
+
+coverage:
+  status:
+    patch:
+      default:
+        # basic
+        target: auto
+        threshold: 85%
+        base: auto
