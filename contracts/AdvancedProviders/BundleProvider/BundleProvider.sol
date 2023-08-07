@@ -98,7 +98,7 @@ contract BundleProvider is BundleProviderState, ERC721Holder {
         uint256 oldLastSubPoolId = bundlePoolIdToLastSubPoolId[oldPoolId];
         for (uint256 i = oldPoolId + 1; i <= oldLastSubPoolId; ++i) {
             // split the sub poold
-            lockDealNFT.split(i, ratio, address(this));
+            lockDealNFT.selfSplit(i, ratio);
         }
         // finally, set the bundle provider state with the last sub pool Id
         bundlePoolIdToLastSubPoolId[newPoolId] = oldLastSubPoolId + (newPoolId - oldPoolId);
