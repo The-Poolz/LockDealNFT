@@ -3,7 +3,7 @@ import { CollateralProvider } from '../typechain-types';
 import { DealProvider } from '../typechain-types';
 import { LockDealNFT } from '../typechain-types';
 import { MockProvider } from '../typechain-types';
-import { deployed, token } from './helper';
+import { deployed, token, MAX_RATIO } from './helper';
 import { time, mine } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
@@ -249,7 +249,20 @@ describe('Collateral Provider', function () {
     expect(withdrawAmount).to.equal(amount / 2);
   });
 
-  it('should revert split in collater provider', async () => {
-    expect(lockDealNFT.split(poolId, amount, receiver.address)).to.be.revertedWith('not implemented');
+  it('should split only collector main coin pool', async () => {
+    const totalSupply = await lockDealNFT.totalSupply();
+    await mockProvider.handleWithdraw(poolId, amount / 2);
+    const ratio = MAX_RATIO.div(2);
+    await lockDealNFT.connect(projectOwner).split(poolId, ratio, projectOwner.address);
+    const mainCoinCollectorId = poolId + 1;
+    const poolData = await lockDealNFT.getData(mainCoinCollectorId);
+    const newPoolId = (await lockDealNFT.totalSupply()).toNumber() - 1;
+    const newPoolData = await lockDealNFT.getData(newPoolId);
+    // check that only one pool was created
+    expect(await lockDealNFT.totalSupply()).to.equal(totalSupply.add(1));
+    expect(poolData.params[0]).to.equal(amount / 4);
+    //console.log(JSON.stringify(newPoolData));
+    //expect(newPoolData.params[0]).to.equal(amount / 4);
+    //const poolData = await lockDealNFT.getData(mainCoinCollectorId);
   });
 });
