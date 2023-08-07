@@ -86,6 +86,14 @@ describe('Deal Provider', function () {
       expect(poolData).to.deep.equal([dealProvider.address, poolId + 1, vaultId, newOwner.address, token, params]);
     });
 
+    it('should check data in new pool after selfSplit', async () => {
+      const ratio = MAX_RATIO.div(2); // half of the amount
+      await lockDealNFT.selfSplit(poolId, ratio);
+      const params = [amount / 2];
+      const poolData = await lockDealNFT.getData(poolId + 1);
+      expect(poolData).to.deep.equal([dealProvider.address, poolId + 1, vaultId, receiver.address, token, params]);
+    });
+
     it('should return split metadata event', async () => {
       const ratio = MAX_RATIO.div(2); // half of the amount
       const tx = await lockDealNFT.split(poolId, ratio, newOwner.address);
