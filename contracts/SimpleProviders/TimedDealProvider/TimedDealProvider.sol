@@ -7,16 +7,14 @@ import "../../util/CalcUtils.sol";
 
 contract TimedDealProvider is LockDealState, DealProviderState {
     using CalcUtils for uint256;
+
     /**
      * @dev Contract constructor.
      * @param _lockDealNFT The address of the LockDealNFT contract.
      * @param _provider The address of the LockProvider contract.
      */
     constructor(ILockDealNFT _lockDealNFT, address _provider) {
-        require(
-            address(_lockDealNFT) != address(0x0) && _provider != address(0x0),
-            "invalid address"
-        );
+        require(address(_lockDealNFT) != address(0x0) && _provider != address(0x0), "invalid address");
         provider = ISimpleProvider(_provider);
         lockDealNFT = _lockDealNFT;
         name = "TimedDealProvider";
@@ -24,7 +22,10 @@ contract TimedDealProvider is LockDealState, DealProviderState {
 
     /// @dev use revert only for permissions
     function withdraw(
-        address, address, uint256 poolId, bytes calldata
+        address,
+        address,
+        uint256 poolId,
+        bytes calldata
     ) public override onlyProvider returns (uint256 withdrawnAmount, bool isFinal) {
         (withdrawnAmount, isFinal) = _withdraw(poolId, getWithdrawableAmount(poolId));
     }
@@ -52,11 +53,7 @@ contract TimedDealProvider is LockDealState, DealProviderState {
         return debitableAmount - (startAmount - leftAmount);
     }
 
-    function split(
-        uint256 oldPoolId,
-        uint256 newPoolId,
-        uint256 ratio
-    ) public onlyProvider {
+    function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) public onlyProvider {
         provider.split(oldPoolId, newPoolId, ratio);
         uint256 newPoolStartAmount = poolIdToAmount[oldPoolId].calcAmount(ratio);
         poolIdToAmount[oldPoolId] -= newPoolStartAmount;
@@ -67,14 +64,8 @@ contract TimedDealProvider is LockDealState, DealProviderState {
     ///@param params[0] = leftAmount = startAmount (leftAmount & startAmount must be same while creating pool)
     ///@param params[1] = startTime
     ///@param params[2] = finishTime
-    function _registerPool(
-        uint256 poolId,
-        uint256[] calldata params
-    ) internal override {
-        require(
-            params[2] >= params[1],
-            "Finish time should be greater than start time"
-        );
+    function _registerPool(uint256 poolId, uint256[] calldata params) internal override {
+        require(params[2] >= params[1], "Finish time should be greater than start time");
         poolIdToTime[poolId] = params[2];
         poolIdToAmount[poolId] = params[0];
         provider.registerPool(poolId, params);
@@ -85,13 +76,13 @@ contract TimedDealProvider is LockDealState, DealProviderState {
         lockDealProviderParams = provider.getParams(poolId);
 
         params = new uint256[](4);
-        params[0] = lockDealProviderParams[0];  // leftAmount
-        params[1] = lockDealProviderParams[1];  // startTime
+        params[0] = lockDealProviderParams[0]; // leftAmount
+        params[1] = lockDealProviderParams[1]; // startTime
         params[2] = poolIdToTime[poolId]; // finishTime
         params[3] = poolIdToAmount[poolId]; // startAmount
     }
 
-    function currentParamsTargetLenght() public override(IProvider, ProviderState) view returns (uint256) {
+    function currentParamsTargetLenght() public view override(IProvider, ProviderState) returns (uint256) {
         return 1 + provider.currentParamsTargetLenght();
     }
 }
