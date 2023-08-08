@@ -22,6 +22,7 @@ describe('Collateral Provider', function () {
   let projectOwner: SignerWithAddress;
   let finishTime: number;
   let vaultId: BigNumber;
+  const halfRatio = MAX_RATIO.div(2);
   const amount = 100000;
 
   before(async () => {
@@ -249,20 +250,49 @@ describe('Collateral Provider', function () {
     expect(withdrawAmount).to.equal(amount / 2);
   });
 
-  it('should split collector pool', async () => {
+  it('should create 4 new pools after split', async () => {
     const totalSupply = await lockDealNFT.totalSupply();
-    await mockProvider.handleWithdraw(poolId, amount / 2);
-    const ratio = MAX_RATIO.div(2);
-    await lockDealNFT.connect(projectOwner).split(poolId, ratio, projectOwner.address);
-    const mainCoinCollectorId = poolId + 1;
-    const poolData = await lockDealNFT.getData(mainCoinCollectorId);
-    const newPoolId = (await lockDealNFT.totalSupply()).toNumber() - 1;
-    const newPoolData = await lockDealNFT.getData(newPoolId);
+    await lockDealNFT.connect(projectOwner).split(poolId, halfRatio, projectOwner.address);
     // check that all pools was created
     expect(await lockDealNFT.totalSupply()).to.equal(totalSupply.add(4));
-    //expect(poolData.params[0]).to.equal(amount / 4);
-    //console.log(JSON.stringify(newPoolData.params));
-    //expect().to.equal(amount / 4);
-    //const poolData = await lockDealNFT.getData(mainCoinCollectorId);
+  });
+
+  it('should save collater time after split', async () => {
+    await lockDealNFT.connect(projectOwner).split(poolId, halfRatio, projectOwner.address);
+    const collateralPoolId = poolId + 4;
+    const poolData = await lockDealNFT.getData(collateralPoolId);
+    expect(poolData.params[1]).to.equal(finishTime);
+  });
+
+  it('should split Main Coin Collector pool', async () => {
+    await mockProvider.handleWithdraw(poolId, amount / 2);
+    await lockDealNFT.connect(projectOwner).split(poolId, halfRatio, projectOwner.address);
+    const mainCoinCollectorId = poolId + 1;
+    const newMainCoinCoolectorId = mainCoinCollectorId + 4;
+    const poolData = await lockDealNFT.getData(mainCoinCollectorId);
+    const newPoolData = await lockDealNFT.getData(newMainCoinCoolectorId);
+    expect(poolData.params[0]).to.equal(amount / 4);
+    expect(newPoolData.params[0]).to.equal(amount / 4);
+  });
+
+  it('should split Token Collector pool', async () => {
+    await mockProvider.handleRefund(poolId, amount / 2, amount / 2);
+    await lockDealNFT.connect(projectOwner).split(poolId, halfRatio, projectOwner.address);
+    const tokenCollectorId = poolId + 2;
+    const newTokenCoolectorId = tokenCollectorId + 4;
+    const poolData = await lockDealNFT.getData(tokenCollectorId);
+    const newPoolData = await lockDealNFT.getData(newTokenCoolectorId);
+    expect(poolData.params[0]).to.equal(amount / 4);
+    expect(newPoolData.params[0]).to.equal(amount / 4);
+  });
+
+  it('should split main coin holder pool', async () => {
+    await lockDealNFT.connect(projectOwner).split(poolId, halfRatio, projectOwner.address);
+    const coinHolderId = poolId + 3;
+    const newCoinHolderId = poolId + 4;
+    const poolData = await lockDealNFT.getData(coinHolderId);
+    const newPoolData = await lockDealNFT.getData(newCoinHolderId);
+    expect(poolData.params[0]).to.equal(amount / 2);
+    expect(newPoolData.params[0]).to.equal(amount / 2);
   });
 });
