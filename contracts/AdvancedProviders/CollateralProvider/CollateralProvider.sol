@@ -67,8 +67,23 @@ contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder 
         }
     }
 
-    function split(uint256, uint256, uint256) external pure override {
-        revert("not implemented");
+    function split(uint256 poolId, uint256, uint256 ratio) external override onlyNFT {
+        (uint256 mainCoinCollectorId, uint256 tokenCollectorId, uint256 mainCoinHolderId) = getInnerIds(poolId);
+        uint256 tokenCollectorAmount = provider.getWithdrawableAmount(tokenCollectorId);
+        uint256 coinCollectorAmount = provider.getWithdrawableAmount(mainCoinCollectorId);
+        uint256 coinHolderAmount = poolIdToTime[poolId] < block.timestamp ? provider.getWithdrawableAmount(mainCoinHolderId): 0;
+        require(coinHolderAmount + coinCollectorAmount + tokenCollectorAmount > 0, "pools are empty");
+        _splitter(coinCollectorAmount, mainCoinCollectorId, ratio);
+        _splitter(tokenCollectorAmount, tokenCollectorId, ratio);
+        _splitter(coinHolderAmount, mainCoinHolderId, ratio);
+    }
+
+    function _splitter(uint256 amount, uint256 poolId, uint256 ratio) internal {
+        if (amount > 0) {
+            lockDealNFT.selfSplit(poolId, ratio);
+        } else {
+            lockDealNFT.mintForProvider(address(this), provider);
+        }
     }
 
     function _split(uint256 poolId, address owner) internal {

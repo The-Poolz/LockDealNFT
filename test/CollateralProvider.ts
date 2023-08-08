@@ -3,7 +3,7 @@ import { CollateralProvider } from '../typechain-types';
 import { DealProvider } from '../typechain-types';
 import { LockDealNFT } from '../typechain-types';
 import { MockProvider } from '../typechain-types';
-import { deployed, token } from './helper';
+import { deployed, token, MAX_RATIO } from './helper';
 import { time, mine } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
@@ -22,6 +22,7 @@ describe('Collateral Provider', function () {
   let projectOwner: SignerWithAddress;
   let finishTime: number;
   let vaultId: BigNumber;
+  const halfRatio = MAX_RATIO.div(2);
   const amount = 100000;
 
   before(async () => {
@@ -249,7 +250,44 @@ describe('Collateral Provider', function () {
     expect(withdrawAmount).to.equal(amount / 2);
   });
 
-  it('should revert split in collater provider', async () => {
-    expect(lockDealNFT.split(poolId, amount, receiver.address)).to.be.revertedWith('not implemented');
+  it('should create 4 new pools after split', async () => {
+    await time.setNextBlockTimestamp(finishTime + 1);
+    const totalSupply = await lockDealNFT.totalSupply();
+    await lockDealNFT.connect(projectOwner).split(poolId, halfRatio, projectOwner.address);
+    // check that all pools was created
+    expect(await lockDealNFT.totalSupply()).to.equal(totalSupply.add(4));
+  });
+
+  it('should split Main Coin Collector pool', async () => {
+    await mockProvider.handleWithdraw(poolId, amount / 2);
+    await lockDealNFT.connect(projectOwner).split(poolId, halfRatio, projectOwner.address);
+    const mainCoinCollectorId = poolId + 1;
+    const newMainCoinCoolectorId = mainCoinCollectorId + 4;
+    const poolData = await lockDealNFT.getData(mainCoinCollectorId);
+    const newPoolData = await lockDealNFT.getData(newMainCoinCoolectorId);
+    expect(poolData.params[0]).to.equal(amount / 4);
+    expect(newPoolData.params[0]).to.equal(amount / 4);
+  });
+
+  it('should split Token Collector pool', async () => {
+    await mockProvider.handleRefund(poolId, amount / 2, amount / 2);
+    await lockDealNFT.connect(projectOwner).split(poolId, halfRatio, projectOwner.address);
+    const tokenCollectorId = poolId + 2;
+    const newTokenCoolectorId = tokenCollectorId + 4;
+    const poolData = await lockDealNFT.getData(tokenCollectorId);
+    const newPoolData = await lockDealNFT.getData(newTokenCoolectorId);
+    expect(poolData.params[0]).to.equal(amount / 4);
+    expect(newPoolData.params[0]).to.equal(amount / 4);
+  });
+
+  it('should split main coin holder pool', async () => {
+    await time.setNextBlockTimestamp(finishTime + 1);
+    await lockDealNFT.connect(projectOwner).split(poolId, halfRatio, projectOwner.address);
+    const coinHolderId = poolId + 3;
+    const newCoinHolderId = poolId + 4;
+    const poolData = await lockDealNFT.getData(coinHolderId);
+    const newPoolData = await lockDealNFT.getData(newCoinHolderId);
+    expect(poolData.params[0]).to.equal(amount / 2);
+    expect(newPoolData.params[0]).to.equal(amount / 2);
   });
 });
