@@ -88,8 +88,13 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
     function royaltyInfo(
         uint256 tokenId,
         uint256 salePrice
-    ) external override view returns (address receiver, uint256 royaltyAmount)
-    {
-       (receiver,royaltyAmount) = vaultManager.royaltyInfo(poolIdToVaultId[tokenId], salePrice);
+    ) external view override returns (address receiver, uint256 royaltyAmount) {
+        (receiver, royaltyAmount) = vaultManager.royaltyInfo(poolIdToVaultId[tokenId], salePrice);
+    }
+
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(ERC721Enumerable, IERC165) returns (bool) {
+        return interfaceId == type(IERC2981).interfaceId || super.supportsInterface(interfaceId);
     }
 }
