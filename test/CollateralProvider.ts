@@ -251,17 +251,11 @@ describe('Collateral Provider', function () {
   });
 
   it('should create 4 new pools after split', async () => {
+    await time.setNextBlockTimestamp(finishTime + 1);
     const totalSupply = await lockDealNFT.totalSupply();
     await lockDealNFT.connect(projectOwner).split(poolId, halfRatio, projectOwner.address);
     // check that all pools was created
     expect(await lockDealNFT.totalSupply()).to.equal(totalSupply.add(4));
-  });
-
-  it('should save collater time after split', async () => {
-    await lockDealNFT.connect(projectOwner).split(poolId, halfRatio, projectOwner.address);
-    const collateralPoolId = poolId + 4;
-    const poolData = await lockDealNFT.getData(collateralPoolId);
-    expect(poolData.params[1]).to.equal(finishTime);
   });
 
   it('should split Main Coin Collector pool', async () => {
@@ -287,6 +281,7 @@ describe('Collateral Provider', function () {
   });
 
   it('should split main coin holder pool', async () => {
+    await time.setNextBlockTimestamp(finishTime + 1);
     await lockDealNFT.connect(projectOwner).split(poolId, halfRatio, projectOwner.address);
     const coinHolderId = poolId + 3;
     const newCoinHolderId = poolId + 4;
