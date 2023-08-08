@@ -95,6 +95,9 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
     function supportsInterface(
         bytes4 interfaceId
     ) public view virtual override(ERC721Enumerable, IERC165) returns (bool) {
-        return interfaceId == type(IERC2981).interfaceId || super.supportsInterface(interfaceId);
+        return
+            interfaceId == type(IERC2981).interfaceId ||
+            interfaceId == type(ILockDealNFT).interfaceId ||
+            super.supportsInterface(interfaceId);
     }
 }
