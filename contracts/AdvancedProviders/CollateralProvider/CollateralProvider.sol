@@ -73,9 +73,8 @@ contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder 
         uint256 coinCollectorAmount = provider.getParams(mainCoinCollectorId)[0];
         uint256 coinHolderAmount = provider.getParams(mainCoinHolderId)[0];
         require(coinHolderAmount > 0 || coinCollectorAmount > 0 || tokenCollectorAmount > 0, "pools are empty");
-        //save time and startAmount for new Collateral
+        //save time for new Collateral
         poolIdToTime[newPoolId] = poolIdToTime[poolId];
-        provider.registerPool(newPoolId, provider.getParams(poolId));
         _splitter(tokenCollectorAmount, tokenCollectorId, ratio);
         _splitter(coinCollectorAmount, mainCoinCollectorId, ratio);
         _splitter(coinHolderAmount, mainCoinHolderId, ratio);
