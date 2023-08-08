@@ -167,9 +167,33 @@ describe('LockDealNFT', function () {
     const events = await lockDealNFT.queryFilter(lockDealNFT.filters.MetadataUpdate());
     expect(events[events.length - 1].args._tokenId).to.equal(constants.MaxUint256);
   });
-  
-  it("shuld return royalty", async () => {
-    const royalty = await lockDealNFT.royaltyInfo(0,100);
+
+  it('check if the contract supports IERC2981 interface', async () => {
+    expect(await lockDealNFT.supportsInterface('0x2a55205a')).to.equal(true);
+  });
+
+  it('check if the contract supports IERC165 interface', async () => {
+    expect(await lockDealNFT.supportsInterface('0x01ffc9a7')).to.equal(true);
+  });
+
+  it('check if the contract supports IERC721 interface', async () => {
+    expect(await lockDealNFT.supportsInterface('0x80ac58cd')).to.equal(true);
+  });
+
+  it('check if the contract supports IERC721Enumerable interface', async () => {
+    expect(await lockDealNFT.supportsInterface('0x780e9d63')).to.equal(true);
+  });
+
+  it('check if the contract supports IERC721Metadata interface', async () => {
+    expect(await lockDealNFT.supportsInterface('0x5b5e139f')).to.equal(true);
+  });
+
+  it('check if the contract supports ILockDealNFT interface', async () => {
+    expect(await lockDealNFT.supportsInterface('0x9316f0d4')).to.equal(true);
+  });
+
+  it('shuld return royalty', async () => {
+    const royalty = await lockDealNFT.royaltyInfo(0, 100);
     expect(royalty).to.lengthOf(2);
   });
 });
