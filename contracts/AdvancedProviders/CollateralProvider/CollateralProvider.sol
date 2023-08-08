@@ -67,40 +67,26 @@ contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder 
         }
     }
 
-    function split(uint256 poolId, uint256 newPoolId, uint256 ratio) external override onlyProvider {
+    function split(uint256 poolId, uint256 newPoolId, uint256 ratio) external override onlyNFT {
         (uint256 mainCoinCollectorId, uint256 tokenCollectorId, uint256 mainCoinHolderId) = getInnerIds(poolId);
         uint256 tokenCollectorAmount = provider.getParams(tokenCollectorId)[0];
         uint256 coinCollectorAmount = provider.getParams(mainCoinCollectorId)[0];
         uint256 coinHolderAmount = provider.getParams(mainCoinHolderId)[0];
         require(coinHolderAmount > 0 || coinCollectorAmount > 0 || tokenCollectorAmount > 0, "pools are empty");
-        // Get the new owner of new pools
-        address newOwner = lockDealNFT.ownerOf(newPoolId);
-
-        // Split based on the available pools
-        if (coinCollectorAmount > 0) {
-            _splitVault(mainCoinCollectorId, newPoolId, ratio);
-        } 
-        if (coinCollectorAmount == 0 && tokenCollectorAmount > 0) {
-            _splitVault(tokenCollectorId, newPoolId, ratio);
-        } else if (tokenCollectorAmount > 0) {
-            lockDealNFT.split(tokenCollectorId, ratio, newOwner);
-        }
-
-        // Split mainCoinHolderId pool if it's not empty and still valid (time not expired)
-        if (poolIdToTime[poolId] < block.timestamp && coinHolderAmount > 0) {
-            if (coinCollectorAmount == 0 && tokenCollectorAmount == 0) {
-                _splitVault(mainCoinHolderId, newPoolId, ratio);
-            } else {
-                lockDealNFT.split(mainCoinHolderId, ratio, newOwner);
-            }
-        }
+        //save time and startAmount for new Collateral
+        poolIdToTime[newPoolId] = poolIdToTime[poolId];
+        provider.registerPool(newPoolId, provider.getParams(poolId));
+        _splitter(tokenCollectorAmount, tokenCollectorId, ratio);
+        _splitter(coinCollectorAmount, mainCoinCollectorId, ratio);
+        _splitter(coinHolderAmount, mainCoinHolderId, ratio);
     }
 
-    function _splitVault(uint256 fromPoolId, uint256 toPoolId, uint256 ratio) internal {
-        // Copy vault from one pool to another
-        lockDealNFT.copyVaultId(fromPoolId, toPoolId);
-        // Perform the actual split
-        provider.split(fromPoolId, toPoolId, ratio);
+    function _splitter(uint256 amount, uint256 poolId, uint256 ratio) internal {
+        if (amount > 0) {
+            lockDealNFT.selfSplit(poolId, ratio);
+        } else {
+            lockDealNFT.mintForProvider(address(this), provider);
+        }
     }
 
     function _split(uint256 poolId, address owner) internal {
