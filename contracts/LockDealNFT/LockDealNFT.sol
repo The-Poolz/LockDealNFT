@@ -7,26 +7,17 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 /// @title LockDealNFT contract
 /// @notice Implements a non-fungible token (NFT) contract for locking deals
 contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
-    constructor(
-        address _vaultManager,
-        string memory _baseURI
-    ) ERC721("LockDealNFT", "LDNFT") {
+    constructor(address _vaultManager, string memory _baseURI) ERC721("LockDealNFT", "LDNFT") {
         require(_vaultManager != address(0x0), "invalid vault manager address");
         vaultManager = IVaultManager(_vaultManager);
         approvedProviders[address(this)] = true;
         baseURI = _baseURI;
-        //_registerInterface(_INTERFACE_ID_ERC2981); //TODO add IERC165 on Issue #226
     }
 
     function mintForProvider(
         address owner,
         IProvider provider
-    )
-        external
-        onlyApprovedProvider
-        notZeroAddress(owner)
-        returns (uint256 poolId)
-    {
+    ) external onlyApprovedProvider notZeroAddress(owner) returns (uint256 poolId) {
         if (address(provider) != msg.sender) {
             _onlyApprovedProvider(provider);
         }
@@ -51,11 +42,7 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
             _onlyApprovedProvider(provider);
         }
         poolId = _mint(owner, provider);
-        poolIdToVaultId[poolId] = vaultManager.depositByToken(
-            token,
-            from,
-            amount
-        );
+        poolIdToVaultId[poolId] = vaultManager.depositByToken(token, from, amount);
     }
 
     function copyVaultId(
@@ -68,10 +55,7 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
     /// @dev Sets the approved status of a provider
     /// @param provider The address of the provider
     /// @param status The new approved status (true or false)
-    function setApprovedProvider(
-        IProvider provider,
-        bool status
-    ) external onlyOwner onlyContract(address(provider)) {
+    function setApprovedProvider(IProvider provider, bool status) external onlyOwner onlyContract(address(provider)) {
         approvedProviders[address(provider)] = status;
         emit ProviderApproved(provider, status);
     }
@@ -84,13 +68,14 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         bytes calldata data
     ) external override returns (bytes4) {
         require(msg.sender == address(this), "invalid nft contract");
-
         bool isFinal;
         if (data.length > 0) {
-            (uint256 ratio, address newOwner) = abi.decode(data, (uint256, address));
-            (, isFinal) = _split(poolId, ratio, newOwner);
+            (uint256 ratio, address newOwner) = data.length == 32
+                ? (abi.decode(data, (uint256)), from)
+                : abi.decode(data, (uint256, address));
+            isFinal = _split(poolId, ratio, newOwner);
         } else {
-            (, isFinal) = _withdraw(provider, from, poolId);
+            isFinal = _withdraw(provider, from, poolId);
         }
         if (!isFinal) {
             transferFrom(address(this), from, poolId);
@@ -98,16 +83,13 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         return IERC721Receiver.onERC721Received.selector;
     }
 
-    function _withdraw(address provider, address from, uint256 poolId) internal returns(uint withdrawnAmount, bool isFinal) {
-        (withdrawnAmount, isFinal) = poolIdToProvider[poolId].withdraw(provider, from, poolId, "");
+    function _withdraw(address provider, address from, uint256 poolId) internal returns (bool) {
+        (uint256 withdrawnAmount, bool isFinal) = poolIdToProvider[poolId].withdraw(provider, from, poolId, "");
 
         if (withdrawnAmount > 0) {
             vaultManager.withdrawByVaultId(poolIdToVaultId[poolId], from, withdrawnAmount);
         }
-    }
-
-    function selfSplit(uint256 poolId, uint256 ratio) external returns (uint256 newPoolId, bool isFinal) {
-        (newPoolId, isFinal) = _split(poolId, ratio, msg.sender);
+        return isFinal;
     }
 
     /// @dev Splits a pool into two pools with adjusted amounts
@@ -118,41 +100,27 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         uint256 poolId,
         uint256 ratio,
         address newOwner
-    ) internal onlyPoolOwner(poolId) notZeroAmount(ratio) returns (uint256 newPoolId, bool isFinal) {
+    ) internal notZeroAmount(ratio) returns (bool isFinal) {
         require(ratio <= 1e18, "split amount exceeded");
         IProvider provider = poolIdToProvider[poolId];
-        newPoolId = _mint(newOwner, provider);
+        uint256 newPoolId = _mint(newOwner, provider);
         poolIdToVaultId[newPoolId] = poolIdToVaultId[poolId];
         provider.split(poolId, newPoolId, ratio);
-        uint256 leftAmount = provider.getParams(poolId)[0];
-        isFinal = leftAmount == 0;
+        isFinal = provider.getParams(poolId)[0] == 0;
         emit MetadataUpdate(poolId);
-    }
-
-    function split(
-        uint256 poolId,
-        uint256 ratio,
-        address newOwner
-    ) external returns (uint256 newPoolId, bool isFinal) {
-        (newPoolId, isFinal) = _split(poolId, ratio, newOwner);
     }
 
     /// @param owner The address to assign the token to
     /// @param provider The address of the provider assigning the token
     /// @return newPoolId The ID of the pool
-    function _mint(
-        address owner,
-        IProvider provider
-    ) internal returns (uint256 newPoolId) {
+    function _mint(address owner, IProvider provider) internal returns (uint256 newPoolId) {
         newPoolId = totalSupply();
         _safeMint(owner, newPoolId);
         poolIdToProvider[newPoolId] = provider;
         emit MintInitiated(provider);
     }
 
-    function updateProviderMetadata(
-        uint256 poolId
-    ) external onlyApprovedProvider {
+    function updateProviderMetadata(uint256 poolId) external onlyApprovedProvider {
         emit MetadataUpdate(poolId);
     }
 
@@ -160,19 +128,13 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         emit MetadataUpdate(type(uint256).max);
     }
 
-    function withdrawFromProvider(
-        address from,
-        uint256 poolId
-    ) public onlyApprovedProvider {
+    function withdrawFromProvider(address from, uint256 poolId) public onlyApprovedProvider {
         transferFrom(msg.sender, from, poolId);
         transferFromProvider(from, poolId);
     }
 
     ///@dev don't use it if the provider is the owner or an approved caller
-    function transferFromProvider(
-        address from,
-        uint256 poolId
-    ) public onlyApprovedProvider {
+    function transferFromProvider(address from, uint256 poolId) public onlyApprovedProvider {
         _approve(msg.sender, poolId);
         safeTransferFrom(from, address(this), poolId);
     }

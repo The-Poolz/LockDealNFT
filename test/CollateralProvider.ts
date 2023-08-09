@@ -253,14 +253,20 @@ describe('Collateral Provider', function () {
   it('should create 4 new pools after split', async () => {
     await time.setNextBlockTimestamp(finishTime + 1);
     const totalSupply = await lockDealNFT.totalSupply();
-    await lockDealNFT.connect(projectOwner).split(poolId, halfRatio, projectOwner.address);
+    const packedData = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [halfRatio, projectOwner.address]);
+      await lockDealNFT
+        .connect(projectOwner)
+        ['safeTransferFrom(address,address,uint256,bytes)'](projectOwner.address, lockDealNFT.address, poolId, packedData);
     // check that all pools was created
     expect(await lockDealNFT.totalSupply()).to.equal(totalSupply.add(4));
   });
 
   it('should split Main Coin Collector pool', async () => {
     await mockProvider.handleWithdraw(poolId, amount / 2);
-    await lockDealNFT.connect(projectOwner).split(poolId, halfRatio, projectOwner.address);
+    const packedData = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [halfRatio, projectOwner.address]);
+      await lockDealNFT
+        .connect(projectOwner)
+        ['safeTransferFrom(address,address,uint256,bytes)'](projectOwner.address, lockDealNFT.address, poolId, packedData);
     const mainCoinCollectorId = poolId + 1;
     const newMainCoinCoolectorId = mainCoinCollectorId + 4;
     const poolData = await lockDealNFT.getData(mainCoinCollectorId);
@@ -271,7 +277,10 @@ describe('Collateral Provider', function () {
 
   it('should split Token Collector pool', async () => {
     await mockProvider.handleRefund(poolId, amount / 2, amount / 2);
-    await lockDealNFT.connect(projectOwner).split(poolId, halfRatio, projectOwner.address);
+    const packedData = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [halfRatio, projectOwner.address]);
+      await lockDealNFT
+        .connect(projectOwner)
+        ['safeTransferFrom(address,address,uint256,bytes)'](projectOwner.address, lockDealNFT.address, poolId, packedData);
     const tokenCollectorId = poolId + 2;
     const newTokenCoolectorId = tokenCollectorId + 4;
     const poolData = await lockDealNFT.getData(tokenCollectorId);
@@ -282,7 +291,10 @@ describe('Collateral Provider', function () {
 
   it('should split main coin holder pool', async () => {
     await time.setNextBlockTimestamp(finishTime + 1);
-    await lockDealNFT.connect(projectOwner).split(poolId, halfRatio, projectOwner.address);
+    const packedData = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [halfRatio, projectOwner.address]);
+      await lockDealNFT
+        .connect(projectOwner)
+        ['safeTransferFrom(address,address,uint256,bytes)'](projectOwner.address, lockDealNFT.address, poolId, packedData);
     const coinHolderId = poolId + 3;
     const newCoinHolderId = poolId + 4;
     const poolData = await lockDealNFT.getData(coinHolderId);

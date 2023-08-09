@@ -17,6 +17,7 @@ describe('Deal Provider', function () {
   let params: [number];
   let vaultId: BigNumber;
   const amount = 10000;
+  const ratio = MAX_RATIO.div(2); // half of the amount
 
   before(async () => {
     [receiver, newOwner] = await ethers.getSigners();
@@ -71,7 +72,6 @@ describe('Deal Provider', function () {
 
   describe('Split Amount', () => {
     it('should check data in old pool after split', async () => {
-      const ratio = MAX_RATIO.div(2); // half of the amount
       const packedData = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [ratio, receiver.address]);
       await lockDealNFT
         .connect(receiver)
@@ -82,24 +82,30 @@ describe('Deal Provider', function () {
     });
 
     it('should check data in new pool after split', async () => {
-      const ratio = MAX_RATIO.div(2); // half of the amount
-      await lockDealNFT.split(poolId, ratio, newOwner.address);
+      const packedData = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [ratio, newOwner.address]);
+      await lockDealNFT
+        .connect(receiver)
+        ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData);
       const params = [amount / 2];
       const poolData = await lockDealNFT.getData(poolId + 1);
       expect(poolData).to.deep.equal([dealProvider.address, poolId + 1, vaultId, newOwner.address, token, params]);
     });
 
     it('should check data in new pool after selfSplit', async () => {
-      const ratio = MAX_RATIO.div(2); // half of the amount
-      await lockDealNFT.selfSplit(poolId, ratio);
+      const packedData = ethers.utils.defaultAbiCoder.encode(['uint256'], [ratio]);
+      await lockDealNFT
+        .connect(receiver)
+        ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData);
       const params = [amount / 2];
       const poolData = await lockDealNFT.getData(poolId + 1);
       expect(poolData).to.deep.equal([dealProvider.address, poolId + 1, vaultId, receiver.address, token, params]);
     });
 
     it('should return split metadata event', async () => {
-      const ratio = MAX_RATIO.div(2); // half of the amount
-      const tx = await lockDealNFT.split(poolId, ratio, newOwner.address);
+      const packedData = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [ratio, newOwner.address]);
+      const tx = await lockDealNFT
+        .connect(receiver)
+        ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData);
       await tx.wait();
       const events = await lockDealNFT.queryFilter(lockDealNFT.filters.MetadataUpdate());
       expect(events[events.length - 1].args._tokenId).to.equal(poolId);

@@ -33,6 +33,7 @@ describe('Refund Provider', function () {
   let startTime: number, finishTime: number;
   const amount = ethers.utils.parseEther('100');
   const ONE_DAY = 86400;
+  const ratio = MAX_RATIO.div(2);
 
   before(async () => {
     [receiver, projectOwner] = await ethers.getSigners();
@@ -159,8 +160,10 @@ describe('Refund Provider', function () {
 
   describe('Split Pool', async () => {
     it('should return currect pool data after split', async () => {
-      const ratio = MAX_RATIO.div(2);
-      await lockDealNFT.split(poolId, ratio, receiver.address);
+      const packedData = ethers.utils.defaultAbiCoder.encode(['uint256'], [ratio]);
+      await lockDealNFT
+        .connect(receiver)
+        ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData);
       const params = [poolId + 2, rate];
       const poolData = await lockDealNFT.getData(poolId);
       expect(poolData).to.deep.equal([
@@ -174,8 +177,10 @@ describe('Refund Provider', function () {
     });
 
     it('should return new pool data after split', async () => {
-      const ratio = MAX_RATIO.div(2);
-      await lockDealNFT.split(poolId, ratio, receiver.address);
+      const packedData = ethers.utils.defaultAbiCoder.encode(['uint256'], [ratio]);
+      await lockDealNFT
+        .connect(receiver)
+        ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData);
       const params = [poolId + 2, rate];
       const poolData = await lockDealNFT.getData(poolId + 6);
       expect(poolData).to.deep.equal([
@@ -189,8 +194,10 @@ describe('Refund Provider', function () {
     });
 
     it('should return old data for user after split', async () => {
-      const ratio = MAX_RATIO.div(2);
-      await lockDealNFT.split(poolId, ratio, receiver.address);
+      const packedData = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [ratio, receiver.address]);
+      await lockDealNFT
+        .connect(receiver)
+        ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData);
       const params = [amount.div(2), startTime, finishTime, amount.div(2)];
       const poolData = await lockDealNFT.getData(poolId + 1);
       expect(poolData).to.deep.equal([
@@ -204,8 +211,10 @@ describe('Refund Provider', function () {
     });
 
     it('should return new data for user after split', async () => {
-      const ratio = MAX_RATIO.div(2);
-      await lockDealNFT.split(poolId, ratio, receiver.address);
+      const packedData = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [ratio, receiver.address]);
+      await lockDealNFT
+        .connect(receiver)
+        ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData);
       const params = [amount.div(2), startTime, finishTime, amount.div(2)];
       const poolData = await lockDealNFT.getData(poolId + 7);
       expect(poolData).to.deep.equal([

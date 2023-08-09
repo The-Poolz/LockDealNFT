@@ -57,7 +57,7 @@ describe('Lock Deal Bundle Provider', function () {
   });
 
   it('should return provider name', async () => {
-    expect(await bundleProvider.name()).to.equal('BundleProvider');
+    expect(await bundleProvider.name()).to.equal('BundleProvider');    
   });
 
   it('should check lock deal NFT address', async () => {
@@ -238,7 +238,15 @@ describe('Lock Deal Bundle Provider', function () {
     it('should check the pool data after split', async () => {
       const newPoolId = (await lockDealNFT.totalSupply()).toNumber();
       const ratio = MAX_RATIO.div(10); // 10%
-      await lockDealNFT.split(bundlePoolId, ratio, newOwner.address);
+      const packedData = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [ratio, newOwner.address]);
+      await lockDealNFT
+        .connect(receiver)
+        ['safeTransferFrom(address,address,uint256,bytes)'](
+          receiver.address,
+          lockDealNFT.address,
+          bundlePoolId,
+          packedData,
+        );
       const params = [bundlePoolId + 3];
       const vaultId = await mockVaultManager.Id();
       const oldPoolData = await lockDealNFT.getData(bundlePoolId);
@@ -285,9 +293,17 @@ describe('Lock Deal Bundle Provider', function () {
 
     it('should revert if the split amount is invalid', async () => {
       const ratio = MAX_RATIO.mul(2); // 200%
-      await expect(lockDealNFT.split(bundlePoolId, ratio, newOwner.address)).to.be.revertedWith(
-        'split amount exceeded',
-      );
+      const packedData = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [ratio, newOwner.address]);
+      await expect(
+        lockDealNFT
+          .connect(receiver)
+          ['safeTransferFrom(address,address,uint256,bytes)'](
+            receiver.address,
+            lockDealNFT.address,
+            bundlePoolId,
+            packedData,
+          ),
+      ).to.be.revertedWith('split amount exceeded');
     });
 
     it('should revert if not called from the lockDealNFT contract', async () => {

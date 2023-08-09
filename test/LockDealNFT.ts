@@ -156,9 +156,12 @@ describe('LockDealNFT', function () {
   });
 
   it('should revert not pool owner split call', async () => {
-    await expect(lockDealNFT.connect(notOwner).split(poolId, amount, receiver.address)).to.be.revertedWith(
-      'Caller is not the pool owner',
-    );
+    const packedData = ethers.utils.defaultAbiCoder.encode(['uint256'], [1]);
+    await expect(
+      lockDealNFT
+        .connect(notOwner)
+        ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData),
+    ).to.be.revertedWith('ERC721: caller is not token owner or approved');
   });
 
   it('should refresh all metadata', async () => {
@@ -189,7 +192,7 @@ describe('LockDealNFT', function () {
   });
 
   it('check if the contract supports ILockDealNFT interface', async () => {
-    expect(await lockDealNFT.supportsInterface('0x9316f0d4')).to.equal(true);
+    expect(await lockDealNFT.supportsInterface('0xd9677f13')).to.equal(true);
   });
 
   it('shuld return royalty', async () => {
