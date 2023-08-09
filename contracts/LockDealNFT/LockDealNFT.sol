@@ -84,28 +84,29 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         bytes calldata data
     ) external override returns (bytes4) {
         require(msg.sender == address(this), "invalid nft contract");
-        if (from != address(0x0)) {
-            (uint withdrawnAmount, bool isFinal) = poolIdToProvider[poolId]
-                .withdraw(provider, from, poolId, data);
-            if (withdrawnAmount > 0) {
-                vaultManager.withdrawByVaultId(
-                    poolIdToVaultId[poolId],
-                    from,
-                    withdrawnAmount
-                );
-            }
 
-            if (!isFinal) {
-                transferFrom(address(this), from, poolId);
-            }
+        bool isFinal;
+        if (data.length > 0) {
+            (uint256 ratio, address newOwner) = abi.decode(data, (uint256, address));
+            (, isFinal) = _split(poolId, ratio, newOwner);
+        } else {
+            (, isFinal) = _withdraw(provider, from, poolId);
+        }
+        if (!isFinal) {
+            transferFrom(address(this), from, poolId);
         }
         return IERC721Receiver.onERC721Received.selector;
     }
 
-    function selfSplit(
-        uint256 poolId,
-        uint256 ratio
-    ) external returns (uint256 newPoolId, bool isFinal) {
+    function _withdraw(address provider, address from, uint256 poolId) internal returns(uint withdrawnAmount, bool isFinal) {
+        (withdrawnAmount, isFinal) = poolIdToProvider[poolId].withdraw(provider, from, poolId, "");
+
+        if (withdrawnAmount > 0) {
+            vaultManager.withdrawByVaultId(poolIdToVaultId[poolId], from, withdrawnAmount);
+        }
+    }
+
+    function selfSplit(uint256 poolId, uint256 ratio) external returns (uint256 newPoolId, bool isFinal) {
         (newPoolId, isFinal) = _split(poolId, ratio, msg.sender);
     }
 
@@ -117,12 +118,7 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         uint256 poolId,
         uint256 ratio,
         address newOwner
-    )
-        internal
-        onlyPoolOwner(poolId)
-        notZeroAmount(ratio)
-        returns (uint256 newPoolId, bool isFinal)
-    {
+    ) internal onlyPoolOwner(poolId) notZeroAmount(ratio) returns (uint256 newPoolId, bool isFinal) {
         require(ratio <= 1e18, "split amount exceeded");
         IProvider provider = poolIdToProvider[poolId];
         newPoolId = _mint(newOwner, provider);
