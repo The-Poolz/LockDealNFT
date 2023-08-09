@@ -104,7 +104,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
     function split(uint256 poolId, uint256 newPoolId, uint256 ratio) external onlyNFT {
         _registerPool(newPoolId, getParams(poolId));
         uint256 userPoolId = poolId + 1;
-        lockDealNFT.selfSplit(userPoolId, ratio);
+        lockDealNFT.safeTransferFrom(address(this), address(lockDealNFT), userPoolId, abi.encode(ratio));
     }
 
     ///@dev user withdraws his tokens

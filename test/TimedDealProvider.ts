@@ -26,6 +26,7 @@ describe('Timed Deal Provider', function () {
   let newOwner: SignerWithAddress;
   let startTime: number, finishTime: number;
   const amount = 100000;
+  const ratio = MAX_RATIO.div(2); // half of the amount
 
   before(async () => {
     [receiver, newOwner] = await ethers.getSigners();
@@ -131,29 +132,35 @@ describe('Timed Deal Provider', function () {
 
   describe('Timed Split Amount', () => {
     it('should check data in old pool after split', async () => {
-      const ratio = MAX_RATIO.div(2);
-      await lockDealNFT.split(poolId, ratio, newOwner.address);
+      const packedData = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [ratio, newOwner.address]);
+      await lockDealNFT
+        .connect(receiver)
+        ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData);
       const params = [amount / 2, startTime, finishTime, amount / 2];
       const poolData = await lockDealNFT.getData(poolId);
       expect(poolData).to.deep.equal([timedDealProvider.address, poolId, vaultId, receiver.address, token, params]);
     });
 
     it('should check data in new pool after split', async () => {
-      const ratio = MAX_RATIO.div(2);
-      await lockDealNFT.split(poolId, ratio, newOwner.address);
+      const packedData = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [ratio, newOwner.address]);
+      await lockDealNFT
+        .connect(receiver)
+        ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData);
       const params = [amount / 2, startTime, finishTime, amount / 2];
       const poolData = await lockDealNFT.getData(poolId + 1);
       expect(poolData).to.deep.equal([timedDealProvider.address, poolId + 1, vaultId, newOwner.address, token, params]);
     });
 
     it('should check event data after split', async () => {
-      const ratio = MAX_RATIO.div(2);
-      const tx = await lockDealNFT.split(poolId, ratio, newOwner.address);
+      const packedData = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [ratio, newOwner.address]);
+      const tx = await lockDealNFT
+        .connect(receiver)
+        ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData);
       await tx.wait();
       const events = await dealProvider.queryFilter(dealProvider.filters.PoolSplit());
       expect(events[events.length - 1].args.poolId).to.equal(poolId);
       expect(events[events.length - 1].args.newPoolId).to.equal(poolId + 1);
-      expect(events[events.length - 1].args.owner).to.equal(receiver.address);
+      expect(events[events.length - 1].args.owner).to.equal(lockDealNFT.address);
       expect(events[events.length - 1].args.newOwner).to.equal(newOwner.address);
       expect(events[events.length - 1].args.splitLeftAmount).to.equal(amount / 2);
       expect(events[events.length - 1].args.newSplitLeftAmount).to.equal(amount / 2);
@@ -161,11 +168,14 @@ describe('Timed Deal Provider', function () {
 
     it('should withdraw 10% and then split 50% tokens', async () => {
       await time.setNextBlockTimestamp(startTime + halfTime / 5); // 10% of time
-      const ratio = MAX_RATIO.div(2);
       await lockDealNFT
         .connect(receiver)
         ['safeTransferFrom(address,address,uint256)'](receiver.address, lockDealNFT.address, poolId);
-      await lockDealNFT.split(poolId, ratio, newOwner.address);
+      // split 50% of tokens
+      const packedData = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [ratio, newOwner.address]);
+      await lockDealNFT
+        .connect(receiver)
+        ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData);
       const poolData = await lockDealNFT.getData(poolId);
       const newPoolData = await lockDealNFT.getData(poolId + 1);
       expect(poolData.params[3].add(newPoolData.params[3])).to.equal(amount);
@@ -174,11 +184,15 @@ describe('Timed Deal Provider', function () {
 
     it('should withdraw 25% and then split 25% tokens', async () => {
       await time.setNextBlockTimestamp(startTime + halfTime / 2); // 25% of time
-      const ratio = MAX_RATIO.div(4);
       await lockDealNFT
         .connect(receiver)
         ['safeTransferFrom(address,address,uint256)'](receiver.address, lockDealNFT.address, poolId);
-      await lockDealNFT.split(poolId, ratio, newOwner.address);
+      // split 25% of tokens
+      const ratio = MAX_RATIO.div(4);
+      const packedData = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [ratio, newOwner.address]);
+      await lockDealNFT
+        .connect(receiver)
+        ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData);
       const poolData = await lockDealNFT.getData(poolId);
       const newPoolData = await lockDealNFT.getData(poolId + 1);
 
