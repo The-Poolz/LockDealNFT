@@ -56,7 +56,6 @@ contract BundleProvider is BundleProviderState, ERC721Holder {
             require(lockDealNFT.ownerOf(i) == address(this), "invalid owner of sub pool");
         }
         _registerPool(poolId, params);
-        lockDealNFT.updateProviderMetadata(poolId);
     }
 
     ///@param params[0] = lastSubPoolId
@@ -73,12 +72,7 @@ contract BundleProvider is BundleProviderState, ERC721Holder {
         provider.registerPool(poolId, params);
     }
 
-    function withdraw(
-        address,
-        address,
-        uint256 poolId,
-        bytes calldata
-    ) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
+    function withdraw(uint256 poolId) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
         // withdraw the sub pools
         uint256 lastSubPoolId = bundlePoolIdToLastSubPoolId[poolId];
         isFinal = true;
@@ -91,7 +85,6 @@ contract BundleProvider is BundleProviderState, ERC721Holder {
                 isFinal = isFinal && subPoolIsFinal;
             }
         }
-        lockDealNFT.updateProviderMetadata(poolId);
     }
 
     function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) public override onlyProvider {
