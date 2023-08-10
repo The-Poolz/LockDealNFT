@@ -1,5 +1,5 @@
 ignore:
-  - 'contracts/mock'
+  - 'mock'
 
 coverage:
   status:
