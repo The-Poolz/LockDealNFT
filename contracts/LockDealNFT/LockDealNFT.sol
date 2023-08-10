@@ -89,11 +89,12 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         if (withdrawnAmount == type(uint256).max) {
             withdrawnAmount = 0;
             uint256[] memory ids = IInnerWithdraw(address(poolIdToProvider[poolId])).getInnerIdsArray(poolId);
-            for (uint256 i = 0; i < ids.length; i++) {
+            for (uint256 i = 0; i < ids.length; ++i) {
                 _withdrawERC20(from, ids[i]);
             }
         }
         if (withdrawnAmount > 0) {
+            emit MetadataUpdate(poolId);
             vaultManager.withdrawByVaultId(poolIdToVaultId[poolId], from, withdrawnAmount);
         }
     }

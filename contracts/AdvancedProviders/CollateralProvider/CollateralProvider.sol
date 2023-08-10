@@ -46,7 +46,6 @@ contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder 
 
     // this need to give the project owner to get the tokens that in the poolId + 2
     function withdraw(uint256 poolId) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
-        lockDealNFT.updateProviderMetadata(poolId);
         withdrawnAmount = type(uint256).max;
         isFinal = poolIdToTime[poolId] < block.timestamp;
     }
