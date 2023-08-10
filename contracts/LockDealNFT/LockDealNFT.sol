@@ -133,7 +133,6 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
 
     ///@dev don't use it if the provider is the owner or an approved caller
     function transferFromProvider(address from, uint256 poolId) public onlyApprovedProvider {
-        _approve(msg.sender, poolId);
         _safeTransfer(from, address(this), poolId, "");
     }
 
