@@ -2,8 +2,9 @@
 pragma solidity ^0.8.0;
 
 import "../../SimpleProviders/LockProvider/LockDealState.sol";
+import "../../SimpleProviders/Provider/ProviderModifiers.sol";
 
-abstract contract CollateralState is LockDealState {
+abstract contract CollateralState is LockDealState, ProviderModifiers {
     function getParams(uint256 poolId) public view override returns (uint256[] memory params) {
         (, , uint256 mainCoinHolderId) = getInnerIds(poolId);
         if (lockDealNFT.exist(mainCoinHolderId)) {
@@ -13,7 +14,7 @@ abstract contract CollateralState is LockDealState {
         }
     }
 
-    function currentParamsTargetLenght() public pure override(IProvider, ProviderState) returns (uint256) {
+    function currentParamsTargetLenght() public pure override returns (uint256) {
         return 2;
     }
 

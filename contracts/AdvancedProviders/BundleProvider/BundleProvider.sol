@@ -4,9 +4,10 @@ pragma solidity ^0.8.0;
 import "./BundleProviderState.sol";
 import "../../SimpleProviders/Provider/BasicProvider.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
+import "../../interfaces/IBasicWithdraw.sol";
 import "../../util/CalcUtils.sol";
 
-contract BundleProvider is BundleProviderState, ERC721Holder {
+contract BundleProvider is BundleProviderState, ERC721Holder, IBasicWithdraw {
     using CalcUtils for uint256;
 
     constructor(ILockDealNFT _lockDealNFT) {
@@ -73,12 +74,7 @@ contract BundleProvider is BundleProviderState, ERC721Holder {
         provider.registerPool(poolId, params);
     }
 
-    function withdraw(
-        address,
-        address,
-        uint256 poolId,
-        bytes calldata
-    ) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
+    function withdraw(uint256 poolId) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
         // withdraw the sub pools
         uint256 lastSubPoolId = bundlePoolIdToLastSubPoolId[poolId];
         isFinal = true;

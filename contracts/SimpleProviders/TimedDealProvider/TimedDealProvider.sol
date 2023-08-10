@@ -3,9 +3,10 @@ pragma solidity ^0.8.0;
 
 import "../LockProvider/LockDealState.sol";
 import "../DealProvider/DealProviderState.sol";
+import "../Provider/BasicProvider.sol";
 import "../../util/CalcUtils.sol";
 
-contract TimedDealProvider is LockDealState, DealProviderState {
+contract TimedDealProvider is LockDealState, BasicProvider, DealProviderState {
     using CalcUtils for uint256;
 
     /**
@@ -21,12 +22,7 @@ contract TimedDealProvider is LockDealState, DealProviderState {
     }
 
     /// @dev use revert only for permissions
-    function withdraw(
-        address,
-        address,
-        uint256 poolId,
-        bytes calldata
-    ) public override onlyProvider returns (uint256 withdrawnAmount, bool isFinal) {
+    function withdraw(uint256 poolId) public override onlyProvider returns (uint256 withdrawnAmount, bool isFinal) {
         (withdrawnAmount, isFinal) = _withdraw(poolId, getWithdrawableAmount(poolId));
     }
 
@@ -37,7 +33,7 @@ contract TimedDealProvider is LockDealState, DealProviderState {
         (withdrawnAmount, isFinal) = provider.withdraw(poolId, amount);
     }
 
-    function getWithdrawableAmount(uint256 poolId) public view override returns (uint256) {
+    function getWithdrawableAmount(uint256 poolId) public view override(IProvider, BasicProvider) returns (uint256) {
         uint256[] memory params = getParams(poolId);
         uint256 leftAmount = params[0];
         uint256 startTime = params[1];

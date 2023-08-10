@@ -5,7 +5,7 @@ import "../../interfaces/ILockDealNFT.sol";
 
 abstract contract ProviderState is IProvider {
     ///@dev Each provider sets its own name
-    string public name;
+    string public override name;
     ILockDealNFT public lockDealNFT;
 
     ///@dev each provider decides how many parameters it needs by overriding this function

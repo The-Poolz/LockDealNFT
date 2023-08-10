@@ -3,9 +3,10 @@ pragma solidity ^0.8.0;
 
 import "./ProviderModifiers.sol";
 import "../../interfaces/IProvider.sol";
+import "../../interfaces/IBasicWithdraw.sol";
 import "../../interfaces/ISimpleProvider.sol";
 
-abstract contract BasicProvider is ProviderModifiers, ISimpleProvider {
+abstract contract BasicProvider is ProviderModifiers, ISimpleProvider, IBasicWithdraw {
     /**
      * @dev Creates a new pool with the specified parameters.
      * @param owner The address of the pool owner.
@@ -37,12 +38,7 @@ abstract contract BasicProvider is ProviderModifiers, ISimpleProvider {
      * @return withdrawnAmount The amount of tokens withdrawn.
      * @return isFinal Boolean indicating whether the pool is empty after a withdrawal.
      */
-    function withdraw(
-        address,
-        address,
-        uint256 poolId,
-        bytes calldata
-    ) public virtual override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
+    function withdraw(uint256 poolId) public virtual override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
         (withdrawnAmount, isFinal) = _withdraw(poolId, getWithdrawableAmount(poolId));
         lockDealNFT.updateProviderMetadata(poolId);
     }

@@ -2,6 +2,8 @@
 pragma solidity ^0.8.0;
 
 import "./LockDealNFTModifiers.sol";
+import "../interfaces/IBasicWithdraw.sol";
+import "../interfaces/IAdvancedWithdraw.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 /// @title LockDealNFT contract
@@ -62,7 +64,7 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
 
     ///@dev withdraw implementation
     function onERC721Received(
-        address provider,
+        address,
         address from,
         uint256 poolId,
         bytes calldata data
@@ -75,7 +77,7 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
                 : abi.decode(data, (uint256, address));
             isFinal = _split(poolId, ratio, newOwner);
         } else {
-            isFinal = _withdraw(provider, from, poolId);
+            isFinal = _withdraw(from, poolId);
         }
         if (!isFinal) {
             transferFrom(address(this), from, poolId);
@@ -83,8 +85,15 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         return IERC721Receiver.onERC721Received.selector;
     }
 
-    function _withdraw(address provider, address from, uint256 poolId) internal returns (bool) {
-        (uint256 withdrawnAmount, bool isFinal) = poolIdToProvider[poolId].withdraw(provider, from, poolId, "");
+    function _withdraw(address from, uint256 poolId) internal returns (bool isFinal) {
+        uint256 withdrawnAmount;
+        address provider = address(poolIdToProvider[poolId]);
+        try IBasicWithdraw(provider).withdraw(poolId) returns (uint256 amount, bool result) {
+            withdrawnAmount = amount;
+            isFinal = result;
+        } catch {
+            (withdrawnAmount, isFinal) = IAdvancedWithdraw(provider).withdraw(poolId, from);
+        }
 
         if (withdrawnAmount > 0) {
             vaultManager.withdrawByVaultId(poolIdToVaultId[poolId], from, withdrawnAmount);

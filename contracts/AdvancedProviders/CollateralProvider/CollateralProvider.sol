@@ -3,9 +3,10 @@ pragma solidity ^0.8.0;
 
 import "../../interfaces/IFundsManager.sol";
 import "./CollateralModifiers.sol";
+import "../../interfaces/IAdvancedWithdraw.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 
-contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder {
+contract CollateralProvider is CollateralModifiers, IFundsManager, IAdvancedWithdraw, ERC721Holder {
     ///@dev withdraw tokens
     constructor(ILockDealNFT _lockDealNFT, address _dealProvider) {
         require(address(_lockDealNFT) != address(0x0) && _dealProvider != address(0x0), "invalid address");
@@ -31,7 +32,7 @@ contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder 
     ///@dev each provider decides how many parameters it needs by overriding this function
     ///@param params[0] = StartAmount
     ///@param params[1] = FinishTime
-    function _registerPool(uint256 poolId, uint256[] calldata params) internal override {
+    function _registerPool(uint256 poolId, uint256[] calldata params) internal {
         require(block.timestamp <= params[1], "start time must be in the future");
         require(poolId == lockDealNFT.totalSupply() - 1, "invalid params");
         poolIdToTime[poolId] = params[1];
@@ -45,12 +46,7 @@ contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder 
     }
 
     // this need to give the project owner to get the tokens that in the poolId + 2
-    function withdraw(
-        address,
-        address from,
-        uint256 poolId,
-        bytes calldata
-    ) public override onlyNFT returns (uint256, bool isFinal) {
+    function withdraw(uint256 poolId, address from) public override onlyNFT returns (uint256, bool isFinal) {
         (uint256 mainCoinCollectorId, uint256 tokenCollectorId, uint256 mainCoinHolderId) = getInnerIds(poolId);
         //check for time
         if (poolIdToTime[poolId] < block.timestamp) {
@@ -71,7 +67,9 @@ contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder 
         (uint256 mainCoinCollectorId, uint256 tokenCollectorId, uint256 mainCoinHolderId) = getInnerIds(poolId);
         uint256 tokenCollectorAmount = provider.getWithdrawableAmount(tokenCollectorId);
         uint256 coinCollectorAmount = provider.getWithdrawableAmount(mainCoinCollectorId);
-        uint256 coinHolderAmount = poolIdToTime[poolId] < block.timestamp ? provider.getWithdrawableAmount(mainCoinHolderId): 0;
+        uint256 coinHolderAmount = poolIdToTime[poolId] < block.timestamp
+            ? provider.getWithdrawableAmount(mainCoinHolderId)
+            : 0;
         require(coinHolderAmount + coinCollectorAmount + tokenCollectorAmount > 0, "pools are empty");
         _splitter(coinCollectorAmount, mainCoinCollectorId, ratio);
         _splitter(tokenCollectorAmount, tokenCollectorId, ratio);

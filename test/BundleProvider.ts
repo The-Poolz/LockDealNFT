@@ -57,7 +57,7 @@ describe('Lock Deal Bundle Provider', function () {
   });
 
   it('should return provider name', async () => {
-    expect(await bundleProvider.name()).to.equal('BundleProvider');    
+    expect(await bundleProvider.name()).to.equal('BundleProvider');
   });
 
   it('should check lock deal NFT address', async () => {
@@ -228,9 +228,7 @@ describe('Lock Deal Bundle Provider', function () {
     });
 
     it('should revert if not called from the lockDealNFT contract', async () => {
-      await expect(bundleProvider.withdraw(constants.AddressZero, constants.AddressZero, 10, [])).to.be.revertedWith(
-        'only NFT contract can call this function',
-      );
+      await expect(bundleProvider.withdraw(10)).to.be.revertedWith('only NFT contract can call this function');
     });
   });
 
