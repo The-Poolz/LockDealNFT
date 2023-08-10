@@ -70,26 +70,24 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         require(msg.sender == address(this), "invalid nft contract");
         bool isFinal;
         if (data.length > 0) {
-            (uint256 ratio, address newOwner) = data.length == 32
-                ? (abi.decode(data, (uint256)), from)
-                : abi.decode(data, (uint256, address));
+            (uint256 ratio, address newOwner) = parseData(data, from);
             isFinal = _split(poolId, ratio, newOwner);
         } else {
-            isFinal = _withdraw(provider, from, poolId);
+            isFinal = _withdrawERC20(provider, from, poolId);
         }
         if (!isFinal) {
-            transferFrom(address(this), from, poolId);
+            _transfer(address(this), from, poolId);
         }
         return IERC721Receiver.onERC721Received.selector;
     }
 
-    function _withdraw(address provider, address from, uint256 poolId) internal returns (bool) {
-        (uint256 withdrawnAmount, bool isFinal) = poolIdToProvider[poolId].withdraw(provider, from, poolId, "");
+    function _withdrawERC20(address provider, address from, uint256 poolId) internal returns (bool isFinal) {
+        uint256 withdrawnAmount;
+        (withdrawnAmount, isFinal) = poolIdToProvider[poolId].withdraw(provider, from, poolId, "");
 
         if (withdrawnAmount > 0) {
             vaultManager.withdrawByVaultId(poolIdToVaultId[poolId], from, withdrawnAmount);
         }
-        return isFinal;
     }
 
     /// @dev Splits a pool into two pools with adjusted amounts
@@ -128,14 +126,19 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         emit MetadataUpdate(type(uint256).max);
     }
 
-    function withdrawFromProvider(address from, uint256 poolId) public onlyApprovedProvider {
-        transferFrom(msg.sender, from, poolId);
+    function withdrawFromProvider(address from, uint256 poolId) external onlyApprovedProvider {
+        _transfer(msg.sender, from, poolId);
         transferFromProvider(from, poolId);
     }
 
     ///@dev don't use it if the provider is the owner or an approved caller
     function transferFromProvider(address from, uint256 poolId) public onlyApprovedProvider {
         _approve(msg.sender, poolId);
-        safeTransferFrom(from, address(this), poolId);
+        _safeTransfer(from, address(this), poolId, "");
+    }
+
+    function transferFrom(address from, address to, uint256 tokenId) public override(ERC721, IERC721) {
+        require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: transfer caller is not owner nor approved");
+        _safeTransfer(from, to, tokenId, "");
     }
 }
