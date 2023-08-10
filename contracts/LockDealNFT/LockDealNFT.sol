@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./LockDealNFTModifiers.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "../AdvancedProviders/CollateralProvider/IInnerWithdraw.sol";
 
 /// @title LockDealNFT contract
 /// @notice Implements a non-fungible token (NFT) contract for locking deals
@@ -38,6 +39,7 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         notZeroAmount(amount)
         returns (uint256 poolId)
     {
+        require(amount < type(uint256).max, "amount is too big");
         if (address(provider) != msg.sender) {
             _onlyApprovedProvider(provider);
         }
@@ -73,7 +75,7 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
             (uint256 ratio, address newOwner) = parseData(data, from);
             isFinal = _split(poolId, ratio, newOwner);
         } else {
-            isFinal = _withdrawERC20(provider, from, poolId);
+            isFinal = _withdrawERC20(from, poolId);
         }
         if (!isFinal) {
             _transfer(address(this), from, poolId);
@@ -81,10 +83,16 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         return IERC721Receiver.onERC721Received.selector;
     }
 
-    function _withdrawERC20(address provider, address from, uint256 poolId) internal returns (bool isFinal) {
+    function _withdrawERC20(address from, uint256 poolId) internal returns (bool isFinal) {
         uint256 withdrawnAmount;
-        (withdrawnAmount, isFinal) = poolIdToProvider[poolId].withdraw(provider, from, poolId, "");
-
+        (withdrawnAmount, isFinal) = poolIdToProvider[poolId].withdraw(poolId);
+        if (withdrawnAmount == type(uint256).max) {
+            withdrawnAmount = 0;
+            uint256[] memory ids = IInnerWithdraw(address(poolIdToProvider[poolId])).getInnerIdsArray(poolId);
+            for (uint256 i = 0; i < ids.length; i++) {
+                _withdrawERC20(from, ids[i]);
+            }
+        }
         if (withdrawnAmount > 0) {
             vaultManager.withdrawByVaultId(poolIdToVaultId[poolId], from, withdrawnAmount);
         }

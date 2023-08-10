@@ -37,12 +37,7 @@ abstract contract BasicProvider is ProviderModifiers, ISimpleProvider {
      * @return withdrawnAmount The amount of tokens withdrawn.
      * @return isFinal Boolean indicating whether the pool is empty after a withdrawal.
      */
-    function withdraw(
-        address,
-        address,
-        uint256 poolId,
-        bytes calldata
-    ) public virtual override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
+    function withdraw(uint256 poolId) public virtual override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
         (withdrawnAmount, isFinal) = _withdraw(poolId, getWithdrawableAmount(poolId));
         lockDealNFT.updateProviderMetadata(poolId);
     }

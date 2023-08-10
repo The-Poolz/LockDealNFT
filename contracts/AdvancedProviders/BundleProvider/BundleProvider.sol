@@ -73,12 +73,7 @@ contract BundleProvider is BundleProviderState, ERC721Holder {
         provider.registerPool(poolId, params);
     }
 
-    function withdraw(
-        address,
-        address,
-        uint256 poolId,
-        bytes calldata
-    ) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
+    function withdraw(uint256 poolId) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
         // withdraw the sub pools
         uint256 lastSubPoolId = bundlePoolIdToLastSubPoolId[poolId];
         isFinal = true;

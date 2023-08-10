@@ -2,14 +2,25 @@
 pragma solidity ^0.8.0;
 
 import "../../SimpleProviders/LockProvider/LockDealState.sol";
+import "./IInnerWithdraw.sol";
 
-abstract contract CollateralState is LockDealState {
+abstract contract CollateralState is LockDealState, IInnerWithdraw {
     function getParams(uint256 poolId) public view override returns (uint256[] memory params) {
         (, , uint256 mainCoinHolderId) = getInnerIds(poolId);
         if (lockDealNFT.exist(mainCoinHolderId)) {
             params = new uint256[](2);
             params[0] = provider.getParams(mainCoinHolderId)[0];
             params[1] = poolIdToTime[poolId];
+        }
+    }
+
+    function getInnerIdsArray(uint256 poolId) public override returns (uint256[] memory ids) {
+        if (poolIdToTime[poolId] < block.timestamp) {
+            ids = new uint256[](3);
+            (ids[0], ids[1], ids[2]) = getInnerIds(poolId);
+        } else {
+            ids = new uint256[](2);
+            (, ids[0], ids[1]) = getInnerIds(poolId);
         }
     }
 
