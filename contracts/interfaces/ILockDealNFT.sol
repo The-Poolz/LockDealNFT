@@ -21,8 +21,6 @@ interface ILockDealNFT is IERC721Enumerable {
 
     function getData(uint256 poolId) external view returns (BasePoolInfo memory poolInfo);
 
-    function updateProviderMetadata(uint256 poolId) external;
-
     function tokenOf(uint256 poolId) external view returns (address token);
 
     function exist(uint256 poolId) external view returns (bool);

@@ -28,7 +28,6 @@ abstract contract BasicProvider is ProviderModifiers, ISimpleProvider {
         uint256[] calldata params
     ) public virtual onlyProvider validParamsLength(params.length, currentParamsTargetLenght()) {
         _registerPool(poolId, params);
-        lockDealNFT.updateProviderMetadata(poolId);
     }
 
     /**
@@ -39,7 +38,6 @@ abstract contract BasicProvider is ProviderModifiers, ISimpleProvider {
      */
     function withdraw(uint256 poolId) public virtual override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
         (withdrawnAmount, isFinal) = _withdraw(poolId, getWithdrawableAmount(poolId));
-        lockDealNFT.updateProviderMetadata(poolId);
     }
 
     /// @dev used by providers to implement cascading withdraw logic from the pool.
@@ -48,7 +46,6 @@ abstract contract BasicProvider is ProviderModifiers, ISimpleProvider {
         uint256 amount
     ) public virtual onlyProvider returns (uint256 withdrawnAmount, bool isFinal) {
         (withdrawnAmount, isFinal) = _withdraw(poolId, amount);
-        lockDealNFT.updateProviderMetadata(poolId);
     }
 
     function _registerPool(uint256 poolId, uint256[] calldata params) internal virtual;

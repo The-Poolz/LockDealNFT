@@ -127,10 +127,6 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         emit MintInitiated(provider);
     }
 
-    function updateProviderMetadata(uint256 poolId) external onlyApprovedProvider {
-        emit MetadataUpdate(poolId);
-    }
-
     function updateAllMetadata() external onlyOwner {
         emit MetadataUpdate(type(uint256).max);
     }
