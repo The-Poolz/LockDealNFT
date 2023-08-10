@@ -89,7 +89,6 @@ contract RefundProvider is RefundState, IERC721Receiver {
     ///@param params[1] = rateToWei
     function registerPool(uint256 poolId, uint256[] calldata params) public override onlyProvider {
         _registerPool(poolId, params);
-        lockDealNFT.updateProviderMetadata(poolId);
     }
 
     function _registerPool(
@@ -116,6 +115,5 @@ contract RefundProvider is RefundState, IERC721Receiver {
             uint256 mainCoinAmount = withdrawnAmount.calcAmount(poolIdToRateToWei[poolId]);
             collateralProvider.handleWithdraw(poolIdToCollateralId[poolId], mainCoinAmount);
         }
-        lockDealNFT.updateProviderMetadata(poolId);
     }
 }

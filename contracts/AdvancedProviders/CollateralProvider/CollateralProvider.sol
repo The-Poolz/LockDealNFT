@@ -25,7 +25,6 @@ contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder 
         validParamsLength(params.length, currentParamsTargetLenght())
     {
         _registerPool(poolId, params);
-        lockDealNFT.updateProviderMetadata(poolId);
     }
 
     ///@dev each provider decides how many parameters it needs by overriding this function
