@@ -134,16 +134,6 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         emit MetadataUpdate(type(uint256).max);
     }
 
-    function withdrawFromProvider(address from, uint256 poolId) external onlyApprovedProvider {
-        _transfer(msg.sender, from, poolId);
-        transferFromProvider(from, poolId);
-    }
-
-    ///@dev don't use it if the provider is the owner or an approved caller
-    function transferFromProvider(address from, uint256 poolId) public onlyApprovedProvider {
-        _safeTransfer(from, address(this), poolId, "");
-    }
-
     function transferFrom(address from, address to, uint256 tokenId) public override(ERC721, IERC721) {
         require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: transfer caller is not owner nor approved");
         _safeTransfer(from, to, tokenId, "");
