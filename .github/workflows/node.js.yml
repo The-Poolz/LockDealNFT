@@ -54,5 +54,5 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/package.json') }}
 
         env:
-          BSCSCAN_API_KEY: ${{ secrets.YOUR_BSCSCAN_API_KEY }}
-          CMC_API_KEY: ${{ secrets.YOUR_CMC_API_KEY }}
+          BSCSCAN_API_KEY: ${{ secrets.BSCSCAN_API_KEY }}
+          CMC_API_KEY: ${{ secrets.CMC_API_KEY }}
