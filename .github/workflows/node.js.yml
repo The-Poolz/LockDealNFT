@@ -35,14 +35,6 @@ jobs:
         if: steps.restore-cache.outputs.cache-hit != 'true'
         run: yarn
 
-      - name: Set API Keys as Environment Variables
-        run: |
-          echo "BSCSCAN_API_KEY=${{ secrets.BSCSCAN_API_KEY }}" >> $GITHUB_ENV
-          echo "CMC_API_KEY=${{ secrets.CMC_API_KEY }}" >> $GITHUB_ENV
-
-      - name: Run gas tests
-        run: npx hardhat test
-
       - name: Run tests and generate coverage
         run: npx hardhat coverage
 
