@@ -35,9 +35,11 @@ jobs:
         if: steps.restore-cache.outputs.cache-hit != 'true'
         run: yarn
 
-      
       - name: Run gas tests
         run: npx hardhat test
+        env:
+          BSCSCAN_API_KEY: ${{ secrets.BSCSCAN_API_KEY }}
+          CMC_API_KEY: ${{ secrets.CMC_API_KEY }}
 
       - name: Run tests and generate coverage
         run: npx hardhat coverage
@@ -52,7 +54,3 @@ jobs:
         with:
           path: node_modules
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/package.json') }}
-
-        env:
-          BSCSCAN_API_KEY: ${{ secrets.BSCSCAN_API_KEY }}
-          CMC_API_KEY: ${{ secrets.CMC_API_KEY }}
