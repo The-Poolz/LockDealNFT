@@ -39,7 +39,11 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: build
-          path: /       
+          path: |
+            artifacts
+            cache
+            node_modules
+            typechain-types
         
   Gas-Test:
     runs-on: ubuntu-latest
