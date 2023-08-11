@@ -40,8 +40,8 @@ jobs:
           echo "BSCSCAN_API_KEY=${{ secrets.BSCSCAN_API_KEY }}" >> $GITHUB_ENV
           echo "CMC_API_KEY=${{ secrets.CMC_API_KEY }}" >> $GITHUB_ENV
 
-      - name: Run gas tests in parallel
-        run: npx hardhat test --parallel
+      - name: Run gas tests
+        run: npx hardhat test
 
       - name: Run tests and generate coverage
         run: npx hardhat coverage
