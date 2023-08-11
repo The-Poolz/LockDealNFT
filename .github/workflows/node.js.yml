@@ -27,7 +27,7 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/package.json') }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
 
@@ -42,8 +42,15 @@ jobs:
           path: |
             artifacts
             cache
-            node_modules
             typechain-types
+  
+      # Save cache only if it was not restored before
+      - name: Save cache
+        if: steps.restore-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
         
   Gas-Test:
     runs-on: ubuntu-latest
@@ -54,7 +61,10 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: build
-          path: dist
+          path: |
+            artifacts
+            cache
+            typechain-types
     
       - name: Run gas tests
         run: npx hardhat test
@@ -71,18 +81,13 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: build
-          path: dist
+          path: |
+            artifacts
+            cache
+            typechain-types
 
       - name: Run tests and generate coverage
         run: npx hardhat coverage
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
-
-      # Save cache only if it was not restored before
-      - name: Save cache
-        if: steps.restore-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v3
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/package.json') }}
