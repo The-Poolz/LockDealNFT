@@ -3,39 +3,55 @@ pragma solidity ^0.8.0;
 
 import "../SimpleProviders/TimedDealProvider/TimedDealProvider.sol";
 import "../interfaces/IFundsManager.sol";
+import "hardhat/console.sol";
 
 /// @dev MockProvider is a contract for testing purposes.
 contract MockProvider is IFundsManager {
-    address public provider;
+    IProvider public _provider;
     ILockDealNFT public lockDealNFT;
 
-    constructor(ILockDealNFT _lockDealNFT, address _provider) {
+    constructor(ILockDealNFT _lockDealNFT, address __provider) {
         lockDealNFT = _lockDealNFT;
-        provider = _provider;
+        _provider = IProvider(__provider);
     }
 
     function withdraw(uint256 poolId, uint256 amount) public {
-        TimedDealProvider(provider).withdraw(poolId, amount);
+        TimedDealProvider(address(_provider)).withdraw(poolId, amount);
     }
 
     function createNewPool(address owner, address token, uint256[] memory params) public returns (uint256 poolId) {
-        poolId = lockDealNFT.mintAndTransfer(owner, token, owner, params[0], IProvider(provider));
-        TimedDealProvider(provider).registerPool(poolId, params);
+        poolId = lockDealNFT.mintAndTransfer(owner, token, owner, params[0], _provider);
+        _provider.registerPool(poolId, params);
     }
 
     function registerPool(uint256 poolId, uint256[] memory params) external {
-        IProvider(provider).registerPool(poolId, params);
+        _provider.registerPool(poolId, params);
     }
 
     function getParams(uint256 poolId) public view returns (uint256[] memory params) {
-        return TimedDealProvider(provider).getParams(poolId);
+        return _provider.getParams(poolId);
     }
 
     function handleWithdraw(uint256 poolId, uint256 mainCoinAmount) external {
-        IFundsManager(provider).handleWithdraw(poolId, mainCoinAmount);
+        IFundsManager(address(_provider)).handleWithdraw(poolId, mainCoinAmount);
     }
 
     function handleRefund(uint256 poolId, uint256 tokenAmount, uint256 mainCoinAmount) external {
-        IFundsManager(provider).handleRefund(poolId, tokenAmount, mainCoinAmount);
+        IFundsManager(address(_provider)).handleRefund(poolId, tokenAmount, mainCoinAmount);
+    }
+
+    function registerNewBundlePool(
+        address owner,
+        IProvider[] calldata providers,
+        uint256[][] calldata providerParams
+    ) public returns (uint256 poolId) {
+        poolId = lockDealNFT.mintForProvider(owner, _provider);
+        for (uint256 i = 0; i < providers.length; ++i) {
+            uint256 innerPoolId = lockDealNFT.mintForProvider(address(_provider), providers[i]);
+            providers[i].registerPool(innerPoolId, providerParams[i]);
+        }
+        uint256[] memory params = new uint256[](1);
+        params[0] = lockDealNFT.totalSupply() - 1;
+        _provider.registerPool(poolId, params);
     }
 }
