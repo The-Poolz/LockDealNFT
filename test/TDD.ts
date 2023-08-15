@@ -8,10 +8,10 @@ import { TimedDealProvider } from '../typechain-types';
 import { CollateralProvider } from '../typechain-types';
 import { MockProvider } from '../typechain-types';
 import { deployed, token, BUSD, MAX_RATIO } from './helper';
-import { time, mine } from '@nomicfoundation/hardhat-network-helpers';
+import { time } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
-import { BigNumber, constants } from 'ethers';
+import { BigNumber } from 'ethers';
 import { ethers } from 'hardhat';
 
 describe('test-driven development', function () {
@@ -19,17 +19,15 @@ describe('test-driven development', function () {
   let lockProvider: LockDealProvider;
   let dealProvider: DealProvider;
   let bundleMockProvider: MockProvider;
-
+  let refundMockProvider: MockProvider;
   let refundProvider: RefundProvider;
   let timedProvider: TimedDealProvider;
   let mockVaultManager: MockVaultManager;
   let collateralProvider: CollateralProvider;
-  let halfTime: number;
-  //   const rate = ethers.utils.parseEther('0.1');
-  //   const mainCoinAmount = ethers.utils.parseEther('10');
+  const rate = ethers.utils.parseEther('0.1');
+  const mainCoinAmount = ethers.utils.parseEther('10');
   let lockDealNFT: LockDealNFT;
   let poolId: number;
-  let vaultId: BigNumber;
   let receiver: SignerWithAddress;
   let projectOwner: SignerWithAddress;
   let startTime: number, finishTime: number;
@@ -48,6 +46,7 @@ describe('test-driven development', function () {
     refundProvider = await deployed('RefundProvider', lockDealNFT.address, collateralProvider.address);
     bundleProvider = await deployed('BundleProvider', lockDealNFT.address);
     bundleMockProvider = await deployed('MockProvider', lockDealNFT.address, bundleProvider.address);
+    refundMockProvider = await deployed('MockProvider', lockDealNFT.address, refundProvider.address);
     await lockDealNFT.setApprovedProvider(refundProvider.address, true);
     await lockDealNFT.setApprovedProvider(lockProvider.address, true);
     await lockDealNFT.setApprovedProvider(dealProvider.address, true);
@@ -56,13 +55,13 @@ describe('test-driven development', function () {
     await lockDealNFT.setApprovedProvider(bundleProvider.address, true);
     await lockDealNFT.setApprovedProvider(lockDealNFT.address, true);
     await lockDealNFT.setApprovedProvider(bundleMockProvider.address, true);
+    await lockDealNFT.setApprovedProvider(refundMockProvider.address, true);
   });
 
   beforeEach(async () => {
     startTime = (await time.latest()) + ONE_DAY; // plus 1 day
     finishTime = startTime + 7 * ONE_DAY; // plus 7 days from `startTime`
     poolId = (await lockDealNFT.totalSupply()).toNumber();
-    halfTime = (finishTime - startTime) / 2;
   });
 
   describe('Bundle Provider', async () => {
@@ -106,12 +105,36 @@ describe('test-driven development', function () {
   });
 
   describe('Refund Provider', async () => {
-    it('try to create new refund with refund provider', async () => {});
+    let params: [BigNumber, number, number, BigNumber, BigNumber, number];
 
-    it('try to register refund provider in refund', async () => {});
+    beforeEach(async () => {
+      params = [amount, startTime, finishTime, mainCoinAmount, rate, finishTime];
+      poolId = (await lockDealNFT.totalSupply()).toNumber();
+    });
 
-    it('try to create new bundle with collateral provider', async () => {});
+    it('try to create new refund with sub refund provider', async () => {
+      await expect(
+        refundProvider
+          .connect(projectOwner)
+          .createNewRefundPool(token, receiver.address, BUSD, refundProvider.address, params),
+      ).to.be.reverted;
+    });
 
-    it('try to register collateral provider in refund', async () => {});
+    it('try to register sub refund provider in refund', async () => {
+      await expect(refundMockProvider.registerNewRefundPool(receiver.address, refundProvider.address)).to.be.reverted;
+    });
+
+    it('try to create new refund with sub collateral provider', async () => {
+      await expect(
+        await refundProvider
+          .connect(projectOwner)
+          .createNewRefundPool(token, receiver.address, BUSD, collateralProvider.address, params),
+      ).to.be.reverted;
+    });
+
+    it('try to register collateral provider in refund', async () => {
+      await expect(refundMockProvider.registerNewRefundPool(receiver.address, collateralProvider.address)).to.be
+        .reverted;
+    });
   });
 });

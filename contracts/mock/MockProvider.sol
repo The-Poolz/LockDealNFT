@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import "../SimpleProviders/TimedDealProvider/TimedDealProvider.sol";
 import "../interfaces/IFundsManager.sol";
-import "hardhat/console.sol";
 
 /// @dev MockProvider is a contract for testing purposes.
 contract MockProvider is IFundsManager {
@@ -38,6 +37,15 @@ contract MockProvider is IFundsManager {
 
     function handleRefund(uint256 poolId, uint256 tokenAmount, uint256 mainCoinAmount) external {
         IFundsManager(address(_provider)).handleRefund(poolId, tokenAmount, mainCoinAmount);
+    }
+
+    function registerNewRefundPool(address owner, IProvider provider) external returns (uint256 poolId) {
+        uint256 subPoolId = lockDealNFT.mintForProvider(owner, provider);
+        poolId = lockDealNFT.mintForProvider(owner, _provider);
+        uint256[] memory params = new uint256[](2);
+        params[0] = subPoolId;
+        params[1] = 1e18;
+        _provider.registerPool(poolId, params);
     }
 
     function registerNewBundlePool(
