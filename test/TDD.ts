@@ -27,7 +27,6 @@ describe('test-driven development', function () {
   const rate = ethers.utils.parseEther('0.1');
   const mainCoinAmount = ethers.utils.parseEther('10');
   let lockDealNFT: LockDealNFT;
-  let poolId: number;
   let receiver: SignerWithAddress;
   let projectOwner: SignerWithAddress;
   let startTime: number, finishTime: number;
@@ -61,7 +60,6 @@ describe('test-driven development', function () {
   beforeEach(async () => {
     startTime = (await time.latest()) + ONE_DAY; // plus 1 day
     finishTime = startTime + 7 * ONE_DAY; // plus 7 days from `startTime`
-    poolId = (await lockDealNFT.totalSupply()).toNumber();
   });
 
   describe('Bundle Provider', async () => {
@@ -77,27 +75,27 @@ describe('test-driven development', function () {
       timedDealProviderParams = [amount, startTime, finishTime, amount];
     });
 
-    it('try to create new bundle with refund provider', async () => {
+    it('should revert creation new bundle with refund provider', async () => {
       bundleProviders = [dealProvider.address, lockProvider.address, timedProvider.address, refundProvider.address];
       const refundProviderParams = [amount, amount.div(2), ratio, finishTime];
       params = [dealProviderParams, lockProviderParams, timedDealProviderParams, refundProviderParams];
       await expect(bundleProvider.createNewPool(receiver.address, token, bundleProviders, params)).to.be.reverted;
     });
 
-    it('try to register refund provider in bundle', async () => {
+    it('should revert register refund provider in bundle', async () => {
       bundleProviders = [dealProvider.address, lockProvider.address, timedProvider.address, refundProvider.address];
       const refundProviderParams = [amount, amount.div(2), ratio, finishTime];
       const params = [dealProviderParams, lockProviderParams, timedDealProviderParams, refundProviderParams];
       await expect(bundleMockProvider.registerNewBundlePool(receiver.address, bundleProviders, params)).to.be.reverted;
     });
 
-    it('try to create new bundle with collateral provider', async () => {
+    it('should revert creation new bundle with collateral provider', async () => {
       bundleProviders = [dealProvider.address, lockProvider.address, timedProvider.address, collateralProvider.address];
       params = [dealProviderParams, lockProviderParams, timedDealProviderParams, lockProviderParams];
       await expect(bundleProvider.createNewPool(receiver.address, token, bundleProviders, params)).to.be.reverted;
     });
 
-    it('try to register collateral provider in bundle', async () => {
+    it('should revert register collateral provider in bundle', async () => {
       bundleProviders = [dealProvider.address, lockProvider.address, timedProvider.address, collateralProvider.address];
       const params = [dealProviderParams, lockProviderParams, timedDealProviderParams, lockProviderParams];
       await expect(bundleMockProvider.registerNewBundlePool(receiver.address, bundleProviders, params)).to.be.reverted;
@@ -109,10 +107,9 @@ describe('test-driven development', function () {
 
     beforeEach(async () => {
       params = [amount, startTime, finishTime, mainCoinAmount, rate, finishTime];
-      poolId = (await lockDealNFT.totalSupply()).toNumber();
     });
 
-    it('try to create new refund with sub refund provider', async () => {
+    it('should revert creation of a new refund with sub refund provider', async () => {
       await expect(
         refundProvider
           .connect(projectOwner)
@@ -120,11 +117,11 @@ describe('test-driven development', function () {
       ).to.be.reverted;
     });
 
-    it('try to register sub refund provider in refund', async () => {
+    it('should revert register sub refund provider in refund', async () => {
       await expect(refundMockProvider.registerNewRefundPool(receiver.address, refundProvider.address)).to.be.reverted;
     });
 
-    it('try to create new refund with sub collateral provider', async () => {
+    it('should revert creation new refund with sub collateral provider', async () => {
       await expect(
         await refundProvider
           .connect(projectOwner)
@@ -132,7 +129,7 @@ describe('test-driven development', function () {
       ).to.be.reverted;
     });
 
-    it('try to register collateral provider in refund', async () => {
+    it('should revert register collateral provider in refund', async () => {
       await expect(refundMockProvider.registerNewRefundPool(receiver.address, collateralProvider.address)).to.be
         .reverted;
     });
