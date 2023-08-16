@@ -18,7 +18,6 @@ describe('test-driven development', function () {
   let bundleProvider: BundleProvider;
   let lockProvider: LockDealProvider;
   let dealProvider: DealProvider;
-  let poolId: number;
   let bundleMockProvider: MockProvider;
   let refundMockProvider: MockProvider;
   let refundProvider: RefundProvider;
@@ -139,7 +138,9 @@ describe('test-driven development', function () {
       const poolId = (await lockDealNFT.totalSupply()).toNumber() - 1;
       const params = [poolId, ratio];
       const nonValidPoolId = 999999;
-      await expect(refundMockProvider.registerPool(nonValidPoolId, params)).to.be.reverted;
+      await expect(refundMockProvider.registerPool(nonValidPoolId, params)).to.be.revertedWith(
+        'Invalid provider poolId',
+      );
     });
   });
 });
