@@ -315,34 +315,50 @@ describe('Lock Deal Bundle Provider', function () {
   });
 
   describe('Mock register pool tests', () => {
-    let params: [number];
+    beforeEach(async () => {
+      startTime = (await time.latest()) + ONE_DAY; // plus 1 day
+      finishTime = startTime + 7 * ONE_DAY; // plus 7 days from `startTime`
+      const dealProviderParams = [amount];
+      const lockProviderParams = [amount, startTime];
+      const timedDealProviderParams = [amount, startTime, finishTime, amount];
+      const bundleProviders = [dealProvider.address, lockProvider.address, timedDealProvider.address];
+      const params = [dealProviderParams, lockProviderParams, timedDealProviderParams];
+      bundlePoolId = (await lockDealNFT.totalSupply()).toNumber();
+      await bundleProvider.createNewPool(receiver.address, token, bundleProviders, params);
+    });
 
-    it('should register pool', async () => {
-      bundlePoolId = (await lockDealNFT.totalSupply()).toNumber() - 1;
+    it('should rewrite pool data', async () => {
+      const vaultId = await mockVaultManager.Id();
       await dealProvider.createNewPool(bundleProvider.address, token, [amount]);
       await lockProvider.createNewPool(bundleProvider.address, token, [amount, startTime]);
       const lastSubPoolId = (await lockDealNFT.totalSupply()).toNumber() - 1;
-      //console.log(bundlePoolId);
-      //console.log(lastSubPoolId);
-      params = [lastSubPoolId];
-      await mockProvider.registerPool(bundlePoolId, params);
-      const vaultId = await mockVaultManager.Id();
-
+      const bundleParams = [lastSubPoolId];
+      await mockProvider.registerPool(bundlePoolId, bundleParams);
       const poolData = await lockDealNFT.getData(bundlePoolId);
-      //expect(poolData).to.deep.equal([bundleProvider.address, bundlePoolId, vaultId, receiver.address, token, params]);
+      expect(poolData).to.deep.equal([
+        bundleProvider.address,
+        bundlePoolId,
+        vaultId,
+        receiver.address,
+        token,
+        bundleParams,
+      ]);
     });
 
     it('should revert invalid last sub pool id', async () => {
-      params[0] = bundlePoolId - 1;
-      await expect(mockProvider.registerPool(bundlePoolId, params)).to.be.revertedWith(
+      const lastSubPoolId = (await lockDealNFT.totalSupply()).toNumber() - 1;
+      const bundleParams = [0];
+      await expect(mockProvider.registerPool(lastSubPoolId, bundleParams)).to.be.revertedWith(
         "poolId can't be greater than lastSubPoolId",
       );
     });
 
     it('should revert invalid pool owner', async () => {
-      await dealProvider.createNewPool(receiver.address, token, params);
-      params[0] = (await lockDealNFT.totalSupply()).toNumber() - 1;
-      await expect(mockProvider.registerPool(bundlePoolId, params)).to.be.revertedWith('invalid owner of sub pool');
+      await dealProvider.createNewPool(receiver.address, token, [amount]);
+      const lastSubPoolId = (await lockDealNFT.totalSupply()).toNumber() - 1;
+      await expect(mockProvider.registerPool(bundlePoolId, [lastSubPoolId])).to.be.revertedWith(
+        'invalid owner of sub pool',
+      );
     });
   });
 });
