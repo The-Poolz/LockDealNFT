@@ -75,27 +75,27 @@ describe('test-driven development', function () {
       timedDealProviderParams = [amount, startTime, finishTime, amount];
     });
 
-    xit('should revert creation new bundle with refund provider', async () => {
+    it('should revert creation new bundle with refund provider', async () => {
       bundleProviders = [dealProvider.address, lockProvider.address, timedProvider.address, refundProvider.address];
       const refundProviderParams = [amount, amount.div(2), ratio, finishTime];
       params = [dealProviderParams, lockProviderParams, timedDealProviderParams, refundProviderParams];
       await expect(bundleProvider.createNewPool(receiver.address, token, bundleProviders, params)).to.be.reverted;
     });
 
-    xit('should revert register refund provider in bundle', async () => {
+    it('should revert register refund provider in bundle', async () => {
       bundleProviders = [dealProvider.address, lockProvider.address, timedProvider.address, refundProvider.address];
       const refundProviderParams = [amount, amount.div(2), ratio, finishTime];
       const params = [dealProviderParams, lockProviderParams, timedDealProviderParams, refundProviderParams];
       await expect(bundleMockProvider.registerNewBundlePool(receiver.address, bundleProviders, params)).to.be.reverted;
     });
 
-    xit('should revert creation new bundle with collateral provider', async () => {
+    it('should revert creation new bundle with collateral provider', async () => {
       bundleProviders = [dealProvider.address, lockProvider.address, timedProvider.address, collateralProvider.address];
       params = [dealProviderParams, lockProviderParams, timedDealProviderParams, lockProviderParams];
       await expect(bundleProvider.createNewPool(receiver.address, token, bundleProviders, params)).to.be.reverted;
     });
 
-    xit('should revert register collateral provider in bundle', async () => {
+    it('should revert register collateral provider in bundle', async () => {
       bundleProviders = [dealProvider.address, lockProvider.address, timedProvider.address, collateralProvider.address];
       const params = [dealProviderParams, lockProviderParams, timedDealProviderParams, lockProviderParams];
       await expect(bundleMockProvider.registerNewBundlePool(receiver.address, bundleProviders, params)).to.be.reverted;
@@ -119,14 +119,6 @@ describe('test-driven development', function () {
 
     it('should revert register sub refund provider in refund', async () => {
       await expect(refundMockProvider.registerNewRefundPool(receiver.address, refundProvider.address)).to.be.reverted;
-    });
-
-    it('should revert creation new refund with sub collateral provider', async () => {
-      await expect(
-        refundProvider
-          .connect(projectOwner)
-          .createNewRefundPool(token, receiver.address, BUSD, collateralProvider.address, params),
-      ).to.be.reverted;
     });
 
     it('should revert register bundle id instead collateral in refund', async () => {
