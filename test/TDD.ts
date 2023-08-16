@@ -18,6 +18,7 @@ describe('test-driven development', function () {
   let bundleProvider: BundleProvider;
   let lockProvider: LockDealProvider;
   let dealProvider: DealProvider;
+  let poolId: number;
   let bundleMockProvider: MockProvider;
   let refundMockProvider: MockProvider;
   let refundProvider: RefundProvider;
@@ -109,7 +110,7 @@ describe('test-driven development', function () {
       params = [amount, startTime, finishTime, mainCoinAmount, rate, finishTime];
     });
 
-    xit('should revert creation of a new refund with sub refund provider', async () => {
+    it('should revert creation of a new refund with sub refund provider', async () => {
       await expect(
         refundProvider
           .connect(projectOwner)
@@ -117,21 +118,28 @@ describe('test-driven development', function () {
       ).to.be.reverted;
     });
 
-    xit('should revert register sub refund provider in refund', async () => {
+    it('should revert register sub refund provider in refund', async () => {
       await expect(refundMockProvider.registerNewRefundPool(receiver.address, refundProvider.address)).to.be.reverted;
     });
 
-    xit('should revert creation new refund with sub collateral provider', async () => {
+    it('should revert creation new refund with sub collateral provider', async () => {
       await expect(
-        await refundProvider
+        refundProvider
           .connect(projectOwner)
           .createNewRefundPool(token, receiver.address, BUSD, collateralProvider.address, params),
       ).to.be.reverted;
     });
 
-    xit('should revert register collateral provider in refund', async () => {
-      await expect(refundMockProvider.registerNewRefundPool(receiver.address, collateralProvider.address)).to.be
-        .reverted;
+    it('should revert register bundle id instead collateral in refund', async () => {
+      await expect(refundMockProvider.registerNewRefundPool(receiver.address, bundleProvider.address)).to.be.reverted;
+    });
+
+    it('should be revert, wrong pool id in refund register', async () => {
+      await collateralProvider.createNewPool(receiver.address, token, [amount, startTime]);
+      const poolId = (await lockDealNFT.totalSupply()).toNumber() - 1;
+      const params = [poolId, ratio];
+      const nonValidPoolId = 999999;
+      await expect(refundMockProvider.registerPool(nonValidPoolId, params)).to.be.reverted;
     });
   });
 });

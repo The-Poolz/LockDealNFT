@@ -4,9 +4,11 @@ pragma solidity ^0.8.0;
 import "./RefundState.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "../../util/CalcUtils.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract RefundProvider is RefundState, IERC721Receiver {
     using CalcUtils for uint256;
+    using Strings for string;
 
     constructor(ILockDealNFT nftContract, address provider) {
         require(address(nftContract) != address(0x0) && provider != address(0x0), "invalid address");
@@ -55,6 +57,12 @@ contract RefundProvider is RefundState, IERC721Receiver {
     ) external returns (uint256 poolId) {
         uint256 paramsLength = params.length;
         require(paramsLength > 3, "invalid params length");
+        string memory name = provider.name();
+        require(
+            name.equal("TimedDealProvider") || name.equal("LockDealProvider") || name.equal("DealProvider"),
+            "invalid provider type"
+        );
+
         // create new refund pool | Owner User
         poolId = lockDealNFT.mintForProvider(owner, this);
 
@@ -88,6 +96,9 @@ contract RefundProvider is RefundState, IERC721Receiver {
     ///@param params[0] = collateralId
     ///@param params[1] = rateToWei
     function registerPool(uint256 poolId, uint256[] calldata params) public override onlyProvider {
+        require(lockDealNFT.poolIdToProvider(poolId) == this, "invalid poolId");
+        require(lockDealNFT.poolIdToProvider(params[0]) == collateralProvider, "invalid collateralId");
+        require(params[1] <= 1e18, "invalid rateToWei");
         _registerPool(poolId, params);
     }
 
