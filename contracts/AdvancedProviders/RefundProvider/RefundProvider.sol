@@ -95,8 +95,10 @@ contract RefundProvider is RefundState, IERC721Receiver {
 
     ///@param params[0] = collateralId
     ///@param params[1] = rateToWei
-    function registerPool(uint256 poolId, uint256[] calldata params) public override onlyProvider {
-        require(lockDealNFT.poolIdToProvider(poolId) == this, "invalid poolId");
+    function registerPool(
+        uint256 poolId,
+        uint256[] calldata params
+    ) public override onlyProvider validProviderId(poolId) {
         require(lockDealNFT.poolIdToProvider(params[0]) == collateralProvider, "invalid collateralId");
         require(params[1] <= 1e18, "invalid rateToWei");
         _registerPool(poolId, params);

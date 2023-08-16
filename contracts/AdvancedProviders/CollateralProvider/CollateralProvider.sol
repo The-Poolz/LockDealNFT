@@ -2,10 +2,10 @@
 pragma solidity ^0.8.0;
 
 import "../../interfaces/IFundsManager.sol";
-import "./CollateralModifiers.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
+import "./CollateralState.sol";
 
-contract CollateralProvider is CollateralModifiers, IFundsManager, ERC721Holder {
+contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState {
     ///@dev withdraw tokens
     constructor(ILockDealNFT _lockDealNFT, address _dealProvider) {
         require(address(_lockDealNFT) != address(0x0) && _dealProvider != address(0x0), "invalid address");

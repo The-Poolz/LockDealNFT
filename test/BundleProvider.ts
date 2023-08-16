@@ -159,7 +159,7 @@ describe('Lock Deal Bundle Provider', function () {
   });
 
   it('should revert if the poolId is not the bundle poolId', async () => {
-    await expect(bundleProvider.getTotalRemainingAmount(bundlePoolId - 1)).to.be.revertedWith('not bundle poolId');
+    await expect(bundleProvider.getTotalRemainingAmount(bundlePoolId - 1)).to.be.revertedWith('Invalid provider poolId');
   });
 
   describe('Lock Deal Bundle Withdraw', () => {

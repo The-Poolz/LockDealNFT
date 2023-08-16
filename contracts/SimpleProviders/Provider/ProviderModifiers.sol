@@ -19,6 +19,15 @@ abstract contract ProviderModifiers is ProviderState {
         _;
     }
 
+    modifier validProviderId(uint256 poolId) {
+        _validProvider(poolId);
+        _;
+    }
+
+    function _validProvider(uint256 poolId) internal view {
+        require(lockDealNFT.poolIdToProvider(poolId) == this, "Invalid provider poolId");
+    }
+
     function _onlyNFT() internal view {
         require(msg.sender == address(lockDealNFT), "only NFT contract can call this function");
     }
