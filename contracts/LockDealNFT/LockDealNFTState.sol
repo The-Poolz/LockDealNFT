@@ -36,6 +36,15 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
         }
     }
 
+    function parseData(bytes calldata data, address from) internal pure returns (uint256 ratio, address newOwner) {
+        if (data.length > 0) {
+            (ratio, newOwner) = data.length == 32
+                ? (abi.decode(data, (uint256)), from)
+                : abi.decode(data, (uint256, address));
+            return (ratio, newOwner);
+        }
+    }
+
     function getUserDataByTokens(
         address user,
         address[] memory tokens,

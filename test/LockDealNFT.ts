@@ -69,6 +69,33 @@ describe('LockDealNFT', function () {
     expect(await lockDealNFT.totalSupply()).to.equal(poolId + 1);
   });
 
+  it('should allow owner to transfer token', async () => {
+    const initialOwner = receiver;
+    const newOwner = notOwner;
+    const tokenId = poolId; // Assuming the token ID is the pool ID
+
+    // Ensure initialOwner owns the token
+    expect(await lockDealNFT.ownerOf(tokenId)).to.equal(initialOwner.address);
+
+    // Transfer the token
+    await lockDealNFT.connect(initialOwner).transferFrom(initialOwner.address, newOwner.address, tokenId);
+
+    // Check new owner
+    expect(await lockDealNFT.ownerOf(tokenId)).to.equal(newOwner.address);
+  });
+
+  it('should not allow non-owner and non-approved address to transfer token', async () => {
+    const initialOwner = receiver;
+    const newOwner = notOwner;
+    const anotherAddress = notOwner; // or another signer
+    const tokenId = poolId;
+
+    // Try to transfer the token without any approval. This should fail.
+    await expect(
+      lockDealNFT.connect(anotherAddress).transferFrom(initialOwner.address, newOwner.address, tokenId),
+    ).to.be.revertedWith('ERC721: transfer caller is not owner nor approved');
+  });
+
   it('should set provider', async () => {
     expect(await lockDealNFT.poolIdToProvider(poolId)).to.equal(dealProvider.address);
   });
@@ -192,7 +219,7 @@ describe('LockDealNFT', function () {
   });
 
   it('check if the contract supports ILockDealNFT interface', async () => {
-    expect(await lockDealNFT.supportsInterface('0xd9677f13')).to.equal(true);
+    expect(await lockDealNFT.supportsInterface('0x23c94c6e')).to.equal(true);
   });
 
   it('shuld return royalty', async () => {

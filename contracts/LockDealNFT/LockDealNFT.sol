@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./LockDealNFTModifiers.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "../AdvancedProviders/CollateralProvider/IInnerWithdraw.sol";
 
 /// @title LockDealNFT contract
 /// @notice Implements a non-fungible token (NFT) contract for locking deals
@@ -38,6 +39,7 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         notZeroAmount(amount)
         returns (uint256 poolId)
     {
+        require(amount < type(uint256).max, "amount is too big");
         if (address(provider) != msg.sender) {
             _onlyApprovedProvider(provider);
         }
@@ -70,26 +72,31 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         require(msg.sender == address(this), "invalid nft contract");
         bool isFinal;
         if (data.length > 0) {
-            (uint256 ratio, address newOwner) = data.length == 32
-                ? (abi.decode(data, (uint256)), from)
-                : abi.decode(data, (uint256, address));
+            (uint256 ratio, address newOwner) = parseData(data, from);
             isFinal = _split(poolId, ratio, newOwner);
         } else {
-            isFinal = _withdraw(provider, from, poolId);
+            isFinal = _withdrawERC20(from, poolId);
         }
         if (!isFinal) {
-            transferFrom(address(this), from, poolId);
+            _transfer(address(this), from, poolId);
         }
         return IERC721Receiver.onERC721Received.selector;
     }
 
-    function _withdraw(address provider, address from, uint256 poolId) internal returns (bool) {
-        (uint256 withdrawnAmount, bool isFinal) = poolIdToProvider[poolId].withdraw(provider, from, poolId, "");
-
+    function _withdrawERC20(address from, uint256 poolId) internal returns (bool isFinal) {
+        uint256 withdrawnAmount;
+        (withdrawnAmount, isFinal) = poolIdToProvider[poolId].withdraw(poolId);
+        if (withdrawnAmount == type(uint256).max) {
+            withdrawnAmount = 0;
+            uint256[] memory ids = IInnerWithdraw(address(poolIdToProvider[poolId])).getInnerIdsArray(poolId);
+            for (uint256 i = 0; i < ids.length; ++i) {
+                _withdrawERC20(from, ids[i]);
+            }
+        }
         if (withdrawnAmount > 0) {
+            emit MetadataUpdate(poolId);
             vaultManager.withdrawByVaultId(poolIdToVaultId[poolId], from, withdrawnAmount);
         }
-        return isFinal;
     }
 
     /// @dev Splits a pool into two pools with adjusted amounts
@@ -120,22 +127,13 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         emit MintInitiated(provider);
     }
 
-    function updateProviderMetadata(uint256 poolId) external onlyApprovedProvider {
-        emit MetadataUpdate(poolId);
-    }
-
     function updateAllMetadata() external onlyOwner {
         emit MetadataUpdate(type(uint256).max);
     }
 
-    function withdrawFromProvider(address from, uint256 poolId) public onlyApprovedProvider {
-        transferFrom(msg.sender, from, poolId);
-        transferFromProvider(from, poolId);
-    }
-
-    ///@dev don't use it if the provider is the owner or an approved caller
-    function transferFromProvider(address from, uint256 poolId) public onlyApprovedProvider {
-        safeTransferFrom(from, address(this), poolId);
+    function transferFrom(address from, address to, uint256 tokenId) public override(ERC721, IERC721) {
+        require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: transfer caller is not owner nor approved");
+        _safeTransfer(from, to, tokenId, "");
     }
 
     function isApprovedForAll(

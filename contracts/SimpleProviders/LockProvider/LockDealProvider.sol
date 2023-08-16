@@ -13,12 +13,7 @@ contract LockDealProvider is BasicProvider, LockDealState {
     }
 
     /// @dev use revert only for permissions
-    function withdraw(
-        address,
-        address,
-        uint256 poolId,
-        bytes calldata
-    ) public override onlyProvider returns (uint256 withdrawnAmount, bool isFinal) {
+    function withdraw(uint256 poolId) public override onlyProvider returns (uint256 withdrawnAmount, bool isFinal) {
         (withdrawnAmount, isFinal) = _withdraw(poolId, getParams(poolId)[0]);
     }
 
