@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "../CollateralProvider/CollateralProvider.sol";
+import "./RefundState.sol";
 
 abstract contract RefundState is ProviderModifiers {
     CollateralProvider public collateralProvider;

@@ -24,13 +24,7 @@ abstract contract BundleModifiers is BundleProviderState {
     function _validBundleParams(uint256 poolId, uint256 lastSubPoolId) internal view {
         for (uint256 i = poolId + 1; i <= lastSubPoolId; ++i) {
             require(lockDealNFT.ownerOf(i) == address(this), "invalid owner of sub pool");
-            require(
-                ERC165Checker.supportsInterface(
-                    address(lockDealNFT.poolIdToProvider(i)),
-                    Bundable._INTERFACE_ID_BUNDABLE
-                ),
-                "invalid provider type"
-            );
+            _validProviderInterface(lockDealNFT.poolIdToProvider(i), Bundable._INTERFACE_ID_BUNDABLE);
         }
     }
 }
