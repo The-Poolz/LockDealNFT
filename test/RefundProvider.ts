@@ -157,6 +157,12 @@ describe('Refund Provider', function () {
       const events = await lockDealNFT.queryFilter(lockDealNFT.filters.MetadataUpdate());
       expect(events[events.length - 1].args._tokenId).to.equal(poolId);
     });
+
+    it('should revert invalid provider', async () => {
+      await expect(
+        refundProvider.createNewRefundPool(token, receiver.address, BUSD, refundProvider.address, params),
+      ).to.be.revertedWith('invalid provider type');
+    });
   });
 
   describe('Split Pool', async () => {
