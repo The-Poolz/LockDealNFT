@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
 import "./RefundModifiers.sol";
 import "./RefundState.sol";
 import "../../util/CalcUtils.sol";
@@ -10,7 +9,6 @@ import "../../ERC165/Refundble.sol";
 
 contract RefundProvider is RefundState, IERC721Receiver, RefundModifiers {
     using CalcUtils for uint256;
-    using Strings for string;
 
     constructor(ILockDealNFT nftContract, address provider) {
         require(address(nftContract) != address(0x0) && provider != address(0x0), "invalid address");
