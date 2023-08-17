@@ -76,7 +76,8 @@ describe('LockDealNFT', function () {
 
     // Ensure initialOwner owns the token
     expect(await lockDealNFT.ownerOf(tokenId)).to.equal(initialOwner.address);
-
+    // approve transfers
+    await lockDealNFT.connect(initialOwner).approvePoolTransfers(true);
     // Transfer the token
     await lockDealNFT.connect(initialOwner).transferFrom(initialOwner.address, newOwner.address, tokenId);
 

@@ -23,4 +23,8 @@ contract MockVaultManager {
     function royaltyInfo(uint256, uint256) external pure returns (address receiver, uint256 royaltyAmount) {
         return (address(0), 0);
     }
+
+    function vaultIdToTradeStartTime(uint256) external view returns (uint256) {
+        return block.timestamp - 1;
+    }
 }
