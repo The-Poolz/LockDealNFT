@@ -10,17 +10,23 @@ contract MultiWithdrawProvider is MultiWithdrawState {
         maxPoolsPerTx = _maxPoolsPerTx;
     }
 
-    function multiWithdrawAllPoolsOfOwner(address _owner) external {
+    function multiWithdrawAllPoolsOfOwner(address _owner)
+        external
+        onlyAdminOrNftOwner(_owner) 
+    {
         uint256[] memory poolIds = getAllPoolsOfOwner(_owner);
         _processMultiWithdraw(poolIds, _owner);
     }
 
-    function multiWithdrawPoolsOfOwnerByVault(address _owner, uint256 _vaultId) external {
+    function multiWithdrawPoolsOfOwnerByVault(address _owner, uint256 _vaultId)
+        external
+        onlyAdminOrNftOwner(_owner)
+    {
         uint256[] memory poolIds = getPoolsOfOwnerByVault(_owner, _vaultId);
         _processMultiWithdraw(poolIds, _owner);
     }
 
-    function multiWithdrawPools(uint256[] memory _poolIds) external {
+    function multiWithdrawPools(uint256[] memory _poolIds) external onlyOwner {
         _processMultiWithdraw(_poolIds);
     }
 
@@ -40,7 +46,7 @@ contract MultiWithdrawProvider is MultiWithdrawState {
         uint256 index;
         for(uint256 i = 0; i < totalPools; ) {
             uint256 poolId = lockDealNFT.tokenOfOwnerByIndex(_owner, i);
-            if (lockDealNFT.poolIdToVaultId(poolId) == _vaultId) {
+            if (lockDealNFT.getData(poolId).vaultId == _vaultId) {
                 poolIds[index] = poolId;
                 unchecked { ++index; }
             }
@@ -53,7 +59,7 @@ contract MultiWithdrawProvider is MultiWithdrawState {
     function _processMultiWithdraw(uint256[] memory _poolIds) private {
         require(_poolIds.length <= maxPoolsPerTx, "Too many pools");
         for(uint256 i = 0; i < _poolIds.length; i++) {
-            lockDealNFT.transferFromProvider(lockDealNFT.ownerOf(_poolIds[i]), _poolIds[i]);
+            lockDealNFT.transferFrom(lockDealNFT.ownerOf(_poolIds[i]), address(lockDealNFT), _poolIds[i]);
         }
     }
 
@@ -63,7 +69,7 @@ contract MultiWithdrawProvider is MultiWithdrawState {
     function _processMultiWithdraw(uint256[] memory _poolIds, address _owner) private {
         require(_poolIds.length <= maxPoolsPerTx, "Too many pools");
         for(uint256 i = 0; i < _poolIds.length; i++) {
-            lockDealNFT.transferFromProvider(_owner, _poolIds[i]);
+            lockDealNFT.transferFrom(_owner, address(lockDealNFT), _poolIds[i]);
         }
     }
 }
