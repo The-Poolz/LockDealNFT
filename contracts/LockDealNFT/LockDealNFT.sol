@@ -62,6 +62,11 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         emit ProviderApproved(provider, status);
     }
 
+    function approvePoolTransfers(bool status) external {
+        require(approvedPoolUserTransfers[msg.sender] != status, "status is the same as before");
+        approvedPoolUserTransfers[msg.sender] = status;
+    }
+
     ///@dev withdraw implementation
     function onERC721Received(
         address,
