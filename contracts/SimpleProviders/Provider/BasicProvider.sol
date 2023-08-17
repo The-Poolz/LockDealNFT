@@ -4,8 +4,11 @@ pragma solidity ^0.8.0;
 import "./ProviderModifiers.sol";
 import "../../interfaces/IProvider.sol";
 import "../../interfaces/ISimpleProvider.sol";
+import "../../ERC165/Refundble.sol";
+import "../../ERC165/Bundable.sol";
+import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
-abstract contract BasicProvider is ProviderModifiers, ISimpleProvider {
+abstract contract BasicProvider is ProviderModifiers, ISimpleProvider, ERC165 {
     /**
      * @dev Creates a new pool with the specified parameters.
      * @param owner The address of the pool owner.
@@ -56,4 +59,11 @@ abstract contract BasicProvider is ProviderModifiers, ISimpleProvider {
     ) internal virtual returns (uint256 withdrawnAmount, bool isFinal) {}
 
     function getWithdrawableAmount(uint256 poolId) public view virtual override returns (uint256);
+
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+        return
+            interfaceId == Refundble._INTERFACE_ID_REFUNDABLE ||
+            interfaceId == Bundable._INTERFACE_ID_BUNDABLE ||
+            super.supportsInterface(interfaceId);
+    }
 }

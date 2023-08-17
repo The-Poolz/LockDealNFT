@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./ProviderState.sol";
+import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 
 abstract contract ProviderModifiers is ProviderState {
     modifier onlyProvider() {
@@ -19,6 +20,20 @@ abstract contract ProviderModifiers is ProviderState {
         _;
     }
 
+    modifier validProviderAssociation(uint256 poolId, IProvider provider) {
+        _validProvider(poolId, provider);
+        _;
+    }
+
+    modifier validProviderId(uint256 poolId) {
+        _validProvider(poolId, this);
+        _;
+    }
+
+    function _validProvider(uint256 poolId, IProvider provider) internal view {
+        require(lockDealNFT.poolIdToProvider(poolId) == provider, "Invalid provider poolId");
+    }
+
     function _onlyNFT() internal view {
         require(msg.sender == address(lockDealNFT), "only NFT contract can call this function");
     }
@@ -29,5 +44,9 @@ abstract contract ProviderModifiers is ProviderState {
 
     function _onlyProvider() private view {
         require(lockDealNFT.approvedProviders(msg.sender), "invalid provider address");
+    }
+
+    function _validProviderInterface(IProvider provider, bytes4 interfaceId) internal view {
+        require(ERC165Checker.supportsInterface(address(provider), interfaceId), "invalid provider type");
     }
 }

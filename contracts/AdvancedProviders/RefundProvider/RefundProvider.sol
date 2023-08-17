@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./RefundState.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "./RefundModifiers.sol";
 import "../../util/CalcUtils.sol";
+import "../../ERC165/Refundble.sol";
 
-contract RefundProvider is RefundState, IERC721Receiver {
+contract RefundProvider is RefundState, IERC721Receiver, RefundModifiers {
     using CalcUtils for uint256;
 
     constructor(ILockDealNFT nftContract, address provider) {
@@ -52,9 +53,10 @@ contract RefundProvider is RefundState, IERC721Receiver {
         address mainCoin,
         IProvider provider,
         uint256[] calldata params
-    ) external returns (uint256 poolId) {
+    ) external validProviderInterface(provider, Refundble._INTERFACE_ID_REFUNDABLE) returns (uint256 poolId) {
         uint256 paramsLength = params.length;
         require(paramsLength > 3, "invalid params length");
+
         // create new refund pool | Owner User
         poolId = lockDealNFT.mintForProvider(owner, this);
 
@@ -87,7 +89,11 @@ contract RefundProvider is RefundState, IERC721Receiver {
 
     ///@param params[0] = collateralId
     ///@param params[1] = rateToWei
-    function registerPool(uint256 poolId, uint256[] calldata params) public override onlyProvider {
+    function registerPool(
+        uint256 poolId,
+        uint256[] calldata params
+    ) public override onlyProvider validProviderId(poolId) validProviderAssociation(params[0], collateralProvider) {
+        require(params[1] <= 1e18, "invalid rateToWei");
         _registerPool(poolId, params);
     }
 
