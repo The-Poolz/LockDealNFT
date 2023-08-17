@@ -124,6 +124,14 @@ describe('Lock Deal Bundle Provider', function () {
     ).to.be.revertedWith('invalid provider address');
   });
 
+  it('should return true if the bundle support Refundble hash', async () => {
+    expect(await bundleProvider.supportsInterface('0xb0754565')).to.equal(true);
+  });
+
+  it('should return true if bundle supports ERC165 hash', async () => {
+    expect(await bundleProvider.supportsInterface('0x01ffc9a7')).to.equal(true);
+  });
+
   it('should revert if the provider count is mismatched with the params count', async () => {
     const dealProviderParams = [amount];
     const lockProviderParams = [amount, startTime];

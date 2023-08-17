@@ -46,7 +46,9 @@ abstract contract CollateralState is LockDealState, IInnerWithdraw {
         }
     }
 
+    ///@dev Collateral can't be Refundble or Bundleble
+    /// Override basic provider supportsInterface
     function supportsInterface(bytes4 interfaceId) public view virtual override(BasicProvider) returns (bool) {
-        return interfaceId == Refundble._INTERFACE_ID_Refundble || interfaceId == type(IERC165).interfaceId;
+        return interfaceId == type(IERC165).interfaceId;
     }
 }

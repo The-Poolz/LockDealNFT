@@ -62,8 +62,8 @@ abstract contract BasicProvider is ProviderModifiers, ISimpleProvider, ERC165 {
 
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
         return
-            interfaceId == Refundble._INTERFACE_ID_Refundble ||
-            interfaceId == Bundable._INTERFACE_ID_Bundable ||
+            interfaceId == Refundble._INTERFACE_ID_REFUNDABLE ||
+            interfaceId == Bundable._INTERFACE_ID_BUNDABLE ||
             super.supportsInterface(interfaceId);
     }
 }

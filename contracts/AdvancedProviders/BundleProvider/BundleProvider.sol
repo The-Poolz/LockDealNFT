@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./BundleProviderState.sol";
+import "./BundleModifiers.sol";
 import "../../util/CalcUtils.sol";
 import "../../SimpleProviders/Provider/BasicProvider.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import "../../ERC165/Bundable.sol";
 
-contract BundleProvider is BundleProviderState, ERC721Holder {
+contract BundleProvider is BundleModifiers, ERC721Holder {
     using CalcUtils for uint256;
 
     constructor(ILockDealNFT _lockDealNFT) {
@@ -58,19 +58,10 @@ contract BundleProvider is BundleProviderState, ERC721Holder {
     }
 
     ///@param params[0] = lastSubPoolId
-    function _registerPool(uint256 poolId, uint256[] memory params) internal {
-        uint256 lastSubPoolId = params[0];
-        require(poolId < lastSubPoolId, "poolId can't be greater than lastSubPoolId");
-        for (uint256 i = poolId + 1; i <= lastSubPoolId; ++i) {
-            require(lockDealNFT.ownerOf(i) == address(this), "invalid owner of sub pool");
-            require(
-                ERC165Checker.supportsInterface(
-                    address(lockDealNFT.poolIdToProvider(i)),
-                    Bundable._INTERFACE_ID_Bundable
-                ),
-                "invalid provider type"
-            );
-        }
+    function _registerPool(
+        uint256 poolId,
+        uint256[] memory params
+    ) internal validBundleParams(poolId, params[0]) validLastPoolId(poolId, params[0]) {
         bundlePoolIdToLastSubPoolId[poolId] = params[0];
     }
 

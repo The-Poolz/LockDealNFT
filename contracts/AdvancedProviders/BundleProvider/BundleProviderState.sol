@@ -28,6 +28,6 @@ abstract contract BundleProviderState is IProvider, ProviderModifiers, ERC165 {
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
-        return interfaceId == Refundble._INTERFACE_ID_Refundble || super.supportsInterface(interfaceId);
+        return interfaceId == Refundble._INTERFACE_ID_REFUNDABLE || super.supportsInterface(interfaceId);
     }
 }

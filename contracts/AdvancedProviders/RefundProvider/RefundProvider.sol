@@ -3,12 +3,12 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
+import "./RefundModifiers.sol";
 import "./RefundState.sol";
 import "../../util/CalcUtils.sol";
 import "../../ERC165/Refundble.sol";
 
-contract RefundProvider is RefundState, IERC721Receiver {
+contract RefundProvider is RefundState, IERC721Receiver, RefundModifiers {
     using CalcUtils for uint256;
     using Strings for string;
 
@@ -56,13 +56,9 @@ contract RefundProvider is RefundState, IERC721Receiver {
         address mainCoin,
         IProvider provider,
         uint256[] calldata params
-    ) external returns (uint256 poolId) {
+    ) external validProviderInterface(provider, Refundble._INTERFACE_ID_REFUNDABLE) returns (uint256 poolId) {
         uint256 paramsLength = params.length;
         require(paramsLength > 3, "invalid params length");
-        require(
-            ERC165Checker.supportsInterface(address(provider), Refundble._INTERFACE_ID_Refundble),
-            "invalid provider type"
-        );
 
         // create new refund pool | Owner User
         poolId = lockDealNFT.mintForProvider(owner, this);
