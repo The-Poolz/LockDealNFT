@@ -64,7 +64,7 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
 
     ///@dev withdraw implementation
     function onERC721Received(
-        address provider,
+        address,
         address from,
         uint256 poolId,
         bytes calldata data

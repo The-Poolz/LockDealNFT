@@ -20,10 +20,7 @@ contract MockVaultManager {
         return vaultIdtoToken[_vaultId];
     }
 
-    function royaltyInfo(
-        uint256 _tokenId,
-        uint256 _salePrice
-    ) external view returns (address receiver, uint256 royaltyAmount) {
+    function royaltyInfo(uint256, uint256) external pure returns (address receiver, uint256 royaltyAmount) {
         return (address(0), 0);
     }
 }
