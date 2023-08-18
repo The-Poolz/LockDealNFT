@@ -107,7 +107,7 @@ describe('Timed Deal Provider', function () {
     expect(poolData.length).to.equal(3);
   });
 
-  it('should check cascade NewPoolCreated event', async () => {
+  it('should check cascade UpdateParams event', async () => {
     const tx = await timedDealProvider.createNewPool(receiver.address, token, params);
     await tx.wait();
     const event = await dealProvider.queryFilter(dealProvider.filters.UpdateParams());
@@ -158,7 +158,7 @@ describe('Timed Deal Provider', function () {
       const events = await lockDealNFT.queryFilter(lockDealNFT.filters.PoolSplit());
       expect(events[events.length - 1].args.poolId).to.equal(poolId);
       expect(events[events.length - 1].args.newPoolId).to.equal(poolId + 1);
-      expect(events[events.length - 1].args.owner).to.equal(lockDealNFT.address);
+      expect(events[events.length - 1].args.owner).to.equal(receiver.address);
       expect(events[events.length - 1].args.newOwner).to.equal(newOwner.address);
       expect(events[events.length - 1].args.splitLeftAmount).to.equal(amount / 2);
       expect(events[events.length - 1].args.newSplitLeftAmount).to.equal(amount / 2);

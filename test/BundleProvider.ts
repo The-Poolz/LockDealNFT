@@ -297,6 +297,29 @@ describe('Lock Deal Bundle Provider', function () {
       expect((await lockDealNFT.getData(newPoolId + 3)).params[0]).to.equal(amount.div(10)); // third sub pool
     });
 
+    it('should return PoolSplit event after splitting', async () => {
+      const packedData = ethers.utils.defaultAbiCoder.encode(
+        ['uint256', 'address'],
+        [MAX_RATIO.div(2), newOwner.address],
+      );
+      const tx = await lockDealNFT
+        .connect(receiver)
+        ['safeTransferFrom(address,address,uint256,bytes)'](
+          receiver.address,
+          lockDealNFT.address,
+          bundlePoolId,
+          packedData,
+        );
+      await tx.wait();
+      const event = await lockDealNFT.queryFilter(lockDealNFT.filters.PoolSplit());
+      const data = event[event.length - 1].args;
+      expect(data.newPoolId).to.equal(bundlePoolId + 4);
+      expect(data.owner).to.equal(receiver.address);
+      expect(data.newOwner).to.equal(newOwner.address);
+      expect(data.splitLeftAmount).to.equal(bundlePoolId + 3);
+      expect(data.newSplitLeftAmount).to.equal(bundlePoolId + 7);
+    });
+
     it('should revert if the split amount is invalid', async () => {
       const ratio = MAX_RATIO.mul(2); // 200%
       const packedData = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [ratio, newOwner.address]);

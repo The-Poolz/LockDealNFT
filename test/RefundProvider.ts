@@ -183,6 +183,26 @@ describe('Refund Provider', function () {
       ]);
     });
 
+    it('should return PoolSplit event after splitting', async () => {
+      const packedData = ethers.utils.defaultAbiCoder.encode(
+        ['uint256', 'address'],
+        [MAX_RATIO.div(2), receiver.address],
+      );
+      const tx = await lockDealNFT
+        .connect(receiver)
+        ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData);
+      await tx.wait();
+      const event = await lockDealNFT.queryFilter(lockDealNFT.filters.PoolSplit());
+      const data = event[event.length - 1].args;
+      expect(data.poolId).to.equal(poolId);
+      // data + collateral(4) + 1
+      expect(data.newPoolId).to.equal(poolId + 6);
+      expect(data.owner).to.equal(receiver.address);
+      expect(data.newOwner).to.equal(receiver.address);
+      expect(data.splitLeftAmount).to.equal(poolId + 2);
+      expect(data.newSplitLeftAmount).to.equal(poolId + 2); // the same collateral
+    });
+
     it('should return new pool data after split', async () => {
       const packedData = ethers.utils.defaultAbiCoder.encode(['uint256'], [ratio]);
       await lockDealNFT

@@ -78,7 +78,7 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         bool isFinal;
         if (data.length > 0) {
             (uint256 ratio, address newOwner) = parseData(data, from);
-            isFinal = _split(poolId, ratio, newOwner);
+            isFinal = _split(poolId, ratio, from, newOwner);
         } else {
             isFinal = _withdrawERC20(from, poolId);
         }
@@ -99,10 +99,10 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
             }
         }
         if (withdrawnAmount > 0) {
-            emit MetadataUpdate(poolId);
             vaultManager.withdrawByVaultId(poolIdToVaultId[poolId], from, withdrawnAmount);
+            emit MetadataUpdate(poolId);
+            emit TokenWithdrawn(poolId, from, withdrawnAmount, getData(poolId).params[0]);
         }
-        emit TokenWithdrawn(poolId, from, withdrawnAmount, getData(poolId).params[0]);
     }
 
     /// @dev Splits a pool into two pools with adjusted amounts
@@ -112,6 +112,7 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
     function _split(
         uint256 poolId,
         uint256 ratio,
+        address from,
         address newOwner
     ) internal notZeroAmount(ratio) returns (bool isFinal) {
         require(ratio <= 1e18, "split amount exceeded");
@@ -120,14 +121,7 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         poolIdToVaultId[newPoolId] = poolIdToVaultId[poolId];
         provider.split(poolId, newPoolId, ratio);
         isFinal = provider.getParams(poolId)[0] == 0;
-        emit PoolSplit(
-            poolId,
-            msg.sender,
-            newPoolId,
-            newOwner,
-            getData(poolId).params[0],
-            getData(newPoolId).params[0]
-        );
+        emit PoolSplit(poolId, from, newPoolId, newOwner, getData(poolId).params[0], getData(newPoolId).params[0]);
         emit MetadataUpdate(poolId);
     }
 
