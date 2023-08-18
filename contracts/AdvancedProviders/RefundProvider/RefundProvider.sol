@@ -103,6 +103,7 @@ contract RefundProvider is RefundState, IERC721Receiver, RefundModifiers {
     ) internal validParamsLength(params.length, currentParamsTargetLenght()) {
         poolIdToCollateralId[poolId] = params[0];
         poolIdToRateToWei[poolId] = params[1];
+        emit UpdateParams(poolId, params);
     }
 
     ///@dev split tokens and main coins into new pools

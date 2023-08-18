@@ -41,6 +41,7 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState {
         assert(mainCoinHolderId == poolId + 3);
         //need to call this from the refund, then call copyVaultId to this Id's
         //poolId + 1 and poolId + 3 is the main coin and poolId + 2 is the token
+        emit UpdateParams(poolId, params);
     }
 
     // this need to give the project owner to get the tokens that in the poolId + 2

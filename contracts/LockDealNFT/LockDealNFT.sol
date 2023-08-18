@@ -102,6 +102,7 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
             emit MetadataUpdate(poolId);
             vaultManager.withdrawByVaultId(poolIdToVaultId[poolId], from, withdrawnAmount);
         }
+        emit TokenWithdrawn(poolId, from, withdrawnAmount, getData(poolId).params[0]);
     }
 
     /// @dev Splits a pool into two pools with adjusted amounts
@@ -119,6 +120,14 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         poolIdToVaultId[newPoolId] = poolIdToVaultId[poolId];
         provider.split(poolId, newPoolId, ratio);
         isFinal = provider.getParams(poolId)[0] == 0;
+        emit PoolSplit(
+            poolId,
+            msg.sender,
+            newPoolId,
+            newOwner,
+            getData(poolId).params[0],
+            getData(newPoolId).params[0]
+        );
         emit MetadataUpdate(poolId);
     }
 

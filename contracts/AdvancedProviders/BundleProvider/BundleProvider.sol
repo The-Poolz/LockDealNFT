@@ -63,6 +63,7 @@ contract BundleProvider is BundleModifiers, ERC721Holder {
         uint256[] memory params
     ) internal validBundleParams(poolId, params[0]) validLastPoolId(poolId, params[0]) {
         bundlePoolIdToLastSubPoolId[poolId] = params[0];
+        emit UpdateParams(poolId, params);
     }
 
     function _createNewSubPool(
