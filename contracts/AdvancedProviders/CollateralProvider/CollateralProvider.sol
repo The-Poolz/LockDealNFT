@@ -50,7 +50,7 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState {
         isFinal = poolIdToTime[poolId] < block.timestamp;
     }
 
-    ///@dev after creation newPoolId is collateral provider
+    ///@dev newPoolId is collateral provider
     function split(uint256 poolId, uint256, uint256 ratio) external override onlyNFT {
         (uint256 mainCoinCollectorId, uint256 tokenCollectorId, uint256 mainCoinHolderId) = getInnerIds(poolId);
         uint256 tokenCollectorAmount = provider.getWithdrawableAmount(tokenCollectorId);
