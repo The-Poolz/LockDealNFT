@@ -110,11 +110,9 @@ describe('Timed Deal Provider', function () {
   it('should check cascade NewPoolCreated event', async () => {
     const tx = await timedDealProvider.createNewPool(receiver.address, token, params);
     await tx.wait();
-    const event = await dealProvider.queryFilter(dealProvider.filters.NewPoolCreated());
+    const event = await dealProvider.queryFilter(dealProvider.filters.UpdateParams());
     const data = event[event.length - 1].args;
     expect(data.poolId).to.equal(poolId + 1);
-    expect(data.token).to.equal(token);
-    expect(data.owner).to.equal(receiver.address);
     expect(data.params[0]).to.equal(amount);
   });
 
@@ -157,7 +155,7 @@ describe('Timed Deal Provider', function () {
         .connect(receiver)
         ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData);
       await tx.wait();
-      const events = await dealProvider.queryFilter(dealProvider.filters.PoolSplit());
+      const events = await lockDealNFT.queryFilter(lockDealNFT.filters.PoolSplit());
       expect(events[events.length - 1].args.poolId).to.equal(poolId);
       expect(events[events.length - 1].args.newPoolId).to.equal(poolId + 1);
       expect(events[events.length - 1].args.owner).to.equal(lockDealNFT.address);

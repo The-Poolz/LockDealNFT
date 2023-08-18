@@ -47,10 +47,8 @@ describe('Deal Provider', function () {
   it('should check pool creation events', async () => {
     const tx = await dealProvider.createNewPool(receiver.address, token, params);
     await tx.wait();
-    const events = await dealProvider.queryFilter(dealProvider.filters.NewPoolCreated());
+    const events = await dealProvider.queryFilter(dealProvider.filters.UpdateParams());
     expect(events[events.length - 1].args.poolId).to.equal(poolId + 1);
-    expect(events[events.length - 1].args.token).to.equal(token);
-    expect(events[events.length - 1].args.owner).to.equal(receiver.address);
     expect(events[events.length - 1].args.params[0]).to.equal(amount); //assuming amount is at index 0 in the params array
   });
 
@@ -129,9 +127,9 @@ describe('Deal Provider', function () {
         .connect(receiver)
         ['safeTransferFrom(address,address,uint256)'](receiver.address, lockDealNFT.address, poolId);
       await tx.wait();
-      const events = await dealProvider.queryFilter(dealProvider.filters.TokenWithdrawn());
+      const events = await lockDealNFT.queryFilter(lockDealNFT.filters.TokenWithdrawn());
       expect(events[events.length - 1].args.poolId.toString()).to.equal(poolId.toString());
-      expect(events[events.length - 1].args.owner.toString()).to.equal(lockDealNFT.address.toString());
+      expect(events[events.length - 1].args.owner.toString()).to.equal(receiver.address.toString());
       expect(events[events.length - 1].args.withdrawnAmount.toString()).to.equal(amount.toString());
       expect(events[events.length - 1].args.leftAmount.toString()).to.equal('0'.toString());
     });

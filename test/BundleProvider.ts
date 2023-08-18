@@ -79,7 +79,7 @@ describe('Lock Deal Bundle Provider', function () {
     expect(await lockDealNFT.ownerOf(bundlePoolId + 3)).to.equal(bundleProvider.address);
   });
 
-  it('should check cascade NewPoolCreated event', async () => {
+  it('should check cascade UpdateParams event', async () => {
     const dealProviderParams = [amount];
     const lockProviderParams = [amount, startTime];
     const timedDealProviderParams = [amount, startTime, finishTime, amount];
@@ -88,13 +88,11 @@ describe('Lock Deal Bundle Provider', function () {
 
     const tx = await bundleProvider.createNewPool(receiver.address, token, bundleProviders, bundleProviderParams);
     await tx.wait();
-    const event = await dealProvider.queryFilter(dealProvider.filters.NewPoolCreated());
+    const event = await dealProvider.queryFilter(dealProvider.filters.UpdateParams());
     const data = event[event.length - 1].args;
     const lastPoolId = (await lockDealNFT.totalSupply()).toNumber() - 1;
 
     expect(data.poolId).to.equal(lastPoolId);
-    expect(data.token).to.equal(constants.AddressZero);
-    expect(data.owner).to.equal(bundleProvider.address);
     expect(data.params[0]).to.equal(amount);
   });
 

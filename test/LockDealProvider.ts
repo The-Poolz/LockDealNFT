@@ -48,10 +48,8 @@ describe('Lock Deal Provider', function () {
   it('should check cascade pool creation events', async () => {
     const tx = await lockProvider.createNewPool(receiver.address, token, params);
     await tx.wait();
-    const event = await dealProvider.queryFilter(dealProvider.filters.NewPoolCreated());
+    const event = await dealProvider.queryFilter(dealProvider.filters.UpdateParams());
     expect(event[event.length - 1].args.poolId).to.equal(poolId + 1);
-    expect(event[event.length - 1].args.token).to.equal(token);
-    expect(event[event.length - 1].args.owner).to.equal(receiver.address);
     expect(event[event.length - 1].args.params[0]).to.equal(amount);
   });
 
