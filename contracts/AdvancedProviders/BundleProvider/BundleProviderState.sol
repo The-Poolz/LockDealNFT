@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import "../../SimpleProviders/Provider/ProviderModifiers.sol";
+import "../../ERC165/Refundble.sol";
 
 /// @title BundleProviderState contract
 /// @notice Contains storage variables
-abstract contract BundleProviderState is IProvider, ProviderModifiers {
+abstract contract BundleProviderState is IProvider, ProviderModifiers, ERC165 {
     mapping(uint256 => uint256) public bundlePoolIdToLastSubPoolId;
 
     function _calcTotalAmount(uint256[][] calldata params) internal pure returns (uint256 totalAmount) {
@@ -23,5 +25,9 @@ abstract contract BundleProviderState is IProvider, ProviderModifiers {
                 withdrawalAmount += subPoolwithdrawalAmount;
             }
         }
+    }
+
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+        return interfaceId == Refundble._INTERFACE_ID_REFUNDABLE || super.supportsInterface(interfaceId);
     }
 }

@@ -69,6 +69,40 @@ describe('LockDealNFT', function () {
     expect(await lockDealNFT.totalSupply()).to.equal(poolId + 1);
   });
 
+  it('should change transfer status', async () => {
+    expect(await lockDealNFT.approvedPoolUserTransfers(receiver.address)).to.equal(false);
+    await lockDealNFT.connect(receiver).approvePoolTransfers(true);
+    expect(await lockDealNFT.approvedPoolUserTransfers(receiver.address)).to.equal(true);
+    // set back to false
+    await lockDealNFT.connect(receiver).approvePoolTransfers(false);
+  });
+
+  it('should revert the same transfer status', async () => {
+    const status = await lockDealNFT.approvedPoolUserTransfers(receiver.address);
+    await expect(lockDealNFT.connect(receiver).approvePoolTransfers(status)).to.be.revertedWith(
+      'status is the same as before',
+    );
+  });
+
+  it('should revert transfer before user approve', async () => {
+    // Transfer the token
+    await expect(
+      lockDealNFT.connect(receiver).transferFrom(receiver.address, notOwner.address, poolId),
+    ).to.be.revertedWith('Pool transfer not approved by user');
+  });
+
+  it("should revert transfer before the pool's start time", async () => {
+    await mockVaultManager.setTransferStatus(false);
+    await lockDealNFT.connect(receiver).approvePoolTransfers(true);
+
+    await expect(lockDealNFT.transferFrom(receiver.address, notOwner.address, poolId)).to.be.revertedWith(
+      "Can't transfer before trade start time",
+    );
+    // set back
+    await lockDealNFT.connect(receiver).approvePoolTransfers(false);
+    await mockVaultManager.setTransferStatus(true);
+  });
+
   it('should allow owner to transfer token', async () => {
     const initialOwner = receiver;
     const newOwner = notOwner;
@@ -76,12 +110,14 @@ describe('LockDealNFT', function () {
 
     // Ensure initialOwner owns the token
     expect(await lockDealNFT.ownerOf(tokenId)).to.equal(initialOwner.address);
-
+    // approve transfers
+    await lockDealNFT.connect(initialOwner).approvePoolTransfers(true);
     // Transfer the token
     await lockDealNFT.connect(initialOwner).transferFrom(initialOwner.address, newOwner.address, tokenId);
 
     // Check new owner
     expect(await lockDealNFT.ownerOf(tokenId)).to.equal(newOwner.address);
+    await lockDealNFT.connect(initialOwner).approvePoolTransfers(false);
   });
 
   it('should not allow non-owner and non-approved address to transfer token', async () => {

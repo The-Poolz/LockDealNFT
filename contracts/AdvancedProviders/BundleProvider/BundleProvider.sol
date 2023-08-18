@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./BundleProviderState.sol";
+import "./BundleModifiers.sol";
+import "../../util/CalcUtils.sol";
 import "../../SimpleProviders/Provider/BasicProvider.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
-import "../../util/CalcUtils.sol";
+import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
+import "../../ERC165/Bundable.sol";
 
-contract BundleProvider is BundleProviderState, ERC721Holder {
+contract BundleProvider is BundleModifiers, ERC721Holder {
     using CalcUtils for uint256;
 
     constructor(ILockDealNFT _lockDealNFT) {
@@ -43,23 +45,23 @@ contract BundleProvider is BundleProviderState, ERC721Holder {
             // mint the NFT owned by the BunderDealProvider with 0 token transfer amount
             lastSubPoolId = _createNewSubPool(address(this), IProvider(provider), params);
         }
-        bundlePoolIdToLastSubPoolId[poolId] = lastSubPoolId;
+        uint256[] memory registerParams = new uint256[](1);
+        registerParams[0] = lastSubPoolId;
+        _registerPool(poolId, registerParams);
     }
 
     function registerPool(
         uint256 poolId,
         uint256[] calldata params
     ) external override onlyProvider validParamsLength(params.length, currentParamsTargetLenght()) {
-        uint256 lastSubPoolId = params[0];
-        require(poolId < lastSubPoolId, "poolId can't be greater than lastSubPoolId");
-        for (uint256 i = poolId + 1; i <= lastSubPoolId; ++i) {
-            require(lockDealNFT.ownerOf(i) == address(this), "invalid owner of sub pool");
-        }
         _registerPool(poolId, params);
     }
 
     ///@param params[0] = lastSubPoolId
-    function _registerPool(uint256 poolId, uint256[] memory params) internal {
+    function _registerPool(
+        uint256 poolId,
+        uint256[] memory params
+    ) internal validBundleParams(poolId, params[0]) validLastPoolId(poolId, params[0]) {
         bundlePoolIdToLastSubPoolId[poolId] = params[0];
     }
 
@@ -102,10 +104,9 @@ contract BundleProvider is BundleProviderState, ERC721Holder {
         params[0] = bundlePoolIdToLastSubPoolId[poolId]; //TODO this will change to the Last Pool Id
     }
 
-    function getTotalRemainingAmount(uint256 poolId) public view returns (uint256 totalRemainingAmount) {
-        IProvider provider = lockDealNFT.poolIdToProvider(poolId);
-        require(provider == this, "not bundle poolId");
-
+    function getTotalRemainingAmount(
+        uint256 poolId
+    ) public view validProviderId(poolId) returns (uint256 totalRemainingAmount) {
         uint256 lastSubPoolId = bundlePoolIdToLastSubPoolId[poolId];
         for (uint256 i = poolId + 1; i <= lastSubPoolId; ++i) {
             totalRemainingAmount += lockDealNFT.getData(i).params[0]; // leftAmount

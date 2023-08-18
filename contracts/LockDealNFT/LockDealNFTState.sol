@@ -20,6 +20,7 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
 
     mapping(uint256 => IProvider) public poolIdToProvider;
     mapping(uint256 => uint256) public poolIdToVaultId;
+    mapping(address => bool) public approvedPoolUserTransfers;
     mapping(address => bool) public approvedProviders;
 
     function getData(uint256 poolId) public view returns (BasePoolInfo memory poolInfo) {
@@ -108,5 +109,17 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
             interfaceId == type(IERC2981).interfaceId ||
             interfaceId == type(ILockDealNFT).interfaceId ||
             super.supportsInterface(interfaceId);
+    }
+
+    function _transfer(address from, address to, uint256 poolId) internal override {
+        // check for split and withdraw transfers
+        if (!(approvedProviders[to] || approvedProviders[from])) {
+            require(approvedPoolUserTransfers[from], "Pool transfer not approved by user");
+            require(
+                vaultManager.vaultIdToTradeStartTime(poolIdToVaultId[poolId]) < block.timestamp,
+                "Can't transfer before trade start time"
+            );
+        }
+        super._transfer(from, to, poolId);
     }
 }

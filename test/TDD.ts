@@ -75,27 +75,27 @@ describe('test-driven development', function () {
       timedDealProviderParams = [amount, startTime, finishTime, amount];
     });
 
-    xit('should revert creation new bundle with refund provider', async () => {
+    it('should revert creation new bundle with refund provider', async () => {
       bundleProviders = [dealProvider.address, lockProvider.address, timedProvider.address, refundProvider.address];
       const refundProviderParams = [amount, amount.div(2), ratio, finishTime];
       params = [dealProviderParams, lockProviderParams, timedDealProviderParams, refundProviderParams];
       await expect(bundleProvider.createNewPool(receiver.address, token, bundleProviders, params)).to.be.reverted;
     });
 
-    xit('should revert register refund provider in bundle', async () => {
+    it('should revert register refund provider in bundle', async () => {
       bundleProviders = [dealProvider.address, lockProvider.address, timedProvider.address, refundProvider.address];
       const refundProviderParams = [amount, amount.div(2), ratio, finishTime];
       const params = [dealProviderParams, lockProviderParams, timedDealProviderParams, refundProviderParams];
       await expect(bundleMockProvider.registerNewBundlePool(receiver.address, bundleProviders, params)).to.be.reverted;
     });
 
-    xit('should revert creation new bundle with collateral provider', async () => {
+    it('should revert creation new bundle with collateral provider', async () => {
       bundleProviders = [dealProvider.address, lockProvider.address, timedProvider.address, collateralProvider.address];
       params = [dealProviderParams, lockProviderParams, timedDealProviderParams, lockProviderParams];
       await expect(bundleProvider.createNewPool(receiver.address, token, bundleProviders, params)).to.be.reverted;
     });
 
-    xit('should revert register collateral provider in bundle', async () => {
+    it('should revert register collateral provider in bundle', async () => {
       bundleProviders = [dealProvider.address, lockProvider.address, timedProvider.address, collateralProvider.address];
       const params = [dealProviderParams, lockProviderParams, timedDealProviderParams, lockProviderParams];
       await expect(bundleMockProvider.registerNewBundlePool(receiver.address, bundleProviders, params)).to.be.reverted;
@@ -109,7 +109,7 @@ describe('test-driven development', function () {
       params = [amount, startTime, finishTime, mainCoinAmount, rate, finishTime];
     });
 
-    xit('should revert creation of a new refund with sub refund provider', async () => {
+    it('should revert creation of a new refund with sub refund provider', async () => {
       await expect(
         refundProvider
           .connect(projectOwner)
@@ -117,21 +117,22 @@ describe('test-driven development', function () {
       ).to.be.reverted;
     });
 
-    xit('should revert register sub refund provider in refund', async () => {
+    it('should revert register sub refund provider in refund', async () => {
       await expect(refundMockProvider.registerNewRefundPool(receiver.address, refundProvider.address)).to.be.reverted;
     });
 
-    xit('should revert creation new refund with sub collateral provider', async () => {
-      await expect(
-        await refundProvider
-          .connect(projectOwner)
-          .createNewRefundPool(token, receiver.address, BUSD, collateralProvider.address, params),
-      ).to.be.reverted;
+    it('should revert register bundle id instead collateral in refund', async () => {
+      await expect(refundMockProvider.registerNewRefundPool(receiver.address, bundleProvider.address)).to.be.reverted;
     });
 
-    xit('should revert register collateral provider in refund', async () => {
-      await expect(refundMockProvider.registerNewRefundPool(receiver.address, collateralProvider.address)).to.be
-        .reverted;
+    it('should be revert, wrong pool id in refund register', async () => {
+      await collateralProvider.createNewPool(receiver.address, token, [amount, startTime]);
+      const poolId = (await lockDealNFT.totalSupply()).toNumber() - 1;
+      const params = [poolId, ratio];
+      const nonValidPoolId = 999999;
+      await expect(refundMockProvider.registerPool(nonValidPoolId, params)).to.be.revertedWith(
+        'Invalid provider poolId',
+      );
     });
   });
 });
