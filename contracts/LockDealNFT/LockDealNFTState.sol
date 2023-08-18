@@ -37,13 +37,10 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
         }
     }
 
-    function parseData(bytes calldata data, address from) internal pure returns (uint256 ratio, address newOwner) {
-        if (data.length > 0) {
-            (ratio, newOwner) = data.length == 32
-                ? (abi.decode(data, (uint256)), from)
-                : abi.decode(data, (uint256, address));
-            return (ratio, newOwner);
-        }
+    function _parseData(bytes calldata data, address from) internal pure returns (uint256 ratio, address newOwner) {
+        (ratio, newOwner) = data.length == 32
+            ? (abi.decode(data, (uint256)), from)
+            : abi.decode(data, (uint256, address));
     }
 
     function getUserDataByTokens(
@@ -121,5 +118,19 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
             );
         }
         super._transfer(from, to, poolId);
+    }
+
+    function _handleReturn(uint256 poolId, address from, bool isFinal) internal {
+        if (!isFinal) {
+            _transfer(address(this), from, poolId);
+        }
+    }
+
+    function _withdrawFromVault(uint256 poolId, uint256 withdrawnAmount, address from) internal {
+        if (withdrawnAmount > 0) {
+            vaultManager.withdrawByVaultId(poolIdToVaultId[poolId], from, withdrawnAmount);
+            emit MetadataUpdate(poolId);
+            emit TokenWithdrawn(poolId, from, withdrawnAmount, getData(poolId).params[0]);
+        }
     }
 }

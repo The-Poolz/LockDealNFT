@@ -67,7 +67,7 @@ describe('Lock Deal Bundle Provider', function () {
 
   it('should get bundle provider data after creation', async () => {
     const poolData = await lockDealNFT.getData(bundlePoolId);
-    const params = [bundlePoolId + 3];
+    const params = [amount.mul(3), bundlePoolId + 3];
     const vaultId = await mockVaultManager.Id();
     // check the pool data
     expect(poolData).to.deep.equal([bundleProvider.address, bundlePoolId, vaultId, receiver.address, token, params]);
@@ -253,7 +253,7 @@ describe('Lock Deal Bundle Provider', function () {
           bundlePoolId,
           packedData,
         );
-      const params = [bundlePoolId + 3];
+      const params = [amount.mul(9).div(10).mul(3), bundlePoolId + 3];
       const vaultId = await mockVaultManager.Id();
       const oldPoolData = await lockDealNFT.getData(bundlePoolId);
       const newPoolData = await lockDealNFT.getData(newPoolId);
@@ -284,7 +284,7 @@ describe('Lock Deal Bundle Provider', function () {
         vaultId,
         newOwner.address,
         token,
-        [newPoolId + 3],
+        [amount.mul(3).div(10), newPoolId + 3],
       ]);
 
       expect(await lockDealNFT.ownerOf(newPoolId)).to.equal(newOwner.address); // new bundle pool
@@ -316,8 +316,8 @@ describe('Lock Deal Bundle Provider', function () {
       expect(data.newPoolId).to.equal(bundlePoolId + 4);
       expect(data.owner).to.equal(receiver.address);
       expect(data.newOwner).to.equal(newOwner.address);
-      expect(data.splitLeftAmount).to.equal(bundlePoolId + 3);
-      expect(data.newSplitLeftAmount).to.equal(bundlePoolId + 7);
+      expect(data.splitLeftAmount).to.equal(amount.mul(3).div(2));
+      expect(data.newSplitLeftAmount).to.equal(amount.mul(3).div(2));
     });
 
     it('should revert if the split amount is invalid', async () => {
@@ -370,7 +370,7 @@ describe('Lock Deal Bundle Provider', function () {
         vaultId,
         receiver.address,
         token,
-        bundleParams,
+        [amount.mul(5), lastSubPoolId],
       ]);
     });
 
