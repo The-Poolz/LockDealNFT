@@ -9,4 +9,13 @@ interface ILockDealNFTEvents {
     event ProviderApproved(IProvider indexed provider, bool status);
     event MintInitiated(IProvider indexed provider);
     event BaseURIChanged(string oldBaseURI, string newBaseURI);
+    event TokenWithdrawn(uint256 poolId, address indexed owner, uint256 withdrawnAmount, uint256 leftAmount);
+    event PoolSplit(
+        uint256 poolId,
+        address indexed owner,
+        uint256 newPoolId,
+        address indexed newOwner,
+        uint256 splitLeftAmount,
+        uint256 newSplitLeftAmount
+    );
 }
