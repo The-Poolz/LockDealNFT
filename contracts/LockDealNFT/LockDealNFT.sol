@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./LockDealNFTModifiers.sol";
+import "./LockDealNFTInternal.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "../AdvancedProviders/CollateralProvider/IInnerWithdraw.sol";
 
 /// @title LockDealNFT contract
 /// @notice Implements a non-fungible token (NFT) contract for locking deals
-contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
+contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
     constructor(address _vaultManager, string memory _baseURI) ERC721("LockDealNFT", "LDNFT") {
         require(_vaultManager != address(0x0), "invalid vault manager address");
         vaultManager = IVaultManager(_vaultManager);
@@ -79,42 +79,6 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
         return IERC721Receiver.onERC721Received.selector;
     }
 
-    function _withdrawERC20(address from, uint256 poolId) internal returns (bool isFinal) {
-        uint256 withdrawnAmount;
-        (withdrawnAmount, isFinal) = poolIdToProvider[poolId].withdraw(poolId);
-        if (withdrawnAmount == type(uint256).max) {
-            withdrawnAmount = 0;
-            uint256[] memory ids = IInnerWithdraw(address(poolIdToProvider[poolId])).getInnerIdsArray(poolId);
-            for (uint256 i = 0; i < ids.length; ++i) {
-                _withdrawERC20(from, ids[i]);
-            }
-        }
-        _withdrawFromVault(poolId, withdrawnAmount, from);
-    }
-
-    /// @dev Splits a pool into two pools with adjusted amounts
-    /// @param poolId The ID of the pool to split
-    function _split(uint256 poolId, address from, bytes calldata data) internal returns (bool isFinal) {
-        (uint256 ratio, address newOwner) = _parseData(data, from);
-        isFinal = _split(poolId, from, ratio, newOwner);
-    }
-
-    function _split(
-        uint256 poolId,
-        address from,
-        uint256 ratio,
-        address newOwner
-    ) internal notZeroAddress(newOwner) notZeroAmount(ratio) returns (bool isFinal) {
-        require(ratio <= 1e18, "split amount exceeded");
-        IProvider provider = poolIdToProvider[poolId];
-        uint256 newPoolId = _mint(newOwner, provider);
-        poolIdToVaultId[newPoolId] = poolIdToVaultId[poolId];
-        provider.split(poolId, newPoolId, ratio);
-        isFinal = provider.getParams(poolId)[0] == 0;
-        emit PoolSplit(poolId, from, newPoolId, newOwner, getData(poolId).params[0], getData(newPoolId).params[0]);
-        emit MetadataUpdate(poolId);
-    }
-
     function updateAllMetadata() external onlyOwner {
         emit MetadataUpdate(type(uint256).max);
     }
@@ -122,15 +86,5 @@ contract LockDealNFT is LockDealNFTModifiers, IERC721Receiver {
     function transferFrom(address from, address to, uint256 tokenId) public override(ERC721, IERC721) {
         require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: transfer caller is not owner nor approved");
         _safeTransfer(from, to, tokenId, "");
-    }
-
-    /// @param owner The address to assign the token to
-    /// @param provider The address of the provider assigning the token
-    /// @return newPoolId The ID of the pool
-    function _mint(address owner, IProvider provider) internal returns (uint256 newPoolId) {
-        newPoolId = totalSupply();
-        _safeMint(owner, newPoolId);
-        poolIdToProvider[newPoolId] = provider;
-        emit MintInitiated(provider);
     }
 }
