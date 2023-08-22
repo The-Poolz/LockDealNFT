@@ -87,13 +87,5 @@ contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
         require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: transfer caller is not owner nor approved");
         _safeTransfer(from, to, tokenId, "");
     }
-
-    function isApprovedForAll(
-        address owner,
-        address operator
-    ) public view override(ERC721, IERC721) returns(bool) {
-        return super.isApprovedForAll(owner, operator) || approvedProviders[operator];
-    }
-
     
 }

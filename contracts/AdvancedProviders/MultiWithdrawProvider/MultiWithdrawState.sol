@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "../../interfaces/ILockDealNFT.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract MultiWithdrawState is Ownable{
+abstract contract MultiWithdrawState is Ownable{
     ///@dev Each provider sets its own name
     string public name;
     ILockDealNFT public lockDealNFT;
