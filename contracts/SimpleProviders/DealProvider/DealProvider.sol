@@ -22,7 +22,6 @@ contract DealProvider is DealProviderState, BasicProvider {
             poolIdToAmount[poolId] -= amount;
             withdrawnAmount = amount;
             isFinal = poolIdToAmount[poolId] == 0;
-            emit TokenWithdrawn(poolId, lockDealNFT.ownerOf(poolId), withdrawnAmount, poolIdToAmount[poolId]);
         }
     }
 
@@ -32,14 +31,6 @@ contract DealProvider is DealProviderState, BasicProvider {
         require(poolIdToAmount[oldPoolId] >= splitAmount, "Split amount exceeds the available amount");
         poolIdToAmount[oldPoolId] -= splitAmount;
         poolIdToAmount[newPoolId] = splitAmount;
-        emit PoolSplit(
-            oldPoolId,
-            lockDealNFT.ownerOf(oldPoolId),
-            newPoolId,
-            lockDealNFT.ownerOf(newPoolId),
-            poolIdToAmount[oldPoolId],
-            poolIdToAmount[newPoolId]
-        );
     }
 
     /**@dev Providers overrides this function to add additional parameters when creating a pool.
@@ -48,9 +39,7 @@ contract DealProvider is DealProviderState, BasicProvider {
      */
     function _registerPool(uint256 poolId, uint256[] calldata params) internal override {
         poolIdToAmount[poolId] = params[0];
-        address owner = lockDealNFT.ownerOf(poolId);
-        address token = lockDealNFT.tokenOf(poolId);
-        emit NewPoolCreated(poolId, owner, token, params);
+        emit UpdateParams(poolId, params);
     }
 
     function getParams(uint256 poolId) external view override returns (uint256[] memory params) {

@@ -67,7 +67,7 @@ describe('Lock Deal Bundle Provider', function () {
 
   it('should get bundle provider data after creation', async () => {
     const poolData = await lockDealNFT.getData(bundlePoolId);
-    const params = [bundlePoolId + 3];
+    const params = [amount.mul(3), bundlePoolId + 3];
     const vaultId = await mockVaultManager.Id();
     // check the pool data
     expect(poolData).to.deep.equal([bundleProvider.address, bundlePoolId, vaultId, receiver.address, token, params]);
@@ -79,7 +79,7 @@ describe('Lock Deal Bundle Provider', function () {
     expect(await lockDealNFT.ownerOf(bundlePoolId + 3)).to.equal(bundleProvider.address);
   });
 
-  it('should check cascade NewPoolCreated event', async () => {
+  it('should check cascade UpdateParams event', async () => {
     const dealProviderParams = [amount];
     const lockProviderParams = [amount, startTime];
     const timedDealProviderParams = [amount, startTime, finishTime, amount];
@@ -88,13 +88,11 @@ describe('Lock Deal Bundle Provider', function () {
 
     const tx = await bundleProvider.createNewPool(receiver.address, token, bundleProviders, bundleProviderParams);
     await tx.wait();
-    const event = await dealProvider.queryFilter(dealProvider.filters.NewPoolCreated());
+    const event = await dealProvider.queryFilter(dealProvider.filters.UpdateParams());
     const data = event[event.length - 1].args;
     const lastPoolId = (await lockDealNFT.totalSupply()).toNumber() - 1;
 
     expect(data.poolId).to.equal(lastPoolId);
-    expect(data.token).to.equal(constants.AddressZero);
-    expect(data.owner).to.equal(bundleProvider.address);
     expect(data.params[0]).to.equal(amount);
   });
 
@@ -255,7 +253,7 @@ describe('Lock Deal Bundle Provider', function () {
           bundlePoolId,
           packedData,
         );
-      const params = [bundlePoolId + 3];
+      const params = [amount.mul(9).div(10).mul(3), bundlePoolId + 3];
       const vaultId = await mockVaultManager.Id();
       const oldPoolData = await lockDealNFT.getData(bundlePoolId);
       const newPoolData = await lockDealNFT.getData(newPoolId);
@@ -286,7 +284,7 @@ describe('Lock Deal Bundle Provider', function () {
         vaultId,
         newOwner.address,
         token,
-        [newPoolId + 3],
+        [amount.mul(3).div(10), newPoolId + 3],
       ]);
 
       expect(await lockDealNFT.ownerOf(newPoolId)).to.equal(newOwner.address); // new bundle pool
@@ -297,6 +295,29 @@ describe('Lock Deal Bundle Provider', function () {
       expect((await lockDealNFT.getData(newPoolId + 1)).params[0]).to.equal(amount.div(10)); // first sub pool
       expect((await lockDealNFT.getData(newPoolId + 2)).params[0]).to.equal(amount.div(10)); // second sub pool
       expect((await lockDealNFT.getData(newPoolId + 3)).params[0]).to.equal(amount.div(10)); // third sub pool
+    });
+
+    it('should return PoolSplit event after splitting', async () => {
+      const packedData = ethers.utils.defaultAbiCoder.encode(
+        ['uint256', 'address'],
+        [MAX_RATIO.div(2), newOwner.address],
+      );
+      const tx = await lockDealNFT
+        .connect(receiver)
+        ['safeTransferFrom(address,address,uint256,bytes)'](
+          receiver.address,
+          lockDealNFT.address,
+          bundlePoolId,
+          packedData,
+        );
+      await tx.wait();
+      const event = await lockDealNFT.queryFilter(lockDealNFT.filters.PoolSplit());
+      const data = event[event.length - 1].args;
+      expect(data.newPoolId).to.equal(bundlePoolId + 4);
+      expect(data.owner).to.equal(receiver.address);
+      expect(data.newOwner).to.equal(newOwner.address);
+      expect(data.splitLeftAmount).to.equal(amount.mul(3).div(2));
+      expect(data.newSplitLeftAmount).to.equal(amount.mul(3).div(2));
     });
 
     it('should revert if the split amount is invalid', async () => {
@@ -349,7 +370,7 @@ describe('Lock Deal Bundle Provider', function () {
         vaultId,
         receiver.address,
         token,
-        bundleParams,
+        [amount.mul(5), lastSubPoolId],
       ]);
     });
 

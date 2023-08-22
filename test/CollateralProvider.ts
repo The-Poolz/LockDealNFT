@@ -195,6 +195,28 @@ describe('Collateral Provider', function () {
     expect(await lockDealNFT.totalSupply()).to.equal(totalSupply.add(4));
   });
 
+  it('should return a PoolSplit event after splitting', async () => {
+    await time.setNextBlockTimestamp(finishTime + 1);
+    const packedData = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [halfRatio, projectOwner.address]);
+    const tx = await lockDealNFT
+      .connect(projectOwner)
+      ['safeTransferFrom(address,address,uint256,bytes)'](
+        projectOwner.address,
+        lockDealNFT.address,
+        poolId,
+        packedData,
+      );
+    await tx.wait();
+    const events = await lockDealNFT.queryFilter(lockDealNFT.filters.PoolSplit());
+    expect(events[events.length - 1].args.poolId).to.equal(poolId);
+    // poolId + 1 main coin collector | poolId + 2 token collector | poolId + 3 main coin holder | poolId + 4 new pool
+    expect(events[events.length - 1].args.newPoolId).to.equal(poolId + 4);
+    expect(events[events.length - 1].args.owner).to.equal(projectOwner.address);
+    expect(events[events.length - 1].args.newOwner).to.equal(projectOwner.address);
+    expect(events[events.length - 1].args.splitLeftAmount).to.equal(amount / 2);
+    expect(events[events.length - 1].args.newSplitLeftAmount).to.equal(amount / 2);
+  });
+
   it('should split Main Coin Collector pool', async () => {
     await mockProvider.handleWithdraw(poolId, amount / 2);
     const packedData = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [halfRatio, projectOwner.address]);

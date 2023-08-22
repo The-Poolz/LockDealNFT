@@ -63,6 +63,7 @@ contract BundleProvider is BundleModifiers, ERC721Holder {
         uint256[] memory params
     ) internal validBundleParams(poolId, params[0]) validLastPoolId(poolId, params[0]) {
         bundlePoolIdToLastSubPoolId[poolId] = params[0];
+        emit UpdateParams(poolId, params);
     }
 
     function _createNewSubPool(
@@ -100,8 +101,9 @@ contract BundleProvider is BundleModifiers, ERC721Holder {
     }
 
     function getParams(uint256 poolId) public view override returns (uint256[] memory params) {
-        params = new uint256[](1);
-        params[0] = bundlePoolIdToLastSubPoolId[poolId]; //TODO this will change to the Last Pool Id
+        params = new uint256[](currentParamsTargetLenght() + 1);
+        params[0] = getTotalRemainingAmount(poolId);
+        params[1] = bundlePoolIdToLastSubPoolId[poolId]; //TODO this will change to the Last Pool Id
     }
 
     function getTotalRemainingAmount(
