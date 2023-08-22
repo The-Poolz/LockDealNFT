@@ -5,7 +5,7 @@ import "../LockProvider/LockDealState.sol";
 import "../DealProvider/DealProviderState.sol";
 import "../../util/CalcUtils.sol";
 
-contract TimedDealProvider is LockDealState, DealProviderState {
+contract TimedDealProvider is LockDealState {
     using CalcUtils for uint256;
 
     /**
@@ -50,10 +50,10 @@ contract TimedDealProvider is LockDealState, DealProviderState {
 
     function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) public onlyProvider {
         provider.split(oldPoolId, newPoolId, ratio);
-        uint256 newPoolStartAmount = poolIdToAmount[oldPoolId].calcAmount(ratio);
-        poolIdToAmount[oldPoolId] -= newPoolStartAmount;
-        poolIdToAmount[newPoolId] = newPoolStartAmount;
-        poolIdToTime[newPoolId] = poolIdToTime[oldPoolId];
+        uint256 newPoolStartAmount = poolData[oldPoolId][0].calcAmount(ratio);
+        poolData[oldPoolId][0] -= newPoolStartAmount;
+        poolData[newPoolId].push(newPoolStartAmount);
+        poolData[newPoolId].push(poolData[oldPoolId][1]);
     }
 
     ///@param params[0] = leftAmount = startAmount (leftAmount & startAmount must be same while creating pool)
@@ -61,8 +61,13 @@ contract TimedDealProvider is LockDealState, DealProviderState {
     ///@param params[2] = finishTime
     function _registerPool(uint256 poolId, uint256[] calldata params) internal override {
         require(params[2] >= params[1], "Finish time should be greater than start time");
-        poolIdToTime[poolId] = params[2];
-        poolIdToAmount[poolId] = params[0];
+        if (poolData[poolId].length == 0) {
+            poolData[poolId].push(params[0]);
+            poolData[poolId].push(params[2]);
+        } else {
+            poolData[poolId][0] = params[1];
+            poolData[poolId][1] = params[2];
+        }
         provider.registerPool(poolId, params);
     }
 
@@ -73,8 +78,8 @@ contract TimedDealProvider is LockDealState, DealProviderState {
         params = new uint256[](4);
         params[0] = lockDealProviderParams[0]; // leftAmount
         params[1] = lockDealProviderParams[1]; // startTime
-        params[2] = poolIdToTime[poolId]; // finishTime
-        params[3] = poolIdToAmount[poolId]; // startAmount
+        params[2] = poolData[poolId][1]; // finishTime
+        params[3] = poolData[poolId][0]; // startAmount
     }
 
     function currentParamsTargetLenght() public view override(IProvider, ProviderState) returns (uint256) {

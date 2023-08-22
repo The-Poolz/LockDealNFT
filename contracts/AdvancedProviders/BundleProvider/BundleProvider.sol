@@ -62,7 +62,11 @@ contract BundleProvider is BundleModifiers, ERC721Holder {
         uint256 poolId,
         uint256[] memory params
     ) internal validBundleParams(poolId, params[0]) validLastPoolId(poolId, params[0]) {
-        bundlePoolIdToLastSubPoolId[poolId] = params[0];
+        if (poolData[poolId].length == 0) {
+            poolData[poolId].push(params[0]);
+        } else {
+            poolData[poolId][0] = params[0];
+        }
         emit UpdateParams(poolId, params);
     }
 
@@ -77,7 +81,7 @@ contract BundleProvider is BundleModifiers, ERC721Holder {
 
     function withdraw(uint256 poolId) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
         // withdraw the sub pools
-        uint256 lastSubPoolId = bundlePoolIdToLastSubPoolId[poolId];
+        uint256 lastSubPoolId = poolData[poolId][0];
         isFinal = true;
         for (uint256 i = poolId + 1; i <= lastSubPoolId; ++i) {
             if (lockDealNFT.exist(i)) {
@@ -91,25 +95,25 @@ contract BundleProvider is BundleModifiers, ERC721Holder {
     }
 
     function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) public override onlyProvider {
-        uint256 oldLastSubPoolId = bundlePoolIdToLastSubPoolId[oldPoolId];
+        uint256 oldLastSubPoolId = poolData[oldPoolId][0];
         for (uint256 i = oldPoolId + 1; i <= oldLastSubPoolId; ++i) {
             // split the sub poold
             lockDealNFT.safeTransferFrom(address(this), address(lockDealNFT), i, abi.encode(ratio));
         }
         // finally, set the bundle provider state with the last sub pool Id
-        bundlePoolIdToLastSubPoolId[newPoolId] = oldLastSubPoolId + (newPoolId - oldPoolId);
+        poolData[newPoolId].push(oldLastSubPoolId + (newPoolId - oldPoolId));
     }
 
     function getParams(uint256 poolId) public view override returns (uint256[] memory params) {
         params = new uint256[](currentParamsTargetLenght() + 1);
         params[0] = getTotalRemainingAmount(poolId);
-        params[1] = bundlePoolIdToLastSubPoolId[poolId]; //TODO this will change to the Last Pool Id
+        params[1] = poolData[poolId][0]; //TODO this will change to the Last Pool Id
     }
 
     function getTotalRemainingAmount(
         uint256 poolId
     ) public view validProviderId(poolId) returns (uint256 totalRemainingAmount) {
-        uint256 lastSubPoolId = bundlePoolIdToLastSubPoolId[poolId];
+        uint256 lastSubPoolId = poolData[poolId][0];
         for (uint256 i = poolId + 1; i <= lastSubPoolId; ++i) {
             totalRemainingAmount += lockDealNFT.getData(i).params[0]; // leftAmount
         }

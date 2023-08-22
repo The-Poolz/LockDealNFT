@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "../../interfaces/ILockDealNFT.sol";
 
 abstract contract ProviderState is IProvider {
+    mapping(uint256 => uint256[]) public poolData;
     ///@dev Each provider sets its own name
     string public name;
     ILockDealNFT public lockDealNFT;

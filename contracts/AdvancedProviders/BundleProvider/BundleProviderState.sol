@@ -8,8 +8,6 @@ import "../../ERC165/Refundble.sol";
 /// @title BundleProviderState contract
 /// @notice Contains storage variables
 abstract contract BundleProviderState is IProvider, ProviderModifiers, ERC165 {
-    mapping(uint256 => uint256) public bundlePoolIdToLastSubPoolId;
-
     function _calcTotalAmount(uint256[][] calldata params) internal pure returns (uint256 totalAmount) {
         uint length = params.length;
         for (uint256 i = 0; i < length; ++i) {
@@ -19,7 +17,7 @@ abstract contract BundleProviderState is IProvider, ProviderModifiers, ERC165 {
 
     function getWithdrawableAmount(uint256 poolId) external view override returns (uint256 withdrawalAmount) {
         if (lockDealNFT.poolIdToProvider(poolId) == this) {
-            uint256 lastSubPoolId = bundlePoolIdToLastSubPoolId[poolId];
+            uint256 lastSubPoolId = poolData[poolId][0];
             for (uint256 i = poolId + 1; i <= lastSubPoolId; ++i) {
                 uint256 subPoolwithdrawalAmount = lockDealNFT.getWithdrawableAmount(i);
                 withdrawalAmount += subPoolwithdrawalAmount;

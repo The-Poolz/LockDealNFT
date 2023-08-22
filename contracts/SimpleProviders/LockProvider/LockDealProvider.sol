@@ -21,14 +21,14 @@ contract LockDealProvider is BasicProvider, LockDealState {
         uint256 poolId,
         uint256 amount
     ) internal override returns (uint256 withdrawnAmount, bool isFinal) {
-        if (poolIdToTime[poolId] <= block.timestamp) {
+        if (poolData[poolId].length > 0 && poolData[poolId][0] <= block.timestamp) {
             (withdrawnAmount, isFinal) = provider.withdraw(poolId, amount);
         }
     }
 
     function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) public override onlyProvider {
         provider.split(oldPoolId, newPoolId, ratio);
-        poolIdToTime[newPoolId] = poolIdToTime[oldPoolId];
+        poolData[newPoolId] = poolData[oldPoolId];
     }
 
     function currentParamsTargetLenght() public view override(IProvider, ProviderState) returns (uint256) {
@@ -39,8 +39,11 @@ contract LockDealProvider is BasicProvider, LockDealState {
     ///@param params[1] = startTime
     function _registerPool(uint256 poolId, uint256[] calldata params) internal override {
         require(block.timestamp <= params[1], "Invalid start time");
-
-        poolIdToTime[poolId] = params[1];
+        if (poolData[poolId].length == 0) {
+            poolData[poolId].push(params[1]);
+        } else {
+            poolData[poolId][0] = params[1];
+        }
         provider.registerPool(poolId, params);
     }
 
@@ -51,10 +54,11 @@ contract LockDealProvider is BasicProvider, LockDealState {
     function getParams(uint256 poolId) public view override returns (uint256[] memory params) {
         params = new uint256[](2);
         params[0] = provider.getParams(poolId)[0]; // leftAmount
-        params[1] = poolIdToTime[poolId]; // startTime
+        params[1] = poolData[poolId][0]; // startTime
     }
 
-    function getWithdrawableAmount(uint256 poolId) public view override returns (uint256) {
-        return poolIdToTime[poolId] <= block.timestamp ? provider.getWithdrawableAmount(poolId) : 0;
+    function getWithdrawableAmount(uint256 poolId) public view override returns (uint256 amount) {
+        if (poolData[poolId].length > 0)
+            amount = poolData[poolId][0] <= block.timestamp ? provider.getWithdrawableAmount(poolId) : 0;
     }
 }

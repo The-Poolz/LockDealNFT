@@ -25,14 +25,14 @@ contract RefundProvider is RefundState, IERC721Receiver, RefundModifiers {
     ) external override returns (bytes4) {
         require(msg.sender == address(lockDealNFT), "invalid nft contract");
         if (provider == user) {
-            uint256 collateralPoolId = poolIdToCollateralId[poolId];
-            require(collateralProvider.poolIdToTime(collateralPoolId) > block.timestamp, "too late");
+            uint256 collateralPoolId = poolData[poolId][0];
+            require(collateralProvider.poolData(collateralPoolId, 0) > block.timestamp, "too late");
             ISimpleProvider dealProvider = collateralProvider.provider();
             uint256 userDataPoolId = poolId + 1;
             // user withdraws his tokens
             uint256 amount = dealProvider.getParams(userDataPoolId)[0];
             (uint256 withdrawnAmount, ) = dealProvider.withdraw(userDataPoolId, amount);
-            uint256 mainCoinAmount = withdrawnAmount.calcAmount(poolIdToRateToWei[poolId]);
+            uint256 mainCoinAmount = withdrawnAmount.calcAmount(poolData[poolId][1]);
             collateralProvider.handleRefund(collateralPoolId, withdrawnAmount, mainCoinAmount);
             uint256 newMainCoinPoolId = lockDealNFT.mintForProvider(user, dealProvider);
             uint256[] memory params = new uint256[](1);
@@ -101,16 +101,16 @@ contract RefundProvider is RefundState, IERC721Receiver, RefundModifiers {
         uint256 poolId,
         uint256[] memory params
     ) internal validParamsLength(params.length, currentParamsTargetLenght()) {
-        poolIdToCollateralId[poolId] = params[0];
-        poolIdToRateToWei[poolId] = params[1];
+        poolData[poolId].push(params[0]);
+        poolData[poolId].push(params[1]);
         emit UpdateParams(poolId, params);
     }
 
     ///@dev split tokens and main coins into new pools
     function split(uint256 poolId, uint256 newPoolId, uint256 ratio) external onlyNFT {
         uint256[] memory params = new uint256[](currentParamsTargetLenght());
-        params[0] = poolIdToCollateralId[poolId];
-        params[1] = poolIdToRateToWei[poolId];
+        params[0] = poolData[poolId][0];
+        params[1] = poolData[poolId][1];
         _registerPool(newPoolId, params);
         uint256 userPoolId = poolId + 1;
         lockDealNFT.safeTransferFrom(address(this), address(lockDealNFT), userPoolId, abi.encode(ratio));
@@ -121,9 +121,9 @@ contract RefundProvider is RefundState, IERC721Receiver, RefundModifiers {
         uint256 userDataPoolId = poolId + 1;
         // user withdraws his tokens
         (withdrawnAmount, isFinal) = lockDealNFT.poolIdToProvider(userDataPoolId).withdraw(userDataPoolId);
-        if (collateralProvider.poolIdToTime(poolIdToCollateralId[poolId]) >= block.timestamp) {
-            uint256 mainCoinAmount = withdrawnAmount.calcAmount(poolIdToRateToWei[poolId]);
-            collateralProvider.handleWithdraw(poolIdToCollateralId[poolId], mainCoinAmount);
+        if (collateralProvider.poolData(poolData[poolId][0], 0) >= block.timestamp) {
+            uint256 mainCoinAmount = withdrawnAmount.calcAmount(poolData[poolId][1]);
+            collateralProvider.handleWithdraw(poolData[poolId][0], mainCoinAmount);
         }
     }
 }

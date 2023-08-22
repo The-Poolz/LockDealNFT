@@ -7,5 +7,4 @@ import "../Provider/BasicProvider.sol";
 /// @notice Contains storage variables
 abstract contract LockDealState is BasicProvider {
     ISimpleProvider public provider;
-    mapping(uint256 => uint256) public poolIdToTime;
 }
