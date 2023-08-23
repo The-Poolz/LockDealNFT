@@ -1,88 +1,40 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./TransactionState.sol";
+import "./MultiWithdrawState.sol";
 import "../../AdvancedProviders/CollateralProvider/IInnerWithdraw.sol";
+import "@poolzfinance/poolz-helper-v2/contracts/Array.sol";
+import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 
-contract MultiWithdrawProvider is TransactionState, IInnerWithdraw{
-
+contract MultiWithdrawProvider is MultiWithdrawState, ERC721Holder, IInnerWithdraw {
     constructor(ILockDealNFT nftContract, uint256 _maxPoolsPerTx) {
         name = "MultiWithdrawProvider";
         lockDealNFT = nftContract;
         maxPoolsPerTx = _maxPoolsPerTx;
     }
 
-    function multiWithdrawAllPoolsOfOwner(address _owner)
-        external
-        onlyAdminOrNftOwner(_owner)
-    {
-        uint256[] memory poolIds = getAllPoolsOfOwner(_owner);
-        uint256 mintedPoolId = lockDealNFT.mintForProvider(_owner, IProvider(address(this)));
-        setTransactionState(poolIds, mintedPoolId, _owner);
-        lockDealNFT.transferFrom(_owner, address(lockDealNFT), mintedPoolId);
-        clearTransactionState();
+    function createNewPool(address _owner) external returns (uint256 poolId) {
+        poolId = lockDealNFT.mintForProvider(_owner, IProvider(address(this)));
     }
 
-    function setTransactionState(uint256[] memory poolIds, uint256 _mintedPoolId, address _owner) private {
-        mintedPoolId = _mintedPoolId;
-        for(uint256 i = 0; i < poolIds.length; i++) {
-            uint256 poolId = poolIds[i];
-            uint256 vaultId = lockDealNFT.getData(poolId).vaultId;
-            if(vaultIdtoPoolIds[vaultId].length == 0) {
-                uniqueVaultIds.push(vaultId);
+    function withdraw(uint256) external pure returns (uint256 withdrawnAmount, bool isFinal) {
+        return (type(uint256).max, true);
+    }
+
+    function getInnerIdsArray(uint256, address from) external view override returns (uint256[] memory poolIds) {
+        uint256 totalPools = lockDealNFT.balanceOf(from);
+        poolIds = new uint256[](totalPools);
+        uint256 k = 0;
+        for (uint256 i = 0; i < totalPools; ) {
+            uint256 _poolId = lockDealNFT.tokenOfOwnerByIndex(from, i);
+            if (lockDealNFT.poolIdToProvider(_poolId) != IProvider(address(this))) {
+                poolIds[i] = _poolId;
+                ++k;
             }
-            vaultIdtoPoolIds[vaultId].push(poolId);
-            (uint256 withdrawnAmount, bool isFinal) = lockDealNFT.poolIdToProvider(poolId).withdraw(poolId);
-            vaultIdToSum[vaultId] += withdrawnAmount;
-            if(isFinal){
-                lockDealNFT.transferFrom(_owner, address(this), poolId);
+            unchecked {
+                ++i;
             }
         }
+        poolIds = Array.KeepNElementsInArray(poolIds, k);
     }
-
-    function clearTransactionState() private {
-        for(uint256 i = 0; i < uniqueVaultIds.length; i++) {
-            delete vaultIdToSum[uniqueVaultIds[i]];
-            delete vaultIdtoPoolIds[uniqueVaultIds[i]];
-        }
-        delete uniqueVaultIds;
-        iterator = 0;
-        mintedPoolId = 0;
-    }
-
-    function withdraw(uint256 poolId) external returns (uint256 withdrawnAmount, bool isFinal){
-        require(poolId != 0, "Invalid poolId");
-        require(poolId == mintedPoolId, "Invalid poolId");
-        if(iterator == 0){
-            iterator++;
-            return (type(uint256).max, true);
-        }
-        uint256 currentVaultId = uniqueVaultIds[iterator - 1];
-        lockDealNFT.copyVaultId(vaultIdtoPoolIds[currentVaultId][0], mintedPoolId);
-        withdrawnAmount = vaultIdToSum[currentVaultId];
-        isFinal = false;
-        iterator++;
-    }
-
-    function getInnerIdsArray(uint256 poolId) external view override returns (uint256[] memory ids){
-        require(poolId != 0, "Invalid poolId");
-        require(poolId == mintedPoolId, "Invalid poolId");
-        require(iterator == 0, "Invalid Iterator");
-        ids = new uint256[](uniqueVaultIds.length);
-        for(uint256 i = 0; i < uniqueVaultIds.length; i++) {
-            ids[i] = mintedPoolId;
-        }
-    }
-
-    function getAllPoolsOfOwner(address _owner) public view returns (uint256[] memory) {
-        uint256 totalPools = lockDealNFT.balanceOf(_owner);
-        uint256[] memory poolIds = new uint256[](totalPools);
-        for(uint256 i = 0; i < totalPools; ) {
-            poolIds[i] = lockDealNFT.tokenOfOwnerByIndex(_owner, i);
-            unchecked { ++i; }
-        }
-        return poolIds;
-    }
-
-
 }

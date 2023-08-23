@@ -14,7 +14,7 @@ abstract contract CollateralState is LockDealState, IInnerWithdraw {
         }
     }
 
-    function getInnerIdsArray(uint256 poolId) public view override returns (uint256[] memory ids) {
+    function getInnerIdsArray(uint256 poolId, address) public view override returns (uint256[] memory ids) {
         if (poolIdToTime[poolId] < block.timestamp) {
             ids = new uint256[](3);
             (ids[0], ids[1], ids[2]) = getInnerIds(poolId);

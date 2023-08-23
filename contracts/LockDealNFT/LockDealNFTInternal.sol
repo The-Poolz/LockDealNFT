@@ -56,7 +56,7 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers {
         (withdrawnAmount, isFinal) = poolIdToProvider[poolId].withdraw(poolId);
         if (withdrawnAmount == type(uint256).max) {
             withdrawnAmount = 0;
-            uint256[] memory ids = IInnerWithdraw(address(poolIdToProvider[poolId])).getInnerIdsArray(poolId);
+            uint256[] memory ids = IInnerWithdraw(address(poolIdToProvider[poolId])).getInnerIdsArray(poolId, from);
             for (uint256 i = 0; i < ids.length; ++i) {
                 _withdrawERC20(from, ids[i]);
             }
