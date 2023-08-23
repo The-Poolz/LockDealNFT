@@ -21,18 +21,13 @@ describe('Lock Deal Bundle Provider', function () {
   let lockDealNFT: LockDealNFT;
   let mockVaultManager: MockVaultManager;
   let multiWithdrawProvider: MultiWithdrawProvider;
-  let bundlePoolId: number;
   let receiver: SignerWithAddress;
-  let newOwner: SignerWithAddress;
-  let startTime: number, finishTime: number;
-  let params: [BigNumber[], (number | BigNumber)[], (number | BigNumber)[]];
   let poolId: number;
   const amount = BigNumber.from(100000);
   const MAX_TRANSACTIONS = '100';
-  const ONE_DAY = 86400;
 
   before(async () => {
-    [receiver, newOwner] = await ethers.getSigners();
+    [receiver] = await ethers.getSigners();
     mockVaultManager = await deployed('MockVaultManager');
     lockDealNFT = await deployed('LockDealNFT', mockVaultManager.address, '');
     dealProvider = await deployed('DealProvider', lockDealNFT.address);
@@ -65,9 +60,14 @@ describe('Lock Deal Bundle Provider', function () {
     expect(await lockDealNFT.balanceOf(receiver.address)).to.equal(11);
   });
 
-  it('withdraw all pools', async () => {
+  it('check that all funds are withdrawn', async () => {
     await lockDealNFT
       .connect(receiver)
       ['safeTransferFrom(address,address,uint256)'](receiver.address, lockDealNFT.address, poolId);
+    const params = [0];
+    for (let i = 1; i < 11; i++) {
+      const poolData = await lockDealNFT.getData(i);
+      expect(poolData.params).to.deep.equal(params);
+    }
   });
 });
