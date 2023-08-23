@@ -25,7 +25,7 @@ contract MultiWithdrawProvider is TransactionState, IInnerWithdraw{
 
     function setTransactionState(uint256[] memory poolIds, uint256 _mintedPoolId, address _owner) private {
         mintedPoolId = _mintedPoolId;
-        for(uint256 i = 0; i < poolIds.length; i++) {
+        for(uint256 i = 0; i < poolIds.length;) {
             uint256 poolId = poolIds[i];
             uint256 vaultId = lockDealNFT.getData(poolId).vaultId;
             if(vaultIdToPoolId[vaultId] == 0) {
@@ -37,13 +37,15 @@ contract MultiWithdrawProvider is TransactionState, IInnerWithdraw{
             if(isFinal){
                 lockDealNFT.transferFrom(_owner, address(this), poolId);
             }
+            unchecked { ++i; }
         }
     }
 
     function clearTransactionState() private {
-        for(uint256 i = 0; i < uniqueVaultIds.length; i++) {
+        for(uint256 i = 0; i < uniqueVaultIds.length; ) {
             delete vaultIdToSum[uniqueVaultIds[i]];
             delete vaultIdToPoolId[uniqueVaultIds[i]];
+            unchecked { ++i; }
         }
         delete uniqueVaultIds;
         iterator = 0;
@@ -54,14 +56,14 @@ contract MultiWithdrawProvider is TransactionState, IInnerWithdraw{
         require(poolId != 0, "Invalid poolId");
         require(poolId == mintedPoolId, "Invalid poolId");
         if(iterator == 0){
-            iterator++;
+            unchecked{ ++iterator; }
             return (type(uint256).max, true);
         }
         uint256 currentVaultId = uniqueVaultIds[iterator - 1];
         lockDealNFT.copyVaultId(vaultIdToPoolId[currentVaultId], mintedPoolId);
         withdrawnAmount = vaultIdToSum[currentVaultId];
         isFinal = false;
-        iterator++;
+        unchecked{ ++iterator; }
     }
 
     function getInnerIdsArray(uint256 poolId) external view override returns (uint256[] memory ids){
@@ -69,8 +71,9 @@ contract MultiWithdrawProvider is TransactionState, IInnerWithdraw{
         require(poolId == mintedPoolId, "Invalid poolId");
         require(iterator == 0, "Invalid Iterator");
         ids = new uint256[](uniqueVaultIds.length);
-        for(uint256 i = 0; i < uniqueVaultIds.length; i++) {
+        for(uint256 i = 0; i < uniqueVaultIds.length; ) {
             ids[i] = mintedPoolId;
+            unchecked { ++i; }
         }
     }
 
@@ -83,6 +86,5 @@ contract MultiWithdrawProvider is TransactionState, IInnerWithdraw{
         }
         return poolIds;
     }
-
 
 }
