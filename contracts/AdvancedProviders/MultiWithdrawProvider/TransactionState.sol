@@ -8,5 +8,5 @@ abstract contract TransactionState is MultiWithdrawState{
     uint256 internal mintedPoolId;
     uint256[] internal uniqueVaultIds;
     mapping(uint256 => uint256) internal vaultIdToSum;
-    mapping(uint256 => uint256[]) internal vaultIdtoPoolIds;
+    mapping(uint256 => uint256) internal vaultIdToPoolId;
 }
