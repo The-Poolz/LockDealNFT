@@ -52,9 +52,11 @@ contract MultiWithdrawProvider is TransactionState, IInnerWithdraw{
         mintedPoolId = 0;
     }
 
-    function withdraw(uint256 poolId) external returns (uint256 withdrawnAmount, bool isFinal){
-        require(poolId != 0, "Invalid poolId");
-        require(poolId == mintedPoolId, "Invalid poolId");
+    function withdraw(uint256 poolId)
+        external
+        validataPoolId(poolId)
+        returns (uint256 withdrawnAmount, bool isFinal)
+    {
         if(iterator == 0){
             unchecked{ ++iterator; }
             return (type(uint256).max, true);
@@ -66,9 +68,11 @@ contract MultiWithdrawProvider is TransactionState, IInnerWithdraw{
         unchecked{ ++iterator; }
     }
 
-    function getInnerIdsArray(uint256 poolId) external view override returns (uint256[] memory ids){
-        require(poolId != 0, "Invalid poolId");
-        require(poolId == mintedPoolId, "Invalid poolId");
+    function getInnerIdsArray(uint256 poolId)
+        external view override
+        validataPoolId(poolId)
+        returns (uint256[] memory ids)
+    {
         require(iterator == 0, "Invalid Iterator");
         ids = new uint256[](uniqueVaultIds.length);
         for(uint256 i = 0; i < uniqueVaultIds.length; ) {
