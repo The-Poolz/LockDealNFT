@@ -16,7 +16,16 @@ abstract contract MultiWithdrawState is Ownable{
         _;
     }
 
+    modifier onlyNFT() {
+        _onlyNFT();
+        _;
+    }
+
     function setMaxPoolsPerTx(uint256 _maxPoolsPerTx) external onlyOwner {
         maxPoolsPerTx = _maxPoolsPerTx;
+    }
+
+    function _onlyNFT() internal view {
+        require(msg.sender == address(lockDealNFT), "only NFT contract can call this function");
     }
 }

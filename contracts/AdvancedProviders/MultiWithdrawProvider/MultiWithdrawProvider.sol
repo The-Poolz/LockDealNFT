@@ -54,6 +54,7 @@ contract MultiWithdrawProvider is TransactionState, IInnerWithdraw{
 
     function withdraw(uint256 poolId)
         external
+        onlyNFT
         validataPoolId(poolId)
         returns (uint256 withdrawnAmount, bool isFinal)
     {
