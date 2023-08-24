@@ -8,6 +8,7 @@ abstract contract MultiWithdrawState is Ownable{
     ///@dev Each provider sets its own name
     string public name;
     ILockDealNFT public lockDealNFT;
+    IProvider public dealProvider;
 
     uint256 public maxPoolsPerTx;
 

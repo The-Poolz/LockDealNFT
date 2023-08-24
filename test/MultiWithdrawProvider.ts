@@ -12,7 +12,7 @@ import { expect } from 'chai';
 import { BigNumber } from 'ethers';
 import { ethers } from 'hardhat';
 
-describe('Lock Deal Bundle Provider', function () {
+describe('Multi Withdraw Provider', function () {
   let bundleProvider: BundleProvider;
   let mockProvider: MockProvider;
   let timedDealProvider: TimedDealProvider;
@@ -35,7 +35,12 @@ describe('Lock Deal Bundle Provider', function () {
     timedDealProvider = await deployed('TimedDealProvider', lockDealNFT.address, lockProvider.address);
     bundleProvider = await deployed('BundleProvider', lockDealNFT.address);
     mockProvider = await deployed('MockProvider', lockDealNFT.address, bundleProvider.address);
-    multiWithdrawProvider = await deployed('MultiWithdrawProvider', lockDealNFT.address, MAX_TRANSACTIONS);
+    multiWithdrawProvider = await deployed(
+      'MultiWithdrawProvider',
+      lockDealNFT.address,
+      dealProvider.address,
+      MAX_TRANSACTIONS,
+    );
     await lockDealNFT.setApprovedProvider(dealProvider.address, true);
     await lockDealNFT.setApprovedProvider(multiWithdrawProvider.address, true);
     await lockDealNFT.setApprovedProvider(lockProvider.address, true);
