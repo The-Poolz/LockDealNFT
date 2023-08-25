@@ -29,7 +29,7 @@ jobs:
         env:
           BSCSCAN_API_KEY: ${{ secrets.BSCSCAN_API_KEY }}
           CMC_API_KEY: ${{ secrets.CMC_API_KEY }}
-          outputFile: gasReporterOutput.json
+          outputfile: gasReporterOutput.json
         continue-on-error: true
 
       - name: Extract JSON report from file
@@ -37,13 +37,13 @@ jobs:
         run: |
           echo "Reading JSON report from file..."
           json_report=$(cat gasReporterOutput.json)
-          echo "::set-output name=report::$json_report"
+          echo "report=$json_report" >> $GITHUB_ENV
 
       - name: Convert JSON to Markdown
         id: table
         uses: buildingcash/json-to-markdown-table-action@v1
         with:
-          json: ${{ steps.extract_report.outputs.report }}
+          json: ${{ env.report }}
 
       - name: Comment PR with Gas Test Report
         uses: thollander/actions-comment-pull-request@v2
