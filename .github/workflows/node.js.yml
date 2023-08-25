@@ -29,7 +29,7 @@ jobs:
         env:
           BSCSCAN_API_KEY: ${{ secrets.BSCSCAN_API_KEY }}
           CMC_API_KEY: ${{ secrets.CMC_API_KEY }}
-          outputfile: gasReporterOutput.json
+          outputFile: gasReporterOutput.json
         continue-on-error: true
 
       - name: Extract JSON report from file
