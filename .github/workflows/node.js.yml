@@ -38,15 +38,12 @@ jobs:
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
-            const fs = require('fs');
-            const output = fs.readFileSync('gas_test_output.txt', 'utf8');
-            const comment = `Gas Test Results:\n\`\`\`\n${output}\n\`\`\``;
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: comment
-            });
+              body: '👋 Thanks for reporting!'
+            })
             
  Coverage-Test:
     runs-on: ubuntu-latest
