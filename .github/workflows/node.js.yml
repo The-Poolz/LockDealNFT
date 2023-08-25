@@ -20,6 +20,9 @@ jobs:
         with:
           node-version: '18.15.0'
 
+      - name: Install HardHat
+        run: npm i hardhat
+
       - name: Run gas tests
         run: npx hardhat test
         env:
@@ -36,6 +39,9 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18.15.0'
+
+      - name: Install HardHat
+        run: npm i hardhat
 
       - name: Run tests and generate coverage
         run: npx hardhat coverage
