@@ -40,14 +40,12 @@ jobs:
           echo "::set-output name=report::$json_report"
 
       - name: Convert JSON to Markdown
-        if: steps.gas_test.conclusion == 'failure'
         id: table
         uses: buildingcash/json-to-markdown-table-action@v1
         with:
           json: ${{ steps.extract_report.outputs.report }}
 
       - name: Comment PR with Gas Test Report
-        if: steps.gas_test.conclusion == 'failure'
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: |
