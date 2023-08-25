@@ -32,10 +32,21 @@ jobs:
       - name: Display gas_test_output.txt
         run: cat gas_test_output.txt
 
-      - uses: mshick/add-pr-comment@v2
+      - name: Add PR comment with gas test results
         if: always()
+        uses: actions/github-script@v5
         with:
-          message-path: gas_test_output.txt
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const fs = require('fs');
+            const output = fs.readFileSync('gas_test_output.txt', 'utf8');
+            const comment = `Gas Test Results:\n\`\`\`\n${output}\n\`\`\``;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
             
  Coverage-Test:
     runs-on: ubuntu-latest
