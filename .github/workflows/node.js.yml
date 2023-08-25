@@ -29,6 +29,9 @@ jobs:
           BSCSCAN_API_KEY: ${{ secrets.BSCSCAN_API_KEY }}
           CMC_API_KEY: ${{ secrets.CMC_API_KEY }}
 
+      - name: Display gas_test_output.txt
+        run: cat gas_test_output.txt
+
       - uses: mshick/add-pr-comment@v2
         if: always()
         with:
