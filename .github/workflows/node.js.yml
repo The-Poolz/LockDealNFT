@@ -29,15 +29,25 @@ jobs:
         env:
           BSCSCAN_API_KEY: ${{ secrets.BSCSCAN_API_KEY }}
           CMC_API_KEY: ${{ secrets.CMC_API_KEY }}
-          outputFile: gasReporterOutput.json
+          outputfile: gasReporterOutput.json
+        continue-on-error: true
+
+      - name: Extract JSON report from file
+        id: extract_report
+        run: |
+          echo "Reading JSON report from file..."
+          json_report=$(cat gasReporterOutput.json)
+          echo "::set-output name=report::$json_report"
 
       - name: Convert JSON to Markdown
+        if: steps.gas_test.conclusion == 'failure'
         id: table
         uses: buildingcash/json-to-markdown-table-action@v1
         with:
-          json: ${{ steps.gas_test.outputs.report }}
+          json: ${{ steps.extract_report.outputs.report }}
 
       - name: Comment PR with Gas Test Report
+        if: steps.gas_test.conclusion == 'failure'
         uses: thollander/actions-comment-pull-request@v2
         with:
           message: |
