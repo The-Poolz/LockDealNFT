@@ -20,15 +20,6 @@ jobs:
         with:
           node-version: '18.15.0'
 
-      - name: Restore cache
-        id: restore-cache
-        uses: actions/cache/restore@v3
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-
       - name: Run gas tests
         run: npx hardhat test
         env:
@@ -46,25 +37,8 @@ jobs:
         with:
           node-version: '18.15.0'
 
-      - name: Restore cache
-        id: restore-cache
-        uses: actions/cache/restore@v3
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-
       - name: Run tests and generate coverage
         run: npx hardhat coverage
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
-
-      # Save cache only if it was not restored before
-      - name: Save cache
-        if: steps.restore-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v3
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
