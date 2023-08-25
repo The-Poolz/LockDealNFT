@@ -28,12 +28,15 @@ jobs:
         env:
           BSCSCAN_API_KEY: ${{ secrets.BSCSCAN_API_KEY }}
           CMC_API_KEY: ${{ secrets.CMC_API_KEY }}
+          CI: true
 
       - name: Make script executable
         run: chmod +x ./convert_to_markdown.sh
 
-      - name: Convert to Markdown
-        run: ./convert_to_markdown.sh raw_gas_test_output.txt gas_test_output.md
+      - name: Convert JSON to Markdown
+        run: |
+          chmod +x convert_to_markdown.sh
+          ./convert_to_markdown.sh
 
       - name: PR comment with Markdown file
         uses: thollander/actions-comment-pull-request@v2
