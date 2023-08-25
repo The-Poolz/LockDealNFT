@@ -24,10 +24,8 @@ jobs:
         run: npm i hardhat
 
       - name: Run gas tests
-        id: gas_tests
         run: |
-          output=$(npx hardhat test)
-          echo "Gas test output: $output"
+          output=$(npx hardhat test | awk '/Methods/,/TimedDealProvider/' | base64)
           echo "gas_test_output=$output" >> $GITHUB_ENV
         env:
           BSCSCAN_API_KEY: ${{ secrets.BSCSCAN_API_KEY }}
@@ -39,14 +37,15 @@ jobs:
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
-            const output = `Gas Test Results:\n${process.env.gas_test_output}`;
+            const decodedOutput = Buffer.from(process.env.gas_test_output, 'base64').toString();
+            const comment = `Gas Test Results:\n\`\`\`\n${decodedOutput}\n\`\`\``;
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: output
+              body: comment
             });
-
+            
  Coverage-Test:
     runs-on: ubuntu-latest
     steps:
