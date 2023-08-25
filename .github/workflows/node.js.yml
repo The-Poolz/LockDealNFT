@@ -23,25 +23,20 @@ jobs:
       - name: Install HardHat
         run: npm i hardhat
 
-      - name: Run gas tests and remove ANSI codes
+      - name: Run gas tests
         run: npx hardhat test
         env:
           BSCSCAN_API_KEY: ${{ secrets.BSCSCAN_API_KEY }}
           CMC_API_KEY: ${{ secrets.CMC_API_KEY }}
           CI: true
 
-      - name: Make script executable
-        run: chmod +x ./convert_to_markdown.sh
-
-      - name: Convert JSON to Markdown
-        run: |
-          chmod +x convert_to_markdown.sh
-          ./convert_to_markdown.sh
+      - name: Display JSON contents
+        run: cat gasReporterOutput.json
 
       - name: PR comment with Markdown file
         uses: thollander/actions-comment-pull-request@v2
         with:
-          filePath: gas_test_output.md
+          filePath: gasReporterOutput.json
           comment_tag: gas_test_output
 
   Coverage-Test:
