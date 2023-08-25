@@ -23,7 +23,8 @@ jobs:
       - name: Install HardHat
         run: npm i hardhat
 
-      - name: Run gas tests
+      - name: Run gas tests and generate report
+        id: gas_test
         run: npx hardhat test --parallel
         env:
           BSCSCAN_API_KEY: ${{ secrets.BSCSCAN_API_KEY }}
