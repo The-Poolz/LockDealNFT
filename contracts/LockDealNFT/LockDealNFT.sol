@@ -87,4 +87,14 @@ contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
         require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: transfer caller is not owner nor approved");
         _safeTransfer(from, to, tokenId, "");
     }
+
+    function setBaseURI(string memory newBaseURI) external onlyOwner {
+        require(
+            keccak256(abi.encodePacked(baseURI)) != keccak256(abi.encodePacked(newBaseURI)),
+            "can't set the same baseURI"
+        );
+        string memory oldBaseURI = baseURI;
+        baseURI = newBaseURI;
+        emit BaseURIChanged(oldBaseURI, newBaseURI);
+    }
 }
