@@ -23,8 +23,8 @@ jobs:
       - name: Install HardHat
         run: npm i hardhat
 
-      - name: Run gas tests
-        run: npx hardhat test | awk '/Methods/,0' > gas_test_output.txt
+      - name: Run gas tests and remove ANSI codes
+        run: npx hardhat test | sed 's/\x1b\[[0-9;]*m//g' > gas_test_output.txt
         env:
           BSCSCAN_API_KEY: ${{ secrets.BSCSCAN_API_KEY }}
           CMC_API_KEY: ${{ secrets.CMC_API_KEY }}
