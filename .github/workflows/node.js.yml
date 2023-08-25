@@ -9,35 +9,8 @@ on:
       - master
 
 jobs:
-  install-dependencies:
-    name: Install Dependencies
+ Gas-Test:
     runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18.15.0'
-
-      - name: Restore cache
-        id: restore-cache
-        uses: actions/cache/restore@v3
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-
-      - name: Install dependencies
-        if: steps.restore-cache.outputs.cache-hit != 'true'
-        run: yarn
-
-  Gas-Test:
-    runs-on: ubuntu-latest
-    needs: install-dependencies
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -62,9 +35,8 @@ jobs:
           BSCSCAN_API_KEY: ${{ secrets.BSCSCAN_API_KEY }}
           CMC_API_KEY: ${{ secrets.CMC_API_KEY }}
 
-  Coverage-Test:
+ Coverage-Test:
     runs-on: ubuntu-latest
-    needs: install-dependencies
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
