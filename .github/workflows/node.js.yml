@@ -33,14 +33,12 @@ jobs:
       - name: Generate Markdown Table
         run: node parseGasReport.js
 
-      - name: Debug - Show gas-report.txt
-        run: cat gas-report.txt
+      - name: Encode MD Gas Report to Base64
+        run: echo "GAS_REPORT_BASE64=$(cat md_gas_report.txt | base64 -w 0)" >> $GITHUB_ENV
 
-      - name: Debug - Show md_gas_report.txt
-        run: cat md_gas_report.txt
-
-      - name: Set Markdown Table as Env Variable
-        run: echo "GAS_REPORT=$(cat md_gas_report.txt)" >> $GITHUB_ENV
+      - name: Decode Base64 to MD Gas Report
+        id: decode_gas_report
+        run: echo "::set-output name=gas_report_decoded::$(echo "$GAS_REPORT_BASE64" | base64 -d)"
 
       - name: Comment PR with Gas Test Report
         uses: thollander/actions-comment-pull-request@v2
@@ -48,8 +46,8 @@ jobs:
           message: |
             # Gas Test Report 📊
             The gas test results are as follows:
-            ${{ env.GAS_REPORT }}
-          comment_tag: 'Gas Test Report'
+            ${{ steps.decode_gas_report.outputs.gas_report_decoded }}
+          comment_tag: 'gas_report'
 
   Coverage-Test:
     runs-on: ubuntu-latest
