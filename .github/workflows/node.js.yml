@@ -30,12 +30,14 @@ jobs:
           BSCSCAN_API_KEY: ${{ secrets.BSCSCAN_API_KEY }}
           CMC_API_KEY: ${{ secrets.CMC_API_KEY }}
 
-      - name: Generate Markdown Table
-        run: node parseGasReport.js
+      - name: Debug - Show gas-report.txt
+        run: cat gas-report.txt
 
-      - name: Read Markdown Table
-        id: filter_gas_report
-        run: echo "::set-output name=gas_report::$(cat md_gas_report.txt)"
+      - name: Debug - Show md_gas_report.txt
+        run: cat md_gas_report.txt
+
+      - name: Set Markdown Table as Env Variable
+        run: echo "GAS_REPORT=$(cat md_gas_report.txt)" >> $GITHUB_ENV
 
       - name: Comment PR with Gas Test Report
         uses: thollander/actions-comment-pull-request@v2
@@ -43,7 +45,8 @@ jobs:
           message: |
             # Gas Test Report 📊
             The gas test results are as follows:
-            ${{ steps.filter_gas_report.outputs.gas_report }}
+            ${{ env.GAS_REPORT }}
+          comment_tag: 'Gas Test Report'
 
   Coverage-Test:
     runs-on: ubuntu-latest
