@@ -28,10 +28,7 @@ contract MultiWithdrawProvider is TransactionState, IInnerWithdraw{
         for(uint256 i = 0; i < poolIds.length;) {
             uint256 poolId = poolIds[i];
             uint256 vaultId = lockDealNFT.getData(poolId).vaultId;
-            if(vaultIdToPoolId[vaultId] == 0) {
-                uniqueVaultIds.push(vaultId);
-                vaultIdToPoolId[vaultId] = poolId; // only need to store the first poolId
-            }
+            pushToUniqueVaults(vaultId);
             (uint256 withdrawnAmount, bool isFinal) = lockDealNFT.poolIdToProvider(poolId).withdraw(poolId);
             vaultIdToSum[vaultId] += withdrawnAmount;
             if(isFinal){
@@ -41,10 +38,19 @@ contract MultiWithdrawProvider is TransactionState, IInnerWithdraw{
         }
     }
 
+    function pushToUniqueVaults(uint256 vaultId) private {
+        for(uint256 i = 0; i < uniqueVaultIds.length; ) {
+            if(uniqueVaultIds[i] == vaultId) {
+                return;
+            }
+            unchecked { ++i; }
+        }
+        uniqueVaultIds.push(vaultId);
+    }
+
     function clearTransactionState() private {
         for(uint256 i = 0; i < uniqueVaultIds.length; ) {
             delete vaultIdToSum[uniqueVaultIds[i]];
-            delete vaultIdToPoolId[uniqueVaultIds[i]];
             unchecked { ++i; }
         }
         delete uniqueVaultIds;
@@ -63,7 +69,7 @@ contract MultiWithdrawProvider is TransactionState, IInnerWithdraw{
             return (type(uint256).max, true);
         }
         uint256 currentVaultId = uniqueVaultIds[iterator - 1];
-        lockDealNFT.copyVaultId(vaultIdToPoolId[currentVaultId], mintedPoolId);
+        lockDealNFT.setVaultIdOfPool(mintedPoolId, currentVaultId);
         withdrawnAmount = vaultIdToSum[currentVaultId];
         isFinal = false;
         unchecked{ ++iterator; }

@@ -54,6 +54,15 @@ contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
         poolIdToVaultId[toId] = poolIdToVaultId[fromId];
     }
 
+    function setVaultIdOfPool(
+        uint256 poolId,
+        uint256 vaultId
+    ) external onlyApprovedProvider validPoolId(poolId) {
+        require(poolIdToProvider[poolId] == IProvider(msg.sender), "Sender not Provider");
+        require(poolIdToVaultId[poolId] == 0, "vaultId already set");
+        poolIdToVaultId[poolId] = vaultId;
+    }
+
     /// @dev Sets the approved status of a provider
     /// @param provider The address of the provider
     /// @param status The new approved status (true or false)
