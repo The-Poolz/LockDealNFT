@@ -1,70 +1,50 @@
 const fs = require('fs');
 
-function calculateGasStatistics(gasData) {
-  const maxGas = Math.max(...gasData);
-  const minGas = Math.min(...gasData);
-  const avgGas = gasData.reduce((acc, val) => acc + val, 0) / gasData.length;
-  return { maxGas, minGas, avgGas };
-}
-
-try {
-  // Read the existing report directly
-  const rawReport = fs.readFileSync('gasReporterOutput.json', 'utf-8');
-  const parsedReport = JSON.parse(rawReport);
-
-  // Check if parsedReport and info property exist
-  if (!parsedReport || !parsedReport.info) {
-    console.error("Error: Missing 'info' property in JSON report.");
-    process.exit(1);
+// Read and process the JSON file
+fs.readFile('gasReporterOutput.json', 'utf8', (err, data) => {
+  if (err) {
+    console.error('Error reading the file:', err);
+    return;
   }
 
-  // Extract the 'info' object for easier reference
-  const reportInfo = parsedReport.info;
+  let dataObj;
+  try {
+    dataObj = JSON.parse(data);
+  } catch (parseError) {
+    console.error('Error parsing JSON:', parseError);
+    return;
+  }
 
-  let tableReadyData = {
-    methods: [],
-    deployments: [],
-  };
+  const methods = dataObj.info.methods;
+  const contractGasInfo = [];
 
-  // Filter and aggregate method data
-  if (reportInfo.methods) {
-    tableReadyData.methods = reportInfo.methods
-      .filter(method => method.numberOfCalls > 0 && method.gasData && method.gasData.length > 0)
-      .map(method => {
-        const stats = calculateGasStatistics(method.gasData);
-        return {
-          methodName: method.methodName,
-          numberOfCalls: method.numberOfCalls,
-          ...stats,
-        };
+  for (const [methodKey, methodValue] of Object.entries(methods)) {
+    const { contract, method, gasData, numberOfCalls } = methodValue;
+
+    let averageGas = 0,
+      minGas = Infinity,
+      maxGas = 0;
+    if (gasData.length > 0) {
+      const totalGas = gasData.reduce((acc, curr) => {
+        minGas = Math.min(minGas, curr);
+        maxGas = Math.max(maxGas, curr);
+        return acc + curr;
+      }, 0);
+
+      averageGas = totalGas / gasData.length;
+    }
+
+    const existingContract = contractGasInfo.find(info => info.contract === contract);
+
+    if (existingContract) {
+      existingContract.methods.push({ method, averageGas, minGas, maxGas, numberOfCalls });
+    } else {
+      contractGasInfo.push({
+        contract,
+        methods: [{ method, averageGas, minGas, maxGas, numberOfCalls }],
       });
-  } else {
-    console.warn("Warning: 'methods' property is missing or empty.");
+    }
   }
 
-  // Filter and aggregate deployment data
-  if (reportInfo.deployments) {
-    tableReadyData.deployments = reportInfo.deployments
-      .filter(deployment => deployment.gasData && deployment.gasData.length > 0)
-      .map(deployment => {
-        const stats = calculateGasStatistics(deployment.gasData);
-        return {
-          deploymentName: deployment.deploymentName,
-          ...stats,
-        };
-      });
-  } else {
-    console.warn("Warning: 'deployments' property is missing or empty.");
-  }
-
-  // Set this filtered data as an output variable for the next step
-  console.log(`::set-output name=filtered_report::${JSON.stringify(tableReadyData)}`);
-
-  // Save the filtered report to a new JSON file for local testing
-  fs.writeFileSync('filteredGasReportOutput.json', JSON.stringify(tableReadyData, null, 2));
-
-  console.log('Successfully filtered and aggregated the gas report.');
-} catch (error) {
-  console.error(`Error occurred: ${error}`);
-  process.exit(1);
-}
+  console.log(contractGasInfo);
+});
