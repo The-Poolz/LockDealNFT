@@ -43,16 +43,10 @@ jobs:
       - name: Generate Markdown Table and Save to Env
         run: node parseGasReport.js
 
-      - name: Set GAS_REPORT environment variable
-        run: echo "GAS_REPORT=$(cat md_gas_report.txt)" >> $GITHUB_ENV
-
       - name: Comment PR with Gas Test Report
         uses: thollander/actions-comment-pull-request@v2
         with:
-          message: |
-            # Gas Test Report 📊
-            The gas test results are as follows:
-            ${{ env.GAS_REPORT }}
+          filePath: md_gas_report.txt
           comment_tag: 'gas_report'
 
   Coverage-Test:
