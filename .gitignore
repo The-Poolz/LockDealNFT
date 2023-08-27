@@ -32,5 +32,6 @@ blockchain/history
 yarn.lock
 package-lock.json
 gasReporterOutput.json
+gas-report.txt
 
 # End of https://www.toptal.com/developers/gitignore/api/soliditytruffle
