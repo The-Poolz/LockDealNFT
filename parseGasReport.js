@@ -10,24 +10,47 @@ fs.readFile('gas-report.txt', 'utf8', (err, data) => {
   // Split the file into lines
   const lines = data.split('\n');
 
-  // Initialize an empty array to hold the parsed lines
-  const parsedLines = [];
+  // Initialize empty arrays to hold the parsed lines for methods and deployments
+  const parsedMethodLines = [];
+  const parsedDeploymentLines = [];
 
-  // Add the header to the Markdown table
-  parsedLines.push('| Contract | Method | Min | Max | Avg | # calls | usd (avg) |');
-  parsedLines.push('|----------|--------|-----|-----|-----|---------|-----------|');
+  // Add the header to the Markdown tables
+  parsedMethodLines.push('| Contract | Method | Min | Max | Avg | # calls | usd (avg) |');
+  parsedMethodLines.push('|----------|--------|-----|-----|-----|---------|-----------|');
+
+  parsedDeploymentLines.push('| Contract | Avg | % of limit | usd (avg) |');
+  parsedDeploymentLines.push('|----------|-----|------------|-----------|');
+
+  // Flag to indicate if we are in the Deployments section
+  let inDeploymentsSection = false;
 
   // Loop through each line to parse it
   lines.forEach(line => {
-    const match = line.match(/(\w+)\s+·\s+(.+?)\s+·\s+(\d+|-)\s+·\s+(\d+|-)\s+·\s+(\d+|-)\s+·\s+(\d+|-)\s+·\s+(-|\d+)/);
-    if (match) {
-      const [, contract, method, min, max, avg, calls, usd] = match;
-      parsedLines.push(`| ${contract} | ${method} | ${min} | ${max} | ${avg} | ${calls} | ${usd} |`);
+    if (line.includes('Deployments')) {
+      inDeploymentsSection = true;
+    }
+
+    if (!inDeploymentsSection) {
+      const match = line.match(
+        /(\w+)\s+·\s+(.+?)\s+·\s+(\d+|-)\s+·\s+(\d+|-)\s+·\s+(\d+|-)\s+·\s+(\d+|-)\s+·\s+(-|\d+)/,
+      );
+      if (match) {
+        const [, contract, method, min, max, avg, calls, usd] = match;
+        parsedMethodLines.push(`| ${contract} | ${method} | ${min} | ${max} | ${avg} | ${calls} | ${usd} |`);
+      }
+    } else {
+      const match = line.match(/(\w+)\s+·\s+(\d+|-)\s+·\s+(\d+\.\d+ %|-)\s+·\s+(-|\d+)/);
+      if (match) {
+        const [, contract, avg, limit, usd] = match;
+        parsedDeploymentLines.push(`| ${contract} | ${avg} | ${limit} | ${usd} |`);
+      }
     }
   });
 
-  // Write the parsed content to md_gas_report.txt
-  fs.writeFile('md_gas_report.txt', parsedLines.join('\n'), err => {
+  // Combine the parsed content and write to md_gas_report.txt
+  const combinedParsedLines = ['## Methods', ...parsedMethodLines, '## Deployments', ...parsedDeploymentLines];
+
+  fs.writeFile('md_gas_report.txt', combinedParsedLines.join('\n'), err => {
     if (err) {
       console.error('Error writing the file:', err);
     }
