@@ -1,24 +1,35 @@
 const fs = require('fs');
 
-function parseGasReport(filePath) {
-  const data = fs.readFileSync(filePath, 'utf8');
+// Read the gas-report.txt file
+fs.readFile('gas-report.txt', 'utf8', (err, data) => {
+  if (err) {
+    console.error('Error reading the file:', err);
+    return;
+  }
+
+  // Split the file into lines
   const lines = data.split('\n');
 
-  // Initialize Markdown table headers
-  let mdTable = '| Contract | Method | Min | Max | Avg | # calls | usd (avg) |\n';
-  mdTable += '|----------|--------|-----|-----|-----|---------|-----------|\n';
+  // Initialize an empty array to hold the parsed lines
+  const parsedLines = [];
 
+  // Add the header to the Markdown table
+  parsedLines.push('| Contract | Method | Min | Max | Avg | # calls | usd (avg) |');
+  parsedLines.push('|----------|--------|-----|-----|-----|---------|-----------|');
+
+  // Loop through each line to parse it
   lines.forEach(line => {
-    // Parse each line and append to Markdown table
-    // This is a simplified example; you may need to adjust the parsing logic
-    const parts = line.split('·').map(part => part.trim());
-    if (parts.length === 7) {
-      mdTable += `| ${parts[0]} | ${parts[1]} | ${parts[2]} | ${parts[3]} | ${parts[4]} | ${parts[5]} | ${parts[6]} |\n`;
+    const match = line.match(/(\w+)\s+·\s+(.+?)\s+·\s+(\d+|-)\s+·\s+(\d+|-)\s+·\s+(\d+|-)\s+·\s+(\d+|-)\s+·\s+(-|\d+)/);
+    if (match) {
+      const [, contract, method, min, max, avg, calls, usd] = match;
+      parsedLines.push(`| ${contract} | ${method} | ${min} | ${max} | ${avg} | ${calls} | ${usd} |`);
     }
   });
 
-  return mdTable;
-}
-
-const mdTable = parseGasReport('gas-report.txt');
-fs.writeFileSync('md_gas_report.txt', mdTable);
+  // Write the parsed content to md_gas_report.txt
+  fs.writeFile('md_gas_report.txt', parsedLines.join('\n'), err => {
+    if (err) {
+      console.error('Error writing the file:', err);
+    }
+  });
+});
