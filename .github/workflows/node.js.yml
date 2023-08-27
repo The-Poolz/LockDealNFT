@@ -9,10 +9,8 @@ on:
       - master
 
 jobs:
-  test_and_coverage:
-    name: Run Tests and Generate Coverage
+ Gas-Test:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -27,19 +25,35 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/package.json') }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
-
-      - name: Install dependencies
-        if: steps.restore-cache.outputs.cache-hit != 'true'
-        run: yarn
 
       - name: Run gas tests
         run: npx hardhat test
         env:
           BSCSCAN_API_KEY: ${{ secrets.BSCSCAN_API_KEY }}
           CMC_API_KEY: ${{ secrets.CMC_API_KEY }}
+
+ Coverage-Test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.15.0'
+
+      - name: Restore cache
+        id: restore-cache
+        uses: actions/cache/restore@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
 
       - name: Run tests and generate coverage
         run: npx hardhat coverage
@@ -53,4 +67,4 @@ jobs:
         uses: actions/cache/save@v3
         with:
           path: node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/package.json') }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
