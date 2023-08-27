@@ -29,18 +29,13 @@ jobs:
         env:
           BSCSCAN_API_KEY: ${{ secrets.BSCSCAN_API_KEY }}
           CMC_API_KEY: ${{ secrets.CMC_API_KEY }}
-          outputfile: gasReporterOutput.json
-        continue-on-error: true
 
-      - name: Filter Gas Report for Methods and Deployments
+      - name: Generate Markdown Table
+        run: node parseGasReport.js
+
+      - name: Read Markdown Table
         id: filter_gas_report
-        run: node filterGasReport.js
-
-      - name: Convert JSON to Markdown
-        id: table
-        uses: buildingcash/json-to-markdown-table-action@v1
-        with:
-          json: ${{ steps.filter_gas_report.outputs.filtered_report }}
+        run: echo "::set-output name=gas_report::$(cat md_gas_report.txt)"
 
       - name: Comment PR with Gas Test Report
         uses: thollander/actions-comment-pull-request@v2
@@ -48,7 +43,7 @@ jobs:
           message: |
             # Gas Test Report 📊
             The gas test results are as follows:
-            ${{ steps.table.outputs.table }}
+            ${{ steps.filter_gas_report.outputs.gas_report }}
 
   Coverage-Test:
     runs-on: ubuntu-latest
