@@ -30,6 +30,9 @@ jobs:
           BSCSCAN_API_KEY: ${{ secrets.BSCSCAN_API_KEY }}
           CMC_API_KEY: ${{ secrets.CMC_API_KEY }}
 
+      - name: Generate Markdown Table
+        run: node parseGasReport.js
+
       - name: Debug - Show gas-report.txt
         run: cat gas-report.txt
 
