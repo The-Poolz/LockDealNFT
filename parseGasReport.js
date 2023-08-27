@@ -54,5 +54,11 @@ fs.readFile('gas-report.txt', 'utf8', (err, data) => {
     if (err) {
       console.error('Error writing the file:', err);
     }
+
+    // Write the gas report to GitHub's Environment File to make it available for the next steps
+    const envFilePath = process.env.GITHUB_ENV || '';
+    if (envFilePath) {
+      fs.appendFileSync(envFilePath, `GAS_REPORT=${combinedParsedLines.join('%0A')}\n`);
+    }
   });
 });

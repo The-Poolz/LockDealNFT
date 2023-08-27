@@ -40,15 +40,8 @@ jobs:
           BSCSCAN_API_KEY: ${{ secrets.BSCSCAN_API_KEY }}
           CMC_API_KEY: ${{ secrets.CMC_API_KEY }}
 
-      - name: Generate Markdown Table
+      - name: Generate Markdown Table and Save to Env
         run: node parseGasReport.js
-
-      - name: Encode MD Gas Report to Base64
-        run: echo "GAS_REPORT_BASE64=$(cat md_gas_report.txt | base64 -w 0)" >> $GITHUB_ENV
-
-      - name: Decode Base64 to MD Gas Report
-        id: decode_gas_report
-        run: echo "::set-output name=gas_report_decoded::$(echo "$GAS_REPORT_BASE64" | base64 -d)"
 
       - name: Comment PR with Gas Test Report
         uses: thollander/actions-comment-pull-request@v2
@@ -56,7 +49,7 @@ jobs:
           message: |
             # Gas Test Report 📊
             The gas test results are as follows:
-            ${{ steps.decode_gas_report.outputs.gas_report_decoded }}
+            ${{ env.GAS_REPORT }}
           comment_tag: 'gas_report'
 
   Coverage-Test:
