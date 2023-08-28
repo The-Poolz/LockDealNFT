@@ -11,17 +11,22 @@ import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 abstract contract BasicProvider is ProviderModifiers, ISimpleProvider, ERC165 {
     /**
      * @dev Creates a new pool with the specified parameters.
-     * @param owner The address of the pool owner.
-     * @param token The address of the token associated with the pool.
+     * @param addresses[0] The address of the pool owner.
+     * @param addresses[1] The address of the token associated with the pool.
      * @param params An array of pool parameters.
      * @return poolId The ID of the newly created pool.
      */
     function createNewPool(
-        address owner,
-        address token,
+        address[] calldata addresses,
         uint256[] calldata params
-    ) public virtual validParamsLength(params.length, currentParamsTargetLenght()) returns (uint256 poolId) {
-        poolId = lockDealNFT.mintAndTransfer(owner, token, msg.sender, params[0], this);
+    )
+        public
+        virtual
+        validAddressesLength(addresses.length, 2)
+        validParamsLength(params.length, currentParamsTargetLenght())
+        returns (uint256 poolId)
+    {
+        poolId = lockDealNFT.mintAndTransfer(addresses[0], addresses[1], msg.sender, params[0], this);
         _registerPool(poolId, params);
     }
 

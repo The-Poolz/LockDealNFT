@@ -22,22 +22,18 @@ contract BundleProvider is BundleModifiers, ERC721Holder {
     ///@param providerParams[][2] = finishTime
     ///@param providerParams[][3] = startAmount
     function createNewPool(
-        address owner,
-        address token,
-        address[] calldata providers,
+        address[] calldata addresses,
         uint256[][] calldata providerParams
-    ) external returns (uint256 poolId) {
-        uint256 providerCount = providers.length;
+    ) external validAddressesLength(addresses.length, 4) returns (uint256 poolId) {
+        uint256 providerCount = addresses.length - 2;
         require(providerCount == providerParams.length, "providers and params length mismatch");
-        require(providerCount > 1, "providers length must be greater than 1");
-
         uint256 totalAmount = _calcTotalAmount(providerParams);
         // create a new bundle pool owned by the owner
 
-        poolId = lockDealNFT.mintAndTransfer(owner, token, msg.sender, totalAmount, this);
+        poolId = lockDealNFT.mintAndTransfer(addresses[0], addresses[1], msg.sender, totalAmount, this);
         uint256 lastSubPoolId;
         for (uint256 i; i < providerCount; ++i) {
-            address provider = providers[i];
+            address provider = addresses[i + 2];
             uint256[] memory params = providerParams[i];
 
             // check if the provider address is valid
