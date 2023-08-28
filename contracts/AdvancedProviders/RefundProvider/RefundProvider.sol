@@ -43,6 +43,10 @@ contract RefundProvider is RefundState, IERC721Receiver, RefundModifiers {
         return IERC721Receiver.onERC721Received.selector;
     }
 
+    ///@param addresses[0] = owner
+    ///@param addresses[1] = token
+    ///@param addresses[2] = main coin
+    ///@param addresses[3] = provider
     ///@param params[0] = tokenLeftAmount
     ///@param params[params.length - 3] = refundMainCoinAmount
     ///@param params[params.length - 2] = rateToWei

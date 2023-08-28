@@ -17,6 +17,9 @@ contract BundleProvider is BundleModifiers, ERC721Holder {
         name = "BundleProvider";
     }
 
+    ///@param addresses[0] = owner
+    ///@param addresses[1] = token
+    ///@param addresses[>= 2] = providers
     ///@param providerParams[][0] = leftAmount
     ///@param providerParams[][1] = startTime
     ///@param providerParams[][2] = finishTime
