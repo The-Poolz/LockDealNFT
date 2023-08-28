@@ -5,7 +5,7 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/the-poolz/lockdealnft/badge)](https://www.codefactor.io/repository/github/the-poolz/lockdealnft)
 
 Basic data:
-![image](https://github.com/The-Poolz/LockDealNFT/assets/68740472/68e1d5f4-20fc-416f-9da7-75116624635a)
+![table](https://github.com/The-Poolz/LockDealNFT/assets/68740472/46011988-7c0e-4f00-a848-7b95a3529312)
 
 ### Pool Creation:
 
