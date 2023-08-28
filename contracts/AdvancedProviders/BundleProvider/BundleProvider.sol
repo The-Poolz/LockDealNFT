@@ -34,18 +34,14 @@ contract BundleProvider is BundleModifiers, ERC721Holder {
         // create a new bundle pool owned by the owner
 
         poolId = lockDealNFT.mintAndTransfer(addresses[0], addresses[1], msg.sender, totalAmount, this);
-        uint256 lastSubPoolId;
+        uint256[] memory registerParams = new uint256[](1);
+        registerParams[0] = poolId + providerCount;
         for (uint256 i; i < providerCount; ++i) {
             address provider = addresses[i + 2];
             uint256[] memory params = providerParams[i];
-
-            // check if the provider address is valid
-            require(provider != address(lockDealNFT) && provider != address(this), "invalid provider address");
             // mint the NFT owned by the BunderDealProvider with 0 token transfer amount
-            lastSubPoolId = _createNewSubPool(address(this), IProvider(provider), params);
+            _createNewSubPool(provider, params);
         }
-        uint256[] memory registerParams = new uint256[](1);
-        registerParams[0] = lastSubPoolId;
         _registerPool(poolId, registerParams);
     }
 
@@ -65,13 +61,14 @@ contract BundleProvider is BundleModifiers, ERC721Holder {
         emit UpdateParams(poolId, params);
     }
 
-    function _createNewSubPool(
-        address owner,
-        IProvider provider,
-        uint256[] memory params
-    ) internal returns (uint256 poolId) {
-        poolId = lockDealNFT.mintForProvider(owner, provider);
-        provider.registerPool(poolId, params);
+    function _createNewSubPool(address provider, uint256[] memory params) internal {
+        // check if the provider address is valid
+        require(provider != address(lockDealNFT) && provider != address(this), "invalid provider address");
+        _createNewSubPool(IProvider(provider), params);
+    }
+
+    function _createNewSubPool(IProvider provider, uint256[] memory params) internal {
+        provider.registerPool(lockDealNFT.mintForProvider(address(this), provider), params);
     }
 
     function withdraw(uint256 poolId) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
