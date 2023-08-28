@@ -76,10 +76,17 @@ describe('test-driven development', function () {
     });
 
     it('should revert creation new bundle with refund provider', async () => {
-      bundleProviders = [dealProvider.address, lockProvider.address, timedProvider.address, refundProvider.address];
+      const addresses = [
+        receiver.address,
+        token,
+        dealProvider.address,
+        lockProvider.address,
+        timedProvider.address,
+        refundProvider.address,
+      ];
       const refundProviderParams = [amount, amount.div(2), ratio, finishTime];
       params = [dealProviderParams, lockProviderParams, timedDealProviderParams, refundProviderParams];
-      await expect(bundleProvider.createNewPool(receiver.address, token, bundleProviders, params)).to.be.reverted;
+      await expect(bundleProvider.createNewPool(addresses, params)).to.be.reverted;
     });
 
     it('should revert register refund provider in bundle', async () => {
@@ -90,9 +97,16 @@ describe('test-driven development', function () {
     });
 
     it('should revert creation new bundle with collateral provider', async () => {
-      bundleProviders = [dealProvider.address, lockProvider.address, timedProvider.address, collateralProvider.address];
+      const addresses = [
+        receiver.address,
+        token,
+        dealProvider.address,
+        lockProvider.address,
+        timedProvider.address,
+        collateralProvider.address,
+      ];
       params = [dealProviderParams, lockProviderParams, timedDealProviderParams, lockProviderParams];
-      await expect(bundleProvider.createNewPool(receiver.address, token, bundleProviders, params)).to.be.reverted;
+      await expect(bundleProvider.createNewPool(addresses, params)).to.be.reverted;
     });
 
     it('should revert register collateral provider in bundle', async () => {
@@ -113,7 +127,7 @@ describe('test-driven development', function () {
       await expect(
         refundProvider
           .connect(projectOwner)
-          .createNewRefundPool(token, receiver.address, BUSD, refundProvider.address, params),
+          .createNewRefundPool([token, receiver.address, BUSD, refundProvider.address], params),
       ).to.be.reverted;
     });
 
@@ -126,7 +140,7 @@ describe('test-driven development', function () {
     });
 
     it('should be revert, wrong pool id in refund register', async () => {
-      await collateralProvider.createNewPool(receiver.address, token, [amount, startTime]);
+      await collateralProvider.createNewPool([receiver.address, token], [amount, startTime]);
       const poolId = (await lockDealNFT.totalSupply()).toNumber() - 1;
       const params = [poolId, ratio];
       const nonValidPoolId = 999999;

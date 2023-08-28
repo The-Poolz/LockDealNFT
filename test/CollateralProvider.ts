@@ -42,7 +42,7 @@ describe('Collateral Provider', function () {
     finishTime = (await time.latest()) + 14 * ONE_DAY; // plus 14 days
     params = [amount, finishTime];
     poolId = (await lockDealNFT.totalSupply()).toNumber();
-    await mockProvider.createNewPool(projectOwner.address, token, params);
+    await mockProvider.createNewPool([projectOwner.address, token], params);
     vaultId = await mockVaultManager.Id();
   });
 
@@ -90,7 +90,7 @@ describe('Collateral Provider', function () {
 
   it('should revert invalid finish time', async () => {
     await expect(
-      mockProvider.createNewPool(receiver.address, token, [amount, (await time.latest()) - 1]),
+      mockProvider.createNewPool([receiver.address, token], [amount, (await time.latest()) - 1]),
     ).to.be.revertedWith('start time must be in the future');
   });
 

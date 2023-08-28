@@ -18,8 +18,8 @@ contract MockProvider is IFundsManager {
         TimedDealProvider(address(_provider)).withdraw(poolId, amount);
     }
 
-    function createNewPool(address owner, address token, uint256[] memory params) public returns (uint256 poolId) {
-        poolId = lockDealNFT.mintAndTransfer(owner, token, owner, params[0], _provider);
+    function createNewPool(address[] calldata addresses, uint256[] memory params) public returns (uint256 poolId) {
+        poolId = lockDealNFT.mintAndTransfer(addresses[0], addresses[1], addresses[0], params[0], _provider);
         _provider.registerPool(poolId, params);
     }
 

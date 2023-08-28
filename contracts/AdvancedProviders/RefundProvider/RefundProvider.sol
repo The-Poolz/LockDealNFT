@@ -43,31 +43,37 @@ contract RefundProvider is RefundState, IERC721Receiver, RefundModifiers {
         return IERC721Receiver.onERC721Received.selector;
     }
 
+    ///@param addresses[0] = owner
+    ///@param addresses[1] = token
+    ///@param addresses[2] = main coin
+    ///@param addresses[3] = provider
     ///@param params[0] = tokenLeftAmount
     ///@param params[params.length - 3] = refundMainCoinAmount
     ///@param params[params.length - 2] = rateToWei
     ///@param params[params.length - 1] = refund finish time
     function createNewRefundPool(
-        address token,
-        address owner,
-        address mainCoin,
-        IProvider provider,
+        address[] calldata addresses,
         uint256[] calldata params
-    ) external validProviderInterface(provider, Refundble._INTERFACE_ID_REFUNDABLE) returns (uint256 poolId) {
+    )
+        external
+        validAddressesLength(addresses.length, 4)
+        validProviderInterface(IProvider(addresses[3]), Refundble._INTERFACE_ID_REFUNDABLE)
+        returns (uint256 poolId)
+    {
         uint256 paramsLength = params.length;
         require(paramsLength > 3, "invalid params length");
-
+        IProvider provider = IProvider(addresses[3]);
         // create new refund pool | Owner User
-        poolId = lockDealNFT.mintForProvider(owner, this);
+        poolId = lockDealNFT.mintForProvider(addresses[0], this);
 
         // Hold token (data) | Owner Refund Provider
-        uint256 dataPoolID = lockDealNFT.mintAndTransfer(address(this), token, msg.sender, params[0], provider);
+        uint256 dataPoolID = lockDealNFT.mintAndTransfer(address(this), addresses[1], msg.sender, params[0], provider);
         provider.registerPool(dataPoolID, params);
 
         // Hold main coin | Project Owner
         uint256 collateralPoolId = lockDealNFT.mintAndTransfer(
             msg.sender,
-            mainCoin,
+            addresses[2],
             msg.sender,
             params[paramsLength - 3],
             collateralProvider

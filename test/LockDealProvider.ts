@@ -16,6 +16,7 @@ describe('Lock Deal Provider', function () {
   let mockVaultManager: MockVaultManager;
   let poolId: number;
   let params: [number, number];
+  let addresses: string[];
   let receiver: SignerWithAddress;
   let newOwner: SignerWithAddress;
   let startTime: number;
@@ -36,8 +37,9 @@ describe('Lock Deal Provider', function () {
   beforeEach(async () => {
     startTime = (await time.latest()) + 100;
     params = [amount, startTime];
+    addresses = [receiver.address, token];
     poolId = (await lockDealNFT.totalSupply()).toNumber();
-    await lockProvider.createNewPool(receiver.address, token, params);
+    await lockProvider.createNewPool(addresses, params);
     vaultId = await mockVaultManager.Id();
   });
 
@@ -46,7 +48,7 @@ describe('Lock Deal Provider', function () {
   });
 
   it('should check cascade pool creation events', async () => {
-    const tx = await lockProvider.createNewPool(receiver.address, token, params);
+    const tx = await lockProvider.createNewPool(addresses, params);
     await tx.wait();
     const event = await dealProvider.queryFilter(dealProvider.filters.UpdateParams());
     expect(event[event.length - 1].args.poolId).to.equal(poolId + 1);
@@ -61,21 +63,17 @@ describe('Lock Deal Provider', function () {
 
   it('should revert if the start time is invalid', async () => {
     const invalidParams = [amount, startTime - 100];
-    await expect(lockProvider.createNewPool(receiver.address, token, invalidParams)).to.be.revertedWith(
-      'Invalid start time',
-    );
+    await expect(lockProvider.createNewPool(addresses, invalidParams)).to.be.revertedWith('Invalid start time');
   });
 
   it('should revert zero owner address', async () => {
-    await expect(lockProvider.createNewPool(receiver.address, constants.AddressZero, params)).to.be.revertedWith(
-      'Zero Address is not allowed',
-    );
+    addresses[1] = constants.AddressZero;
+    await expect(lockProvider.createNewPool(addresses, params)).to.be.revertedWith('Zero Address is not allowed');
   });
 
   it('should revert zero token address', async () => {
-    await expect(lockProvider.createNewPool(constants.AddressZero, token, params)).to.be.revertedWith(
-      'Zero Address is not allowed',
-    );
+    addresses[0] = constants.AddressZero;
+    await expect(lockProvider.createNewPool(addresses, params)).to.be.revertedWith('Zero Address is not allowed');
   });
 
   describe('Lock Split Amount', () => {

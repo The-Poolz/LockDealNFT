@@ -30,6 +30,15 @@ abstract contract ProviderModifiers is ProviderState {
         _;
     }
 
+    modifier validAddressesLength(uint256 addressLength, uint256 minLength) {
+        _validAddressLength(addressLength, minLength);
+        _;
+    }
+
+    function _validAddressLength(uint256 addressLength, uint256 minLength) internal pure {
+        require(addressLength >= minLength, "invalid addresses length");
+    }
+
     function _validProvider(uint256 poolId, IProvider provider) internal view {
         require(lockDealNFT.poolIdToProvider(poolId) == provider, "Invalid provider poolId");
     }
