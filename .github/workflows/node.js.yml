@@ -2,15 +2,14 @@ name: Build and Test
 
 on:
   push:
-    branches:
-      - master
+    branches: [master]
   pull_request:
-    branches:
-      - master
+    branches: [master]
 
 jobs:
   Gas-Test:
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' # This line ensures that this job only runs on pull requests
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
