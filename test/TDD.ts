@@ -64,7 +64,6 @@ describe('test-driven development', function () {
 
   describe('Bundle Provider', async () => {
     let bundleProviders: string[];
-    let addresses: string[];
     let params: [BigNumber[], (number | BigNumber)[], (number | BigNumber)[], (number | BigNumber)[]];
     let dealProviderParams: [BigNumber];
     let lockProviderParams: [BigNumber, number];
