@@ -18,10 +18,7 @@ contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
     function mintForProvider(
         address owner,
         IProvider provider
-    ) external onlyApprovedProvider notZeroAddress(owner) returns (uint256 poolId) {
-        if (address(provider) != msg.sender) {
-            _onlyApprovedProvider(provider);
-        }
+    ) external onlyApprovedProvider(provider) notZeroAddress(owner) returns (uint256 poolId) {
         poolId = _mint(owner, provider);
     }
 
@@ -33,16 +30,13 @@ contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
         IProvider provider
     )
         public
-        onlyApprovedProvider
+        onlyApprovedProvider(provider)
         notZeroAddress(owner)
         notZeroAddress(token)
         notZeroAmount(amount)
         returns (uint256 poolId)
     {
         require(amount < type(uint256).max, "amount is too big");
-        if (address(provider) != msg.sender) {
-            _onlyApprovedProvider(provider);
-        }
         poolId = _mint(owner, provider);
         poolIdToVaultId[poolId] = vaultManager.depositByToken(token, from, amount);
     }
@@ -50,7 +44,7 @@ contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
     function copyVaultId(
         uint256 fromId,
         uint256 toId
-    ) external onlyApprovedProvider validPoolId(fromId) validPoolId(toId) {
+    ) external onlyApprovedProvider(IProvider(msg.sender)) validPoolId(fromId) validPoolId(toId) {
         poolIdToVaultId[toId] = poolIdToVaultId[fromId];
     }
 

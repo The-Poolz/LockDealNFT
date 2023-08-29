@@ -4,8 +4,11 @@ pragma solidity ^0.8.0;
 import "./LockDealNFTState.sol";
 
 abstract contract LockDealNFTModifiers is LockDealNFTState {
-    modifier onlyApprovedProvider() {
-        _onlyApprovedProvider(IProvider(msg.sender));
+    modifier onlyApprovedProvider(IProvider provider) {
+        _onlyApprovedProvider(provider);
+        if (address(provider) != msg.sender) {
+            _onlyApprovedProvider(IProvider(msg.sender));
+        }
         _;
     }
 
