@@ -11,7 +11,7 @@ contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
     constructor(address _vaultManager, string memory _baseURI) ERC721("LockDealNFT", "LDNFT") {
         require(_vaultManager != address(0x0), "invalid vault manager address");
         vaultManager = IVaultManager(_vaultManager);
-        approvedProviders[address(this)] = true;
+        approvedProviders[IProvider(address(this))] = true;
         baseURI = _baseURI;
     }
 
@@ -58,7 +58,7 @@ contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
     /// @param provider The address of the provider
     /// @param status The new approved status (true or false)
     function setApprovedProvider(IProvider provider, bool status) external onlyOwner onlyContract(address(provider)) {
-        approvedProviders[address(provider)] = status;
+        approvedProviders[provider] = status;
         emit ProviderApproved(provider, status);
     }
 
