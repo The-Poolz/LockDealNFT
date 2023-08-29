@@ -41,7 +41,7 @@ abstract contract LockDealNFTModifiers is LockDealNFTState {
     }
 
     function _onlyApprovedProvider(IProvider provider) internal view {
-        require(approvedProviders[address(provider)], "Provider not approved");
+        require(approvedProviders[provider], "Provider not approved");
     }
 
     function _notZeroAmount(uint256 amount) private pure {

@@ -7,7 +7,7 @@ import "../AdvancedProviders/CollateralProvider/IInnerWithdraw.sol";
 abstract contract LockDealNFTInternal is LockDealNFTModifiers {
     function _transfer(address from, address to, uint256 poolId) internal override {
         // check for split and withdraw transfers
-        if (!(approvedProviders[to] || approvedProviders[from])) {
+        if (!(approvedProviders[IProvider(to)] || approvedProviders[IProvider(from)])) {
             require(approvedPoolUserTransfers[from], "Pool transfer not approved by user");
             require(
                 vaultManager.vaultIdToTradeStartTime(poolIdToVaultId[poolId]) < block.timestamp,
