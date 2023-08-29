@@ -11,17 +11,14 @@ contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
     constructor(address _vaultManager, string memory _baseURI) ERC721("LockDealNFT", "LDNFT") {
         require(_vaultManager != address(0x0), "invalid vault manager address");
         vaultManager = IVaultManager(_vaultManager);
-        approvedProviders[address(this)] = true;
+        approvedProviders[IProvider(address(this))] = true;
         baseURI = _baseURI;
     }
 
     function mintForProvider(
         address owner,
         IProvider provider
-    ) external onlyApprovedProvider notZeroAddress(owner) returns (uint256 poolId) {
-        if (address(provider) != msg.sender) {
-            _onlyApprovedProvider(provider);
-        }
+    ) external onlyApprovedProvider(provider) notZeroAddress(owner) returns (uint256 poolId) {
         poolId = _mint(owner, provider);
     }
 
@@ -33,16 +30,13 @@ contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
         IProvider provider
     )
         public
-        onlyApprovedProvider
+        onlyApprovedProvider(provider)
         notZeroAddress(owner)
         notZeroAddress(token)
         notZeroAmount(amount)
         returns (uint256 poolId)
     {
         require(amount < type(uint256).max, "amount is too big");
-        if (address(provider) != msg.sender) {
-            _onlyApprovedProvider(provider);
-        }
         poolId = _mint(owner, provider);
         poolIdToVaultId[poolId] = vaultManager.depositByToken(token, from, amount);
     }
@@ -50,7 +44,7 @@ contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
     function copyVaultId(
         uint256 fromId,
         uint256 toId
-    ) external onlyApprovedProvider validPoolId(fromId) validPoolId(toId) {
+    ) external onlyApprovedProvider(IProvider(msg.sender)) validPoolId(fromId) validPoolId(toId) {
         poolIdToVaultId[toId] = poolIdToVaultId[fromId];
     }
 
@@ -58,7 +52,7 @@ contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
     /// @param provider The address of the provider
     /// @param status The new approved status (true or false)
     function setApprovedProvider(IProvider provider, bool status) external onlyOwner onlyContract(address(provider)) {
-        approvedProviders[address(provider)] = status;
+        approvedProviders[provider] = status;
         emit ProviderApproved(provider, status);
     }
 

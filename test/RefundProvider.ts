@@ -29,6 +29,7 @@ describe('Refund Provider', function () {
   let vaultId: BigNumber;
   let receiver: SignerWithAddress;
   let projectOwner: SignerWithAddress;
+  let addresses: string[];
   let params: [BigNumber, number, number, BigNumber, BigNumber, number];
   let startTime: number, finishTime: number;
   const amount = ethers.utils.parseEther('100');
@@ -58,10 +59,9 @@ describe('Refund Provider', function () {
     startTime = (await time.latest()) + ONE_DAY; // plus 1 day
     finishTime = startTime + 7 * ONE_DAY; // plus 7 days from `startTime`
     params = [amount, startTime, finishTime, mainCoinAmount, rate, finishTime];
+    addresses = [receiver.address, token, BUSD, timedProvider.address];
     poolId = (await lockDealNFT.totalSupply()).toNumber();
-    await refundProvider
-      .connect(projectOwner)
-      .createNewRefundPool(token, receiver.address, BUSD, timedProvider.address, params);
+    await refundProvider.connect(projectOwner).createNewRefundPool(addresses, params);
     vaultId = await mockVaultManager.Id();
     halfTime = (finishTime - startTime) / 2;
   });
@@ -159,9 +159,8 @@ describe('Refund Provider', function () {
     });
 
     it('should revert invalid provider', async () => {
-      await expect(
-        refundProvider.createNewRefundPool(token, receiver.address, BUSD, refundProvider.address, params),
-      ).to.be.revertedWith('invalid provider type');
+      addresses[3] = refundProvider.address;
+      await expect(refundProvider.createNewRefundPool(addresses, params)).to.be.revertedWith('invalid provider type');
     });
   });
 
@@ -326,9 +325,8 @@ describe('Refund Provider', function () {
 
   describe('Refund Pool', async () => {
     it('the user receives the main coins', async () => {
-      await refundProvider
-        .connect(projectOwner)
-        .createNewRefundPool(token, receiver.address, BUSD, lockProvider.address, params);
+      addresses[3] = lockProvider.address;
+      await refundProvider.connect(projectOwner).createNewRefundPool(addresses, params);
       await lockDealNFT
         .connect(receiver)
         ['safeTransferFrom(address,address,uint256)'](receiver.address, refundProvider.address, poolId);
@@ -345,9 +343,8 @@ describe('Refund Provider', function () {
     });
 
     it('the project owner receives the tokens', async () => {
-      await refundProvider
-        .connect(projectOwner)
-        .createNewRefundPool(token, receiver.address, BUSD, lockProvider.address, params);
+      addresses[3] = lockProvider.address;
+      await refundProvider.connect(projectOwner).createNewRefundPool(addresses, params);
       await lockDealNFT
         .connect(receiver)
         ['safeTransferFrom(address,address,uint256)'](receiver.address, refundProvider.address, poolId);

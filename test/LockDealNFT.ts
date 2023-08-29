@@ -16,6 +16,7 @@ describe('LockDealNFT', function () {
   let mockVaultManager: MockVaultManager;
   let dealProvider: DealProvider;
   let lockDealProvider: LockDealProvider;
+  let addresses: string[];
   let timedDealProvider: TimedDealProvider;
   let receiver: SignerWithAddress;
   let notOwner: SignerWithAddress;
@@ -40,7 +41,8 @@ describe('LockDealNFT', function () {
     startTime = (await time.latest()) + 100;
     finishTime = startTime + 100;
     poolId = (await lockDealNFT.totalSupply()).toNumber();
-    await dealProvider.createNewPool(receiver.address, token, [amount]);
+    addresses = [receiver.address, token];
+    await dealProvider.createNewPool(addresses, [amount]);
     vaultId = await mockVaultManager.Id();
   });
 
@@ -137,7 +139,7 @@ describe('LockDealNFT', function () {
   });
 
   it('should return mintInitiated event', async () => {
-    const tx = await dealProvider.createNewPool(receiver.address, token, [amount]);
+    const tx = await dealProvider.createNewPool(addresses, [amount]);
     await tx.wait();
     const events = await lockDealNFT.queryFilter(lockDealNFT.filters.MintInitiated());
     expect(events[events.length - 1].args.provider).to.equal(dealProvider.address);
@@ -170,7 +172,7 @@ describe('LockDealNFT', function () {
   it('should return data from LockDealProvider using LockedDealNFT', async () => {
     poolId = (await lockDealNFT.totalSupply()).toNumber();
     const params = [amount, startTime];
-    await lockDealProvider.createNewPool(receiver.address, token, params);
+    await lockDealProvider.createNewPool(addresses, params);
     const vaultId = await mockVaultManager.Id();
     const poolData = await lockDealNFT.getData(poolId);
     expect(poolData).to.deep.equal([lockDealProvider.address, poolId, vaultId, receiver.address, token, params]);
@@ -179,7 +181,7 @@ describe('LockDealNFT', function () {
   it('should return data from TimedDealProvider using LockedDealNFT', async () => {
     poolId = (await lockDealNFT.totalSupply()).toNumber();
     const params = [amount, startTime, finishTime, amount];
-    await timedDealProvider.createNewPool(receiver.address, token, params);
+    await timedDealProvider.createNewPool(addresses, params);
     const vaultId = await mockVaultManager.Id();
     const poolData = await lockDealNFT.getData(poolId);
     expect(poolData).to.deep.equal([timedDealProvider.address, poolId, vaultId, receiver.address, token, params]);

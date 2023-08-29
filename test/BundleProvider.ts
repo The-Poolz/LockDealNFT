@@ -24,6 +24,7 @@ describe('Lock Deal Bundle Provider', function () {
   let receiver: SignerWithAddress;
   let newOwner: SignerWithAddress;
   let startTime: number, finishTime: number;
+  let addresses: string[];
   let params: [BigNumber[], (number | BigNumber)[], (number | BigNumber)[]];
   const amount = BigNumber.from(100000);
   const ONE_DAY = 86400;
@@ -50,10 +51,10 @@ describe('Lock Deal Bundle Provider', function () {
     const dealProviderParams = [amount];
     const lockProviderParams = [amount, startTime];
     const timedDealProviderParams = [amount, startTime, finishTime, amount];
-    const bundleProviders = [dealProvider.address, lockProvider.address, timedDealProvider.address];
+    addresses = [receiver.address, token, dealProvider.address, lockProvider.address, timedDealProvider.address];
     params = [dealProviderParams, lockProviderParams, timedDealProviderParams];
     bundlePoolId = (await lockDealNFT.totalSupply()).toNumber();
-    await bundleProvider.createNewPool(receiver.address, token, bundleProviders, params);
+    await bundleProvider.createNewPool(addresses, params);
   });
 
   it('should return provider name', async () => {
@@ -83,10 +84,9 @@ describe('Lock Deal Bundle Provider', function () {
     const dealProviderParams = [amount];
     const lockProviderParams = [amount, startTime];
     const timedDealProviderParams = [amount, startTime, finishTime, amount];
-    const bundleProviders = [dealProvider.address, lockProvider.address, timedDealProvider.address];
     const bundleProviderParams = [dealProviderParams, lockProviderParams, timedDealProviderParams];
 
-    const tx = await bundleProvider.createNewPool(receiver.address, token, bundleProviders, bundleProviderParams);
+    const tx = await bundleProvider.createNewPool(addresses, bundleProviderParams);
     await tx.wait();
     const event = await dealProvider.queryFilter(dealProvider.filters.UpdateParams());
     const data = event[event.length - 1].args;
@@ -100,26 +100,25 @@ describe('Lock Deal Bundle Provider', function () {
     const dealProviderParams = [amount];
     const lockProviderParams = [amount, startTime];
     const timedDealProviderParams = [amount, startTime, finishTime, amount];
-    const bundleProviders = [dealProvider.address, lockProvider.address, timedDealProvider.address];
     const bundleProviderParams = [dealProviderParams, lockProviderParams, timedDealProviderParams];
 
     // zero address
-    bundleProviders[0] = constants.AddressZero;
-    await expect(
-      bundleProvider.createNewPool(receiver.address, token, bundleProviders, bundleProviderParams),
-    ).to.be.revertedWith('Provider not approved');
+    addresses[2] = constants.AddressZero;
+    await expect(bundleProvider.createNewPool(addresses, bundleProviderParams)).to.be.revertedWith(
+      'Provider not approved',
+    );
 
     // lockDealNFT address
-    bundleProviders[0] = lockDealNFT.address;
-    await expect(
-      bundleProvider.createNewPool(receiver.address, token, bundleProviders, bundleProviderParams),
-    ).to.be.revertedWith('invalid provider address');
+    addresses[2] = lockDealNFT.address;
+    await expect(bundleProvider.createNewPool(addresses, bundleProviderParams)).to.be.revertedWith(
+      'invalid provider address',
+    );
 
     // bundleProvider address
-    bundleProviders[0] = bundleProvider.address;
-    await expect(
-      bundleProvider.createNewPool(receiver.address, token, bundleProviders, bundleProviderParams),
-    ).to.be.revertedWith('invalid provider address');
+    addresses[2] = bundleProvider.address;
+    await expect(bundleProvider.createNewPool(addresses, bundleProviderParams)).to.be.revertedWith(
+      'invalid provider address',
+    );
   });
 
   it('should return true if the bundle support Refundble hash', async () => {
@@ -133,35 +132,37 @@ describe('Lock Deal Bundle Provider', function () {
   it('should revert if the provider count is mismatched with the params count', async () => {
     const dealProviderParams = [amount];
     const lockProviderParams = [amount, startTime];
-    // const timedDealProviderParams = [amount, startTime, finishTime, amount]
-    const bundleProviders = [dealProvider.address, lockProvider.address, timedDealProvider.address];
     const bundleProviderParams = [dealProviderParams, lockProviderParams];
 
-    await expect(
-      bundleProvider.createNewPool(receiver.address, token, bundleProviders, bundleProviderParams),
-    ).to.be.revertedWith('providers and params length mismatch');
+    await expect(bundleProvider.createNewPool(addresses, bundleProviderParams)).to.be.revertedWith(
+      'providers and params length mismatch',
+    );
   });
 
   it('should revert if the provider count is not greater than 1', async () => {
     const dealProviderParams = [amount];
-    const bundleProviders = [dealProvider.address];
     const bundleProviderParams = [dealProviderParams];
-
-    await expect(
-      bundleProvider.createNewPool(receiver.address, token, bundleProviders, bundleProviderParams),
-    ).to.be.revertedWith('providers length must be greater than 1');
+    addresses = [receiver.address, token, dealProvider.address];
+    await expect(bundleProvider.createNewPool(addresses, bundleProviderParams)).to.be.revertedWith(
+      'invalid addresses length',
+    );
   });
 
   it('should revert zero token address', async () => {
     const dealProviderParams = [amount];
     const lockProviderParams = [amount, startTime];
     const timedDealProviderParams = [amount, startTime, finishTime, amount];
-    const bundleProviders = [dealProvider.address, lockProvider.address, timedDealProvider.address];
     const bundleProviderParams = [dealProviderParams, lockProviderParams, timedDealProviderParams];
-
-    await expect(
-      bundleProvider.createNewPool(receiver.address, constants.AddressZero, bundleProviders, bundleProviderParams),
-    ).to.be.revertedWith('Zero Address is not allowed');
+    addresses = [
+      receiver.address,
+      constants.AddressZero,
+      dealProvider.address,
+      lockProvider.address,
+      timedDealProvider.address,
+    ];
+    await expect(bundleProvider.createNewPool(addresses, bundleProviderParams)).to.be.revertedWith(
+      'Zero Address is not allowed',
+    );
   });
 
   it('should revert if the poolId is not the bundle poolId', async () => {
@@ -350,16 +351,16 @@ describe('Lock Deal Bundle Provider', function () {
       const dealProviderParams = [amount];
       const lockProviderParams = [amount, startTime];
       const timedDealProviderParams = [amount, startTime, finishTime, amount];
-      const bundleProviders = [dealProvider.address, lockProvider.address, timedDealProvider.address];
       const params = [dealProviderParams, lockProviderParams, timedDealProviderParams];
       bundlePoolId = (await lockDealNFT.totalSupply()).toNumber();
-      await bundleProvider.createNewPool(receiver.address, token, bundleProviders, params);
+      await bundleProvider.createNewPool(addresses, params);
     });
 
     it('should rewrite pool data', async () => {
       const vaultId = await mockVaultManager.Id();
-      await dealProvider.createNewPool(bundleProvider.address, token, [amount]);
-      await lockProvider.createNewPool(bundleProvider.address, token, [amount, startTime]);
+      const addresses = [bundleProvider.address, token];
+      await dealProvider.createNewPool(addresses, [amount]);
+      await lockProvider.createNewPool(addresses, [amount, startTime]);
       const lastSubPoolId = (await lockDealNFT.totalSupply()).toNumber() - 1;
       const bundleParams = [lastSubPoolId];
       await mockProvider.registerPool(bundlePoolId, bundleParams);
@@ -383,7 +384,8 @@ describe('Lock Deal Bundle Provider', function () {
     });
 
     it('should revert invalid pool owner', async () => {
-      await dealProvider.createNewPool(receiver.address, token, [amount]);
+      addresses = [receiver.address, token];
+      await dealProvider.createNewPool(addresses, [amount]);
       const lastSubPoolId = (await lockDealNFT.totalSupply()).toNumber() - 1;
       await expect(mockProvider.registerPool(bundlePoolId, [lastSubPoolId])).to.be.revertedWith(
         'invalid owner of sub pool',

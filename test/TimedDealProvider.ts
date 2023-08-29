@@ -21,6 +21,7 @@ describe('Timed Deal Provider', function () {
   let halfTime: number;
   let poolId: number;
   let vaultId: BigNumber;
+  let addresses: string[];
   let params: [number, number, number];
   let receiver: SignerWithAddress;
   let newOwner: SignerWithAddress;
@@ -48,7 +49,8 @@ describe('Timed Deal Provider', function () {
     finishTime = startTime + 7 * ONE_DAY; // plus 7 days from `startTime`
     params = [amount, startTime, finishTime];
     poolId = (await lockDealNFT.totalSupply()).toNumber();
-    await timedDealProvider.createNewPool(receiver.address, token, params);
+    addresses = [receiver.address, token];
+    await timedDealProvider.createNewPool(addresses, params);
     vaultId = await mockVaultManager.Id();
     halfTime = (finishTime - startTime) / 2;
   });
@@ -65,7 +67,7 @@ describe('Timed Deal Provider', function () {
 
   it('should get user data by one token', async () => {
     const params = [amount, startTime, finishTime, amount];
-    await timedDealProvider.createNewPool(receiver.address, token, params);
+    await timedDealProvider.createNewPool(addresses, params);
     const poolData = await lockDealNFT.getUserDataByTokens(receiver.address, [token], poolId, poolId);
     expect(poolData[0]).to.deep.equal([timedDealProvider.address, poolId, vaultId, receiver.address, token, params]);
     expect(poolData.length).to.equal(1);
@@ -74,9 +76,10 @@ describe('Timed Deal Provider', function () {
   it('should get user data with two tokens', async () => {
     const params = [amount, startTime, finishTime, amount];
     const from = (await lockDealNFT.totalSupply()).toNumber();
-    await timedDealProvider.createNewPool(receiver.address, token, params);
+    await timedDealProvider.createNewPool(addresses, params);
     const vaultId = await mockVaultManager.Id();
-    await timedDealProvider.createNewPool(receiver.address, BUSD, params);
+    addresses[1] = BUSD;
+    await timedDealProvider.createNewPool(addresses, params);
     const to = from + 1;
     const poolData = await lockDealNFT.getUserDataByTokens(receiver.address, [token, BUSD], from, to);
     expect(poolData[0]).to.deep.equal([timedDealProvider.address, from, vaultId, receiver.address, token, params]);
@@ -88,10 +91,12 @@ describe('Timed Deal Provider', function () {
     const params = [amount, startTime, finishTime, amount];
     const USDT = '0x55d398326f99059ff775485246999027b3197955';
     const from = (await lockDealNFT.totalSupply()).toNumber();
-    await timedDealProvider.createNewPool(receiver.address, token, params);
+    await timedDealProvider.createNewPool(addresses, params);
     const vaultId = await mockVaultManager.Id();
-    await timedDealProvider.createNewPool(receiver.address, BUSD, params);
-    await timedDealProvider.createNewPool(receiver.address, USDT, params);
+    addresses[1] = BUSD;
+    await timedDealProvider.createNewPool(addresses, params);
+    addresses[1] = USDT;
+    await timedDealProvider.createNewPool(addresses, params);
     const to = from + 2;
     const poolData = await lockDealNFT.getUserDataByTokens(receiver.address, [token, BUSD, USDT], from, to);
     expect(poolData[0]).to.deep.equal([timedDealProvider.address, from, vaultId, receiver.address, token, params]);
@@ -108,7 +113,7 @@ describe('Timed Deal Provider', function () {
   });
 
   it('should check cascade UpdateParams event', async () => {
-    const tx = await timedDealProvider.createNewPool(receiver.address, token, params);
+    const tx = await timedDealProvider.createNewPool(addresses, params);
     await tx.wait();
     const event = await dealProvider.queryFilter(dealProvider.filters.UpdateParams());
     const data = event[event.length - 1].args;
@@ -117,15 +122,13 @@ describe('Timed Deal Provider', function () {
   });
 
   it('should revert zero owner address', async () => {
-    await expect(timedDealProvider.createNewPool(receiver.address, constants.AddressZero, params)).to.be.revertedWith(
-      'Zero Address is not allowed',
-    );
+    addresses[1] = constants.AddressZero;
+    await expect(timedDealProvider.createNewPool(addresses, params)).to.be.revertedWith('Zero Address is not allowed');
   });
 
   it('should revert zero token address', async () => {
-    await expect(timedDealProvider.createNewPool(constants.AddressZero, token, params)).to.be.revertedWith(
-      'Zero Address is not allowed',
-    );
+    addresses[0] = constants.AddressZero;
+    await expect(timedDealProvider.createNewPool(addresses, params)).to.be.revertedWith('Zero Address is not allowed');
   });
 
   describe('Timed Split Amount', () => {
@@ -241,7 +244,7 @@ describe('Timed Deal Provider', function () {
   describe('test higher cascading providers', () => {
     beforeEach(async () => {
       poolId = (await lockDealNFT.totalSupply()).toNumber();
-      await mockProvider.createNewPool(receiver.address, token, params);
+      await mockProvider.createNewPool(addresses, params);
       vaultId = await mockVaultManager.Id();
       await time.setNextBlockTimestamp(startTime);
     });
@@ -272,9 +275,7 @@ describe('Timed Deal Provider', function () {
         lockDealNFT.address,
         timedDealProvider.address,
       );
-      await expect(invalidContract.createNewPool(receiver.address, token, params)).to.be.revertedWith(
-        'Provider not approved',
-      );
+      await expect(invalidContract.createNewPool(addresses, params)).to.be.revertedWith('Provider not approved');
     });
 
     it("invalid provider can't withdraw", async () => {

@@ -14,6 +14,7 @@ describe('Deal Provider', function () {
   let poolId: number;
   let receiver: SignerWithAddress;
   let newOwner: SignerWithAddress;
+  let addresses: string[];
   let params: [number];
   let vaultId: BigNumber;
   const amount = 10000;
@@ -30,7 +31,8 @@ describe('Deal Provider', function () {
   beforeEach(async () => {
     poolId = (await lockDealNFT.totalSupply()).toNumber();
     params = [amount];
-    await dealProvider.createNewPool(receiver.address, token, params);
+    addresses = [receiver.address, token];
+    await dealProvider.createNewPool(addresses, params);
     vaultId = await mockVaultManager.Id();
   });
 
@@ -45,7 +47,7 @@ describe('Deal Provider', function () {
   });
 
   it('should check pool creation events', async () => {
-    const tx = await dealProvider.createNewPool(receiver.address, token, params);
+    const tx = await dealProvider.createNewPool(addresses, params);
     await tx.wait();
     const events = await dealProvider.queryFilter(dealProvider.filters.UpdateParams());
     expect(events[events.length - 1].args.poolId).to.equal(poolId + 1);
@@ -53,19 +55,17 @@ describe('Deal Provider', function () {
   });
 
   it('should revert zero owner address', async () => {
-    await expect(dealProvider.createNewPool(receiver.address, constants.AddressZero, params)).to.be.revertedWith(
-      'Zero Address is not allowed',
-    );
+    addresses[1] = constants.AddressZero;
+    await expect(dealProvider.createNewPool(addresses, params)).to.be.revertedWith('Zero Address is not allowed');
   });
 
   it('should revert zero token address', async () => {
-    await expect(dealProvider.createNewPool(constants.AddressZero, token, params)).to.be.revertedWith(
-      'Zero Address is not allowed',
-    );
+    addresses[0] = constants.AddressZero;
+    await expect(dealProvider.createNewPool(addresses, params)).to.be.revertedWith('Zero Address is not allowed');
   });
 
   it('should revert zero params', async () => {
-    await expect(dealProvider.createNewPool(receiver.address, token, [])).to.be.revertedWith('invalid params length');
+    await expect(dealProvider.createNewPool(addresses, [])).to.be.revertedWith('invalid params length');
   });
 
   describe('Split Amount', () => {
