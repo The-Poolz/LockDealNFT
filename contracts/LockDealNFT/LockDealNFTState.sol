@@ -58,13 +58,6 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
         token = vaultManager.vaultIdToTokenAddress(poolIdToVaultId[poolId]);
     }
 
-    /// @dev Checks if a pool with the given ID exists
-    /// @param poolId The ID of the pool
-    /// @return boolean indicating whether the pool exists or not
-    function exist(uint256 poolId) external view returns (bool) {
-        return _exists(poolId);
-    }
-
     function getWithdrawableAmount(uint256 poolId) external view returns (uint256 withdrawalAmount) {
         if (_exists(poolId)) {
             withdrawalAmount = poolIdToProvider[poolId].getWithdrawableAmount(poolId);

@@ -150,14 +150,6 @@ describe('Refund Provider', function () {
       ]);
     });
 
-    xit('should return metada register after creation', async () => {
-      //TODO: fix this test
-      const tx = await mockProvider.registerPool(poolId, params);
-      await tx.wait();
-      const events = await lockDealNFT.queryFilter(lockDealNFT.filters.MetadataUpdate());
-      expect(events[events.length - 1].args._tokenId).to.equal(poolId);
-    });
-
     it('should revert invalid provider', async () => {
       addresses[3] = refundProvider.address;
       await expect(refundProvider.createNewRefundPool(addresses, params)).to.be.revertedWith('invalid provider type');

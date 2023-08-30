@@ -24,7 +24,6 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers {
         newPoolId = totalSupply();
         _safeMint(owner, newPoolId);
         poolIdToProvider[newPoolId] = provider;
-        //emit MintInitiated(provider,getData(poolId));
     }
 
     function _parseData(bytes calldata data, address from) internal pure returns (uint256 ratio, address newOwner) {
