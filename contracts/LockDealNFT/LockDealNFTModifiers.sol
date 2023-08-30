@@ -32,7 +32,7 @@ abstract contract LockDealNFTModifiers is LockDealNFTState {
         _;
     }
 
-    function _notZeroAddress(address _address) private pure {
+    function _notZeroAddress(address _address) internal pure {
         require(_address != address(0x0), "Zero Address is not allowed");
     }
 

@@ -76,13 +76,11 @@ contract BundleProvider is BundleModifiers, ERC721Holder {
         uint256 lastSubPoolId = bundlePoolIdToLastSubPoolId[poolId];
         isFinal = true;
         for (uint256 i = poolId + 1; i <= lastSubPoolId; ++i) {
-            if (lockDealNFT.exist(i)) {
-                address provider = address(lockDealNFT.poolIdToProvider(i));
-                uint256 amount = lockDealNFT.getWithdrawableAmount(i);
-                (uint256 subPoolWithdrawnAmount, bool subPoolIsFinal) = BasicProvider(provider).withdraw(i, amount);
-                withdrawnAmount += subPoolWithdrawnAmount;
-                isFinal = isFinal && subPoolIsFinal;
-            }
+            address provider = address(lockDealNFT.poolIdToProvider(i));
+            uint256 amount = lockDealNFT.getWithdrawableAmount(i);
+            (uint256 subPoolWithdrawnAmount, bool subPoolIsFinal) = BasicProvider(provider).withdraw(i, amount);
+            withdrawnAmount += subPoolWithdrawnAmount;
+            isFinal = isFinal && subPoolIsFinal;
         }
     }
 
@@ -99,7 +97,7 @@ contract BundleProvider is BundleModifiers, ERC721Holder {
     function getParams(uint256 poolId) public view override returns (uint256[] memory params) {
         params = new uint256[](currentParamsTargetLenght() + 1);
         params[0] = getTotalRemainingAmount(poolId);
-        params[1] = bundlePoolIdToLastSubPoolId[poolId]; //TODO this will change to the Last Pool Id
+        params[1] = bundlePoolIdToLastSubPoolId[poolId];
     }
 
     function getTotalRemainingAmount(

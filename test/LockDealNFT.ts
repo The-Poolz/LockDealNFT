@@ -138,13 +138,6 @@ describe('LockDealNFT', function () {
     expect(await lockDealNFT.poolIdToProvider(poolId)).to.equal(dealProvider.address);
   });
 
-  it('should return mintInitiated event', async () => {
-    const tx = await dealProvider.createNewPool(addresses, [amount]);
-    await tx.wait();
-    const events = await lockDealNFT.queryFilter(lockDealNFT.filters.MintInitiated());
-    expect(events[events.length - 1].args.provider).to.equal(dealProvider.address);
-  });
-
   it('should save provider address', async () => {
     expect(await lockDealNFT.poolIdToProvider(poolId)).to.equal(dealProvider.address);
   });
@@ -257,7 +250,7 @@ describe('LockDealNFT', function () {
   });
 
   it('check if the contract supports ILockDealNFT interface', async () => {
-    expect(await lockDealNFT.supportsInterface('0x23c94c6e')).to.equal(true);
+    expect(await lockDealNFT.supportsInterface('0x6d728544')).to.equal(true);
   });
 
   it('shuld return royalty', async () => {

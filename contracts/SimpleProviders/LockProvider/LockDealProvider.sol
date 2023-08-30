@@ -21,9 +21,8 @@ contract LockDealProvider is BasicProvider, LockDealState {
         uint256 poolId,
         uint256 amount
     ) internal override returns (uint256 withdrawnAmount, bool isFinal) {
-        if (poolIdToTime[poolId] <= block.timestamp) {
-            (withdrawnAmount, isFinal) = provider.withdraw(poolId, amount);
-        }
+        withdrawnAmount = getWithdrawableAmount(poolId);
+        (withdrawnAmount, isFinal) = provider.withdraw(poolId, amount > withdrawnAmount ? withdrawnAmount : amount);
     }
 
     function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) public override onlyProvider {

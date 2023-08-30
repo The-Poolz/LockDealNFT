@@ -9,7 +9,7 @@ import "../AdvancedProviders/CollateralProvider/IInnerWithdraw.sol";
 /// @notice Implements a non-fungible token (NFT) contract for locking deals
 contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
     constructor(address _vaultManager, string memory _baseURI) ERC721("LockDealNFT", "LDNFT") {
-        require(_vaultManager != address(0x0), "invalid vault manager address");
+        _notZeroAddress(_vaultManager);
         vaultManager = IVaultManager(_vaultManager);
         approvedProviders[IProvider(address(this))] = true;
         baseURI = _baseURI;
@@ -36,7 +36,7 @@ contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
         notZeroAmount(amount)
         returns (uint256 poolId)
     {
-        require(amount < type(uint256).max, "amount is too big");
+        require(amount != type(uint256).max, "amount is too big");
         poolId = _mint(owner, provider);
         poolIdToVaultId[poolId] = vaultManager.depositByToken(token, from, amount);
     }
@@ -69,7 +69,7 @@ contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
         bytes calldata data
     ) external override returns (bytes4) {
         require(msg.sender == address(this), "invalid nft contract");
-        _handleReturn(poolId, from, data.length > 0 ? _split(poolId, from, data) : _withdrawERC20(from, poolId));
+        _handleReturn(poolId, from, data.length > 0 ? _split(poolId, from, data) : _withdraw(from, poolId));
         return IERC721Receiver.onERC721Received.selector;
     }
 
