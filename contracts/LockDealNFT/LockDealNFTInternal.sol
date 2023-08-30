@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./LockDealNFTModifiers.sol";
 import "../AdvancedProviders/CollateralProvider/IInnerWithdraw.sol";
+import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 
 abstract contract LockDealNFTInternal is LockDealNFTModifiers {
     function _transfer(address from, address to, uint256 poolId) internal override {
@@ -52,11 +53,11 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers {
 
     function _withdraw(address from, uint256 poolId) internal returns (bool isFinal) {
         uint256 withdrawnAmount;
-        (withdrawnAmount, isFinal) = poolIdToProvider[poolId].withdraw(poolId);
-        if (withdrawnAmount == type(uint256).max) {
-            //TODO 165 cheker
+        IProvider provider = poolIdToProvider[poolId];
+        (withdrawnAmount, isFinal) = provider.withdraw(poolId);
+        if (ERC165Checker.supportsInterface(address(provider), type(IInnerWithdraw).interfaceId)) {
             withdrawnAmount = 0;
-            uint256[] memory ids = IInnerWithdraw(address(poolIdToProvider[poolId])).getInnerIdsArray(poolId);
+            uint256[] memory ids = IInnerWithdraw(address(provider)).getInnerIdsArray(poolId);
             for (uint256 i = 0; i < ids.length; ++i) {
                 _withdraw(from, ids[i]);
             }
