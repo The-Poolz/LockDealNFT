@@ -82,10 +82,8 @@ contract RefundProvider is RefundState, IERC721Receiver, RefundModifiers {
         collateralParams[0] = params[paramsLength - 3];
         collateralParams[1] = params[paramsLength - 1];
         collateralProvider.registerPool(collateralPoolId, collateralParams);
-        // save vaults ids
-        lockDealNFT.copyVaultId(collateralPoolId, collateralPoolId + 1);
+        // save token vault id
         lockDealNFT.copyVaultId(dataPoolID, collateralPoolId + 2);
-        lockDealNFT.copyVaultId(collateralPoolId, collateralPoolId + 3);
         // save refund data
         uint256[] memory refundRegisterParams = new uint256[](currentParamsTargetLenght());
         refundRegisterParams[0] = collateralPoolId;
