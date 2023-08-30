@@ -38,6 +38,8 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState {
         lockDealNFT.mintForProvider(address(this), provider); //Token Collector poolId + 2
         uint256 mainCoinHolderId = lockDealNFT.mintForProvider(address(this), provider); //hold main coin for the project owner poolId + 3
         provider.registerPool(mainCoinHolderId, params); // just need the 0 index, left amount
+        lockDealNFT.copyVaultId(poolId, poolId + 1);
+        lockDealNFT.copyVaultId(poolId, mainCoinHolderId);
         assert(mainCoinHolderId == poolId + 3);
         //need to call this from the refund, then call copyVaultId to this Id's
         //poolId + 1 and poolId + 3 is the main coin and poolId + 2 is the token

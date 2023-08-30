@@ -68,9 +68,9 @@ describe('Collateral Provider', function () {
     expect(poolData).to.deep.equal([
       dealProvider.address,
       poolId + 1,
-      0,
+      vaultId,
       collateralProvider.address,
-      constants.AddressZero,
+      token,
       params,
     ]);
   });
