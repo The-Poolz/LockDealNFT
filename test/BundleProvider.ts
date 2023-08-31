@@ -102,8 +102,10 @@ describe('Lock Deal Bundle Provider', function () {
     const timedDealProviderParams = [amount, startTime, finishTime, amount];
     const bundleProviderParams = [dealProviderParams, lockProviderParams, timedDealProviderParams];
 
-    // zero address
-    addresses[2] = constants.AddressZero;
+    // not approved contract
+    let dealProvider: DealProvider;
+    dealProvider = await deployed('DealProvider', lockDealNFT.address);
+    addresses[2] = dealProvider.address;
     await expect(bundleProvider.createNewPool(addresses, bundleProviderParams)).to.be.revertedWith(
       'Provider not approved',
     );
@@ -111,13 +113,13 @@ describe('Lock Deal Bundle Provider', function () {
     // lockDealNFT address
     addresses[2] = lockDealNFT.address;
     await expect(bundleProvider.createNewPool(addresses, bundleProviderParams)).to.be.revertedWith(
-      'invalid provider address',
+      'invalid provider type',
     );
 
     // bundleProvider address
     addresses[2] = bundleProvider.address;
     await expect(bundleProvider.createNewPool(addresses, bundleProviderParams)).to.be.revertedWith(
-      'invalid provider address',
+      'invalid provider type',
     );
   });
 

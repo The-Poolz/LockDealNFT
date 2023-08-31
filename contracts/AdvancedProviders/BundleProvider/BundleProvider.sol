@@ -48,22 +48,26 @@ contract BundleProvider is BundleModifiers, ERC721Holder {
     function registerPool(
         uint256 poolId,
         uint256[] calldata params
-    ) external override onlyProvider validParamsLength(params.length, currentParamsTargetLenght()) {
+    )
+        external
+        override
+        validBundleParams(poolId, params[0])
+        onlyProvider
+        validParamsLength(params.length, currentParamsTargetLenght())
+    {
         _registerPool(poolId, params);
     }
 
     ///@param params[0] = lastSubPoolId
-    function _registerPool(
-        uint256 poolId,
-        uint256[] memory params
-    ) internal validBundleParams(poolId, params[0]) validLastPoolId(poolId, params[0]) {
+    function _registerPool(uint256 poolId, uint256[] memory params) internal validLastPoolId(poolId, params[0]) {
         bundlePoolIdToLastSubPoolId[poolId] = params[0];
         emit UpdateParams(poolId, params);
     }
 
-    function _createNewSubPool(address provider, uint256[] memory params) internal {
-        // check if the provider address is valid
-        require(provider != address(lockDealNFT) && provider != address(this), "invalid provider address");
+    function _createNewSubPool(
+        address provider,
+        uint256[] memory params
+    ) internal validProviderInterface(IProvider(provider), Bundable._INTERFACE_ID_BUNDABLE) {
         _createNewSubPool(IProvider(provider), params);
     }
 
