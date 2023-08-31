@@ -93,18 +93,16 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
         address owner,
         address[] calldata tokens,
         uint256 index
-    ) public view returns (uint256) {
+    ) public view returns (uint256 poolId) {
         uint256 length = balanceOf(owner, tokens);
         require(index < length, "index out of bounds");
-        uint256[] memory ids = new uint256[](length);
         uint256 fullBalanceOf = balanceOf(owner);
         uint256 j = 0;
         for (uint256 i = 0; i < fullBalanceOf; ++i) {
-            uint256 poolId = tokenOfOwnerByIndex(owner, i);
-            if (Array.isInArray(tokens, tokenOf(poolId))) {
-                ids[j++] = poolId;
+            poolId = tokenOfOwnerByIndex(owner, i);
+            if (Array.isInArray(tokens, tokenOf(poolId)) && j++ == index) {
+                return poolId;
             }
         }
-        return ids[index];
     }
 }
