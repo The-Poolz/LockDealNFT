@@ -259,11 +259,9 @@ describe('LockDealNFT', function () {
   });
 
   it('should return balanceOf by tokens association', async () => {
-    let newOwner: SignerWithAddress;
-    let notOwner: SignerWithAddress;
-    [, , newOwner, notOwner] = await ethers.getSigners();
+    const [, , newOwner, notOwner] = await ethers.getSigners();
     // create 3 pools
-    let addresses = [newOwner.address, token];
+    addresses = [newOwner.address, token];
     await dealProvider.createNewPool(addresses, [amount]);
     await dealProvider.createNewPool(addresses, [amount]);
     addresses[1] = BUSD;
@@ -287,11 +285,10 @@ describe('LockDealNFT', function () {
   });
 
   it('check poolIds by token association', async () => {
-    let newOwner: SignerWithAddress;
-    [, , , newOwner] = await ethers.getSigners();
+    const [, , , newOwner] = await ethers.getSigners();
     poolId = (await lockDealNFT.totalSupply()).toNumber();
     // create 4 pools
-    let addresses = [newOwner.address, token];
+    addresses = [newOwner.address, token];
     await dealProvider.createNewPool(addresses, [amount]);
     await dealProvider.createNewPool(addresses, [amount]);
     addresses[1] = BUSD;
