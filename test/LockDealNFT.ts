@@ -3,7 +3,7 @@ import { DealProvider } from '../typechain-types';
 import { LockDealProvider } from '../typechain-types';
 import { TimedDealProvider } from '../typechain-types';
 import { MockVaultManager } from '../typechain-types';
-import { deployed, token } from './helper';
+import { deployed, token, BUSD } from './helper';
 import { time } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
@@ -256,5 +256,67 @@ describe('LockDealNFT', function () {
   it('shuld return royalty', async () => {
     const royalty = await lockDealNFT.royaltyInfo(0, 100);
     expect(royalty).to.lengthOf(2);
+  });
+
+  it('should return balanceOf by tokens association', async () => {
+    const [, , newOwner, notOwner] = await ethers.getSigners();
+    // create 3 pools
+    addresses = [newOwner.address, token];
+    await dealProvider.createNewPool(addresses, [amount]);
+    await dealProvider.createNewPool(addresses, [amount]);
+    addresses[1] = BUSD;
+    await dealProvider.createNewPool(addresses, [amount]);
+    // check token balance by token association
+    expect(await lockDealNFT['balanceOf(address,address[])'](newOwner.address, [token])).to.equal(2);
+    expect(await lockDealNFT['balanceOf(address,address[])'](newOwner.address, [BUSD])).to.equal(1);
+    expect(await lockDealNFT['balanceOf(address,address[])'](newOwner.address, [BUSD, token])).to.equal(3);
+    expect(await lockDealNFT['balanceOf(address,address[])'](newOwner.address, [token, BUSD])).to.equal(3);
+    expect(
+      await lockDealNFT['balanceOf(address,address[])'](newOwner.address, [token, constants.AddressZero, BUSD]),
+    ).to.equal(3);
+    expect(await lockDealNFT['balanceOf(address,address[])'](newOwner.address, [constants.AddressZero])).to.equal(0);
+    expect(await lockDealNFT['balanceOf(address,address[])'](newOwner.address, [])).to.equal(0);
+    expect(await lockDealNFT['balanceOf(address,address[])'](notOwner.address, [token, BUSD])).to.equal(0);
+  });
+
+  it('should revert invalid index in tokenOfOwnerByIndex call', async () => {
+    const [, , , newOwner] = await ethers.getSigners();
+    await expect(
+      lockDealNFT['tokenOfOwnerByIndex(address,address[],uint256)'](newOwner.address, addresses, 999),
+    ).to.be.revertedWith('invalid poolId index by token association');
+  });
+
+  it('check poolIds by token association', async () => {
+    const [, , , newOwner] = await ethers.getSigners();
+    poolId = (await lockDealNFT.totalSupply()).toNumber();
+    // create 4 pools
+    addresses = [newOwner.address, token];
+    await dealProvider.createNewPool(addresses, [amount]);
+    await dealProvider.createNewPool(addresses, [amount]);
+    addresses[1] = BUSD;
+    await dealProvider.createNewPool(addresses, [amount]);
+    const USDT = '0x55d398326f99059ff775485246999027b3197955';
+    addresses[1] = USDT;
+    await dealProvider.createNewPool(addresses, [amount]);
+    // check pool ids by token association
+    expect(
+      await lockDealNFT['tokenOfOwnerByIndex(address,address[],uint256)'](newOwner.address, [token, BUSD], 0),
+    ).to.equal(poolId);
+    expect(
+      await lockDealNFT['tokenOfOwnerByIndex(address,address[],uint256)'](newOwner.address, [BUSD, token], 1),
+    ).to.equal(poolId + 1);
+    expect(
+      await lockDealNFT['tokenOfOwnerByIndex(address,address[],uint256)'](newOwner.address, [token, BUSD], 2),
+    ).to.equal(poolId + 2);
+    expect(
+      await lockDealNFT['tokenOfOwnerByIndex(address,address[],uint256)'](
+        newOwner.address,
+        [token, constants.AddressZero, BUSD],
+        2,
+      ),
+    ).to.equal(poolId + 2);
+    expect(
+      await lockDealNFT['tokenOfOwnerByIndex(address,address[],uint256)'](newOwner.address, [USDT, token, BUSD], 3),
+    ).to.equal(poolId + 3);
   });
 });
