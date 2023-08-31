@@ -97,9 +97,12 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
         uint256 length = balanceOf(owner, tokens);
         require(index < length, "index out of bounds");
         uint256[] memory ids = new uint256[](length);
-        for (uint256 i = 0; i < length; ++i) {
-            if (Array.isInArray(tokens, tokenOf(tokenOfOwnerByIndex(owner, i)))) {
-                ids[i] = tokenOfOwnerByIndex(owner, i);
+        uint256 fullBalanceOf = balanceOf(owner);
+        uint256 j = 0;
+        for (uint256 i = 0; i < fullBalanceOf; ++i) {
+            uint256 poolId = tokenOfOwnerByIndex(owner, i);
+            if (Array.isInArray(tokens, tokenOf(poolId))) {
+                ids[j++] = poolId;
             }
         }
         return ids[index];
