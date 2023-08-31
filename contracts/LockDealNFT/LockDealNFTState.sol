@@ -95,7 +95,7 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
         uint256 index
     ) public view returns (uint256 poolId) {
         uint256 length = balanceOf(owner, tokens);
-        require(index < length, "index out of bounds");
+        require(index < length, "invalid poolId index by token association");
         uint256 fullBalanceOf = balanceOf(owner);
         uint256 j = 0;
         for (uint256 i = 0; i < fullBalanceOf; ++i) {
