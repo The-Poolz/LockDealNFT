@@ -103,9 +103,8 @@ describe('Lock Deal Bundle Provider', function () {
     const bundleProviderParams = [dealProviderParams, lockProviderParams, timedDealProviderParams];
 
     // not approved contract
-    let dealProvider: DealProvider;
-    dealProvider = await deployed('DealProvider', lockDealNFT.address);
-    addresses[2] = dealProvider.address;
+    const _dealProvider: DealProvider = await deployed('DealProvider', lockDealNFT.address);
+    addresses[2] = _dealProvider.address;
     await expect(bundleProvider.createNewPool(addresses, bundleProviderParams)).to.be.revertedWith(
       'Provider not approved',
     );
