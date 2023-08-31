@@ -36,6 +36,14 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
         }
     }
 
+    /// @dev Retrieves user data by tokens between a specified index range.
+    /// This is used by the front-end to fetch NFTs linked to a predefined set of supported tokens.
+    /// It's primarily queried off-chain, so gas costs are not a concern here.
+    /// @param user The address of the user.
+    /// @param tokens The list of supported tokens.
+    /// @param from Starting index for the query.
+    /// @param to Ending index for the query.
+    /// @return userPoolInfo An array containing pool information for the user's NFTs within the specified range.
     function getUserDataByTokens(
         address user,
         address[] calldata tokens,
@@ -78,7 +86,10 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
             super.supportsInterface(interfaceId);
     }
 
-    ///@dev balanceOf with tokens association
+    /// @dev Returns the balance of NFTs owned by an address, which are also in the provided tokens list.
+    /// @param owner The address of the owner.
+    /// @param tokens List of supported tokens to filter by.
+    /// @return balance The number of NFTs owned by the address and present in the tokens list.
     function balanceOf(address owner, address[] calldata tokens) public view returns (uint256 balance) {
         uint256 fullBalanceOf = balanceOf(owner);
         for (uint256 i = 0; i < fullBalanceOf; ++i) {
@@ -88,7 +99,11 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
         }
     }
 
-    ///@dev tokenOfOwnerByIndex with tokens association
+    /// @dev Retrieves a token ID owned by an address at a specific index, which is also in the provided tokens list.
+    /// @param owner The address of the owner.
+    /// @param tokens List of supported tokens to filter by.
+    /// @param index The index to retrieve the token ID from.
+    /// @return poolId The token ID owned by the address at the specified index.
     function tokenOfOwnerByIndex(
         address owner,
         address[] calldata tokens,
