@@ -271,6 +271,9 @@ describe('LockDealNFT', function () {
     expect(await lockDealNFT['balanceOf(address,address[])'](newOwner.address, [BUSD])).to.equal(1);
     expect(await lockDealNFT['balanceOf(address,address[])'](newOwner.address, [BUSD, token])).to.equal(3);
     expect(await lockDealNFT['balanceOf(address,address[])'](newOwner.address, [token, BUSD])).to.equal(3);
+    expect(
+      await lockDealNFT['balanceOf(address,address[])'](newOwner.address, [token, constants.AddressZero, BUSD]),
+    ).to.equal(3);
     expect(await lockDealNFT['balanceOf(address,address[])'](newOwner.address, [constants.AddressZero])).to.equal(0);
     expect(await lockDealNFT['balanceOf(address,address[])'](newOwner.address, [])).to.equal(0);
     expect(await lockDealNFT['balanceOf(address,address[])'](notOwner.address, [token, BUSD])).to.equal(0);
@@ -304,6 +307,13 @@ describe('LockDealNFT', function () {
     ).to.equal(poolId + 1);
     expect(
       await lockDealNFT['tokenOfOwnerByIndex(address,address[],uint256)'](newOwner.address, [token, BUSD], 2),
+    ).to.equal(poolId + 2);
+    expect(
+      await lockDealNFT['tokenOfOwnerByIndex(address,address[],uint256)'](
+        newOwner.address,
+        [token, constants.AddressZero, BUSD],
+        2,
+      ),
     ).to.equal(poolId + 2);
     expect(
       await lockDealNFT['tokenOfOwnerByIndex(address,address[],uint256)'](newOwner.address, [USDT, token, BUSD], 3),
