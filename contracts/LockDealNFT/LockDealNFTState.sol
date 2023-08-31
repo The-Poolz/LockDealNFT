@@ -38,19 +38,17 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
 
     function getUserDataByTokens(
         address user,
-        address[] memory tokens,
+        address[] calldata tokens,
         uint256 from,
         uint256 to
     ) public view returns (BasePoolInfo[] memory userPoolInfo) {
         require(from <= to, "Invalid range");
-        require(to < balanceOf(user) + from, "Range greater than user pool count");
+        require(to < balanceOf(user, tokens), "Range greater than user pool count");
         userPoolInfo = new BasePoolInfo[](to - from + 1);
         uint256 userPoolIndex = 0;
         for (uint256 i = from; i <= to; ++i) {
-            uint256 poolId = tokenOfOwnerByIndex(user, i);
-            if (Array.isInArray(tokens, tokenOf(poolId))) {
-                userPoolInfo[userPoolIndex++] = getData(poolId);
-            }
+            uint256 poolId = tokenOfOwnerByIndex(user, tokens, i);
+            userPoolInfo[userPoolIndex++] = getData(poolId);
         }
     }
 
@@ -78,5 +76,32 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
             interfaceId == type(IERC2981).interfaceId ||
             interfaceId == type(ILockDealNFT).interfaceId ||
             super.supportsInterface(interfaceId);
+    }
+
+    ///@dev balanceOf with tokens association
+    function balanceOf(address owner, address[] calldata tokens) public view returns (uint256 balance) {
+        uint256 fullBalanceOf = balanceOf(owner);
+        for (uint256 i = 0; i < fullBalanceOf; ++i) {
+            if (Array.isInArray(tokens, tokenOf(tokenOfOwnerByIndex(owner, i)))) {
+                ++balance;
+            }
+        }
+    }
+
+    ///@dev tokenOfOwnerByIndex with tokens association
+    function tokenOfOwnerByIndex(
+        address owner,
+        address[] calldata tokens,
+        uint256 index
+    ) public view returns (uint256) {
+        uint256 length = balanceOf(owner, tokens);
+        require(index < length, "index out of bounds");
+        uint256[] memory ids = new uint256[](length);
+        for (uint256 i = 0; i < length; ++i) {
+            if (Array.isInArray(tokens, tokenOf(tokenOfOwnerByIndex(owner, i)))) {
+                ids[i] = tokenOfOwnerByIndex(owner, i);
+            }
+        }
+        return ids[index];
     }
 }
