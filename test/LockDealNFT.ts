@@ -277,8 +277,7 @@ describe('LockDealNFT', function () {
   });
 
   it('should revert invalid index in tokenOfOwnerByIndex call', async () => {
-    let newOwner: SignerWithAddress;
-    [, , , newOwner] = await ethers.getSigners();
+    const [, , , newOwner] = await ethers.getSigners();
     await expect(
       lockDealNFT['tokenOfOwnerByIndex(address,address[],uint256)'](newOwner.address, addresses, 999),
     ).to.be.revertedWith('invalid poolId index by token association');
