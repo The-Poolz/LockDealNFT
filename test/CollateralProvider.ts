@@ -17,7 +17,7 @@ describe('Collateral Provider', function () {
   let mockProvider: MockProvider;
   let mockVaultManager: MockVaultManager;
   let poolId: number;
-  let params: [number, number];
+  let params: [number, number, number];
   let receiver: SignerWithAddress;
   let projectOwner: SignerWithAddress;
   let finishTime: number;
@@ -40,8 +40,8 @@ describe('Collateral Provider', function () {
   beforeEach(async () => {
     const ONE_DAY = 86400;
     finishTime = (await time.latest()) + 14 * ONE_DAY; // plus 14 days
-    params = [amount, finishTime];
     poolId = (await lockDealNFT.totalSupply()).toNumber();
+    params = [amount, finishTime, poolId];
     await mockProvider.createNewPool([projectOwner.address, token], params);
     vaultId = await mockVaultManager.Id();
   });
@@ -78,12 +78,13 @@ describe('Collateral Provider', function () {
   it('should create token provider pool', async () => {
     const poolData = await lockDealNFT.getData(poolId + 2);
     const params = [0];
+    const vaultId = await mockVaultManager.Id();
     expect(poolData).to.deep.equal([
       dealProvider.address,
       poolId + 2,
-      0,
+      vaultId,
       collateralProvider.address,
-      constants.AddressZero,
+      token,
       params,
     ]);
   });
