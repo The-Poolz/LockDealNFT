@@ -1,31 +1,24 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./LockDealNFTModifiers.sol";
+import "./LockDealNFTInternal.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "../AdvancedProviders/CollateralProvider/IInnerWithdraw.sol";
 
 /// @title LockDealNFT contract
 /// @notice Implements a non-fungible token (NFT) contract for locking deals
-contract LockDealNFT is LockDealNFTModifiers {
-    using Counters for Counters.Counter;
-
-    constructor(address _vaultManager) ERC721("LockDealNFT", "LDNFT") {
-        require(_vaultManager != address(0x0), "invalid vault manager address");
+contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
+    constructor(address _vaultManager, string memory _baseURI) ERC721("LockDealNFT", "LDNFT") {
+        _notZeroAddress(_vaultManager);
         vaultManager = IVaultManager(_vaultManager);
-        approvedProviders[address(this)] = true;
+        approvedProviders[IProvider(address(this))] = true;
+        baseURI = _baseURI;
     }
 
     function mintForProvider(
         address owner,
         IProvider provider
-    )
-        external
-        onlyApprovedProvider
-        notZeroAddress(owner)
-        returns (uint256 poolId)
-    {
-        if (address(provider) != msg.sender) {
-            _onlyApprovedProvider(provider);
-        }
+    ) external onlyApprovedProvider(provider) notZeroAddress(owner) returns (uint256 poolId) {
         poolId = _mint(owner, provider);
     }
 
@@ -37,95 +30,65 @@ contract LockDealNFT is LockDealNFTModifiers {
         IProvider provider
     )
         public
-        onlyApprovedProvider
+        onlyApprovedProvider(provider)
         notZeroAddress(owner)
         notZeroAddress(token)
         notZeroAmount(amount)
         returns (uint256 poolId)
     {
-        if (address(provider) != msg.sender) {
-            _onlyApprovedProvider(provider);
-        }
+        require(amount != type(uint256).max, "amount is too big");
         poolId = _mint(owner, provider);
-        poolIdToVaultId[poolId] = vaultManager.depositByToken(
-            token,
-            from,
-            amount
-        );
+        poolIdToVaultId[poolId] = vaultManager.depositByToken(token, from, amount);
     }
 
     function copyVaultId(
         uint256 fromId,
         uint256 toId
-    ) external onlyApprovedProvider validPoolId(fromId) validPoolId(toId) {
+    ) external onlyApprovedProvider(IProvider(msg.sender)) validPoolId(fromId) validPoolId(toId) {
         poolIdToVaultId[toId] = poolIdToVaultId[fromId];
     }
 
     /// @dev Sets the approved status of a provider
     /// @param provider The address of the provider
     /// @param status The new approved status (true or false)
-    function setApprovedProvider(
-        IProvider provider,
-        bool status
-    ) external onlyOwner onlyContract(address(provider)) {
-        approvedProviders[address(provider)] = status;
+    function setApprovedProvider(IProvider provider, bool status) external onlyOwner onlyContract(address(provider)) {
+        approvedProviders[provider] = status;
         emit ProviderApproved(provider, status);
     }
 
-    /// @dev Withdraws funds from a pool and updates the vault accordingly
-    /// @param poolId The ID of the pool
-    /// @return withdrawnAmount The amount of funds withdrawn from the pool
-    /// @return isFinal A boolean indicating if the withdrawal is the final one
-    function withdraw(
-        uint256 poolId
-    )
-        external
-        onlyOwnerOrAdmin(poolId)
-        returns (uint256 withdrawnAmount, bool isFinal)
-    {
-        IProvider provider = poolIdToProvider[poolId];
-        (withdrawnAmount, isFinal) = provider.withdraw(poolId);
-
-        // in case of the sub-provider, the main provider will sum the data
-        if (!approvedProviders[ownerOf(poolId)]) {
-            vaultManager.withdrawByVaultId(
-                poolIdToVaultId[poolId],
-                ownerOf(poolId),
-                withdrawnAmount
-            );
-        }
-
-        if (isFinal) {
-            _burn(poolId);
-        }
+    function approvePoolTransfers(bool status) external {
+        require(approvedPoolUserTransfers[msg.sender] != status, "status is the same as before");
+        approvedPoolUserTransfers[msg.sender] = status;
     }
 
-    /// @dev Splits a pool into two pools with adjusted amounts
-    /// @param poolId The ID of the pool to split
-    /// @param splitAmount The amount of funds to split into the new pool
-    /// @param newOwner The address to assign the new pool to
-    function split(
+    ///@dev withdraw implementation
+    function onERC721Received(
+        address,
+        address from,
         uint256 poolId,
-        uint256 splitAmount,
-        address newOwner
-    ) external onlyOwnerOrAdmin(poolId) {
-        IProvider provider = poolIdToProvider[poolId];
-        uint256 newPoolId = _mint(newOwner, provider);
-        poolIdToVaultId[newPoolId] = poolIdToVaultId[poolId];
-        provider.split(poolId, newPoolId, splitAmount);
+        bytes calldata data
+    ) external override returns (bytes4) {
+        require(msg.sender == address(this), "invalid nft contract");
+        _handleReturn(poolId, from, data.length > 0 ? _split(poolId, from, data) : _withdraw(from, poolId));
+        return IERC721Receiver.onERC721Received.selector;
     }
 
-    /// @param owner The address to assign the token to
-    /// @param provider The address of the provider assigning the token
-    /// @return newPoolId The ID of the pool
-    function _mint(
-        address owner,
-        IProvider provider
-    ) internal returns (uint256 newPoolId) {
-        newPoolId = tokenIdCounter.current();
-        tokenIdCounter.increment();
-        _safeMint(owner, newPoolId);
-        poolIdToProvider[newPoolId] = provider;
-        emit MintInitiated(provider);
+    function updateAllMetadata() external onlyOwner {
+        emit MetadataUpdate(type(uint256).max);
+    }
+
+    function transferFrom(address from, address to, uint256 tokenId) public override(ERC721, IERC721) {
+        require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: transfer caller is not owner nor approved");
+        _safeTransfer(from, to, tokenId, "");
+    }
+
+    function setBaseURI(string memory newBaseURI) external onlyOwner {
+        require(
+            keccak256(abi.encodePacked(baseURI)) != keccak256(abi.encodePacked(newBaseURI)),
+            "can't set the same baseURI"
+        );
+        string memory oldBaseURI = baseURI;
+        baseURI = newBaseURI;
+        emit BaseURIChanged(oldBaseURI, newBaseURI);
     }
 }

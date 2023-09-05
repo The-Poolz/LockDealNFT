@@ -2,17 +2,13 @@
 pragma solidity ^0.8.0;
 
 import "./LockDealNFTState.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-abstract contract LockDealNFTModifiers is LockDealNFTState, Ownable {
-    modifier onlyApprovedProvider() {
-        _onlyApprovedProvider(IProvider(msg.sender));
-        _;
-    }
-
-    modifier onlyOwnerOrAdmin(uint256 poolId) {
-        _onlyOwnerOrAdmin(poolId);
+abstract contract LockDealNFTModifiers is LockDealNFTState {
+    modifier onlyApprovedProvider(IProvider provider) {
+        _onlyApprovedProvider(provider);
+        if (address(provider) != msg.sender) {
+            _onlyApprovedProvider(IProvider(msg.sender));
+        }
         _;
     }
 
@@ -31,31 +27,21 @@ abstract contract LockDealNFTModifiers is LockDealNFTState, Ownable {
         _;
     }
 
-    modifier validPoolId(uint256 poolId){
+    modifier validPoolId(uint256 poolId) {
         _validPoolId(poolId);
         _;
     }
 
-    function _notZeroAddress(address _address) private pure {
+    function _notZeroAddress(address _address) internal pure {
         require(_address != address(0x0), "Zero Address is not allowed");
     }
 
     function _onlyContract(address contractAddress) private view {
-        require(
-            Address.isContract(contractAddress),
-            "Invalid contract address"
-        );
-    }
-
-    function _onlyOwnerOrAdmin(uint256 poolId) internal view {
-        require(
-            msg.sender == ownerOf(poolId) || msg.sender == owner(),
-            "invalid caller address"
-        );
+        require(Address.isContract(contractAddress), "Invalid contract address");
     }
 
     function _onlyApprovedProvider(IProvider provider) internal view {
-        require(approvedProviders[address(provider)], "Provider not approved");
+        require(approvedProviders[provider], "Provider not approved");
     }
 
     function _notZeroAmount(uint256 amount) private pure {

@@ -1,111 +1,123 @@
-import { expect } from "chai";
-import { constants } from "ethers";
+import { LockDealProvider } from '../typechain-types';
+import { LockDealNFT } from '../typechain-types';
+import { DealProvider } from '../typechain-types';
+import { MockVaultManager } from '../typechain-types';
+import { deployed, token, MAX_RATIO } from './helper';
+import { time } from '@nomicfoundation/hardhat-network-helpers';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { expect } from 'chai';
+import { BigNumber, constants } from 'ethers';
 import { ethers } from 'hardhat';
-import { time } from "@nomicfoundation/hardhat-network-helpers";
-import { LockDealProvider } from "../typechain-types/contracts/LockProvider";
-import { LockDealNFT } from "../typechain-types/contracts/LockDealNFT";
-import { DealProvider } from "../typechain-types/contracts/DealProvider";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { deployed, token } from "./helper";
-import { MockVaultManager } from "../typechain-types";
 
-describe("Lock Deal Provider", function () {
-    let lockProvider: LockDealProvider 
-    let dealProvider: DealProvider
-    let lockDealNFT: LockDealNFT
-    let poolId: number
-    let params: [number, number]
-    let receiver: SignerWithAddress
-    let newOwner: SignerWithAddress
-    let startTime: number
-    const amount = 10000
+describe('Lock Deal Provider', function () {
+  let lockProvider: LockDealProvider;
+  let dealProvider: DealProvider;
+  let lockDealNFT: LockDealNFT;
+  let mockVaultManager: MockVaultManager;
+  let poolId: number;
+  let params: [number, number];
+  let addresses: string[];
+  let receiver: SignerWithAddress;
+  let newOwner: SignerWithAddress;
+  let startTime: number;
+  let vaultId: BigNumber;
+  const amount = 10000;
+  const ratio = MAX_RATIO.div(2); // half of the amount
 
-    before(async () => {
-        [receiver, newOwner] = await ethers.getSigners()
-        const mockVaultManager: MockVaultManager = await deployed("MockVaultManager")
-        lockDealNFT = await deployed("LockDealNFT", mockVaultManager.address)
-        dealProvider = await deployed("DealProvider", lockDealNFT.address)
-        lockProvider = await deployed("LockDealProvider", lockDealNFT.address, dealProvider.address)
-        await lockDealNFT.setApprovedProvider(lockProvider.address, true)
-        await lockDealNFT.setApprovedProvider(dealProvider.address, true)
-    })
+  before(async () => {
+    [receiver, newOwner] = await ethers.getSigners();
+    mockVaultManager = await deployed('MockVaultManager');
+    lockDealNFT = await deployed('LockDealNFT', mockVaultManager.address, '');
+    dealProvider = await deployed('DealProvider', lockDealNFT.address);
+    lockProvider = await deployed('LockDealProvider', lockDealNFT.address, dealProvider.address);
+    await lockDealNFT.setApprovedProvider(lockProvider.address, true);
+    await lockDealNFT.setApprovedProvider(dealProvider.address, true);
+  });
 
-    beforeEach(async () => {
-        startTime = await time.latest() + 100
-        params = [amount, startTime]
-        poolId = (await lockDealNFT.totalSupply()).toNumber()
-        await lockProvider.createNewPool(receiver.address, token, params)
-    })
+  beforeEach(async () => {
+    startTime = (await time.latest()) + 100;
+    params = [amount, startTime];
+    addresses = [receiver.address, token];
+    poolId = (await lockDealNFT.totalSupply()).toNumber();
+    await lockProvider.createNewPool(addresses, params);
+    vaultId = await mockVaultManager.Id();
+  });
 
-    it("should check deal provider address", async () => {
-        const provider = await lockProvider.dealProvider()
-        expect(provider.toString()).to.equal(dealProvider.address)
-    })
+  it('should return provider name', async () => {
+    expect(await lockProvider.name()).to.equal('LockDealProvider');
+  });
 
-    it("should check cascade pool creation events", async () => {
-        const tx = await lockProvider.createNewPool(receiver.address, token, params)
-        await tx.wait()
-        const event = await dealProvider.queryFilter(dealProvider.filters.NewPoolCreated())
-        expect(event[event.length - 1].args.poolId).to.equal(poolId + 1)
-        expect(event[event.length - 1].args.token).to.equal(token)
-        expect(event[event.length - 1].args.owner).to.equal(receiver.address)
-        expect(event[event.length - 1].args.params[0]).to.equal(amount)
-    })
+  it('should check cascade pool creation events', async () => {
+    const tx = await lockProvider.createNewPool(addresses, params);
+    await tx.wait();
+    const event = await dealProvider.queryFilter(dealProvider.filters.UpdateParams());
+    expect(event[event.length - 1].args.poolId).to.equal(poolId + 1);
+    expect(event[event.length - 1].args.params[0]).to.equal(amount);
+  });
 
-    it("should get lock provider data after creation", async () => {       
-        const poolData = await lockDealNFT.getData(poolId);
-        expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token]);
-        expect(poolData.params[0]).to.equal(amount);
-        expect(poolData.params[1]).to.equal(startTime);
-    })
+  it('should get lock provider data after creation', async () => {
+    const poolData = await lockDealNFT.getData(poolId);
+    const params = [amount, startTime];
+    expect(poolData).to.deep.equal([lockProvider.address, poolId, vaultId, receiver.address, token, params]);
+  });
 
-    it("should revert if the start time is invalid", async () => {
-        const invalidParams = [amount, startTime - 100]
-        await expect(
-            lockProvider.createNewPool(receiver.address, token, invalidParams)
-        ).to.be.revertedWith("Invalid start time")
-    })
+  it('should revert if the start time is invalid', async () => {
+    const invalidParams = [amount, startTime - 100];
+    await expect(lockProvider.createNewPool(addresses, invalidParams)).to.be.revertedWith('Invalid start time');
+  });
 
-    it("should revert zero owner address", async () => {
-        await expect(
-            lockProvider.createNewPool(receiver.address, constants.AddressZero, params)
-        ).to.be.revertedWith("Zero Address is not allowed")
-    })
+  it('should revert zero owner address', async () => {
+    addresses[1] = constants.AddressZero;
+    await expect(lockProvider.createNewPool(addresses, params)).to.be.revertedWith('Zero Address is not allowed');
+  });
 
-    it("should revert zero token address", async () => {
-        await expect(lockProvider.createNewPool(constants.AddressZero, token, params)).to.be.revertedWith(
-            "Zero Address is not allowed"
-        )
-    })
+  it('should revert zero token address', async () => {
+    addresses[0] = constants.AddressZero;
+    await expect(lockProvider.createNewPool(addresses, params)).to.be.revertedWith('Zero Address is not allowed');
+  });
 
-    describe("Lock Split Amount", () => {
-        it("should check data in old pool after split", async () => {
-            await lockDealNFT.split(poolId, amount / 2, newOwner.address)
-            
-            const poolData = await lockDealNFT.getData(poolId);
-            expect(poolData.poolInfo).to.deep.equal([poolId, receiver.address, token]);
-            expect(poolData.params[0]).to.equal(amount / 2);
-            expect(poolData.params[1]).to.equal(startTime);
-        })
+  describe('Lock Split Amount', () => {
+    it('should check data in old pool after split', async () => {
+      const packedData = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [ratio, newOwner.address]);
+      await lockDealNFT
+        .connect(receiver)
+        ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData);
+      const params = [amount / 2, startTime];
+      const poolData = await lockDealNFT.getData(poolId);
+      expect(poolData).to.deep.equal([lockProvider.address, poolId, vaultId, receiver.address, token, params]);
+    });
 
-        it("should check data in new pool after split", async () => {
-            await lockDealNFT.split(poolId, amount / 2, newOwner.address)
+    it('should check data in new pool after split', async () => {
+      const packedData = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [ratio, newOwner.address]);
+      await lockDealNFT
+        .connect(receiver)
+        ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData);
+      const params = [amount / 2, startTime];
+      const poolData = await lockDealNFT.getData(poolId + 1);
+      expect(poolData).to.deep.equal([lockProvider.address, poolId + 1, vaultId, newOwner.address, token, params]);
+    });
+  });
 
-            const poolData = await lockDealNFT.getData(poolId + 1);
-            expect(poolData.poolInfo).to.deep.equal([poolId + 1, newOwner.address, token]);
-            expect(poolData.params[0]).to.equal(amount / 2);
-            expect(poolData.params[1]).to.equal(startTime);
-        })
-    })
+  describe('Lock Deal Withdraw', () => {
+    it('should withdraw tokens', async () => {
+      await time.increase(3600);
+      await lockDealNFT
+        .connect(receiver)
+        ['safeTransferFrom(address,address,uint256)'](receiver.address, lockDealNFT.address, poolId);
+      const params = ['0', startTime];
+      const poolData = await lockDealNFT.getData(poolId);
+      expect(poolData).to.deep.equal([lockProvider.address, poolId, vaultId, lockDealNFT.address, token, params]);
+    });
 
-    describe("Lock Deal Withdraw", () => {
-        it("should withdraw tokens", async () => {
-            await time.increase(3600)
-            await lockDealNFT.withdraw(poolId)
-            
-            const poolData = await lockDealNFT.getData(poolId);
-            expect(poolData.poolInfo).to.deep.equal([0, constants.AddressZero, constants.AddressZero]);
-            expect(poolData.params.toString()).to.equal("");
-        })
-    })
-})
+    it('getWithdrawableAmount should return zero before startTime', async () => {
+      const withdrawableAmount = await lockProvider.getWithdrawableAmount(poolId);
+      expect(withdrawableAmount.toString()).to.equal('0');
+    });
+
+    it('getWithdrawableAmount should return full amount after startTime', async () => {
+      await time.increase(3600);
+      const withdrawableAmount = await lockProvider.getWithdrawableAmount(poolId);
+      expect(withdrawableAmount).to.equal(amount);
+    });
+  });
+});
