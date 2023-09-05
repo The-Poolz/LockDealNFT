@@ -9,8 +9,4 @@ library CalcUtils {
     function calcRate(uint256 tokenAValue, uint256 tokenBValue) internal pure returns (uint256 rate) {
         return (tokenAValue * 1e18) / tokenBValue;
     }
-
-    function calcAmounByDiv(uint256 tokenAValue, uint256 rate) internal pure returns (uint256 tokenB) {
-        return (tokenAValue * 1e18) / rate;
-    }
 }
