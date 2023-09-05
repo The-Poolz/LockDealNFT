@@ -30,15 +30,18 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState {
     ///@dev each provider decides how many parameters it needs by overriding this function
     ///@param params[0] = StartAmount
     ///@param params[1] = FinishTime
+    ///@param params[2] = token pool Id
     function _registerPool(uint256 poolId, uint256[] calldata params) internal override {
         require(block.timestamp <= params[1], "start time must be in the future");
         require(poolId == lockDealNFT.totalSupply() - 1, "invalid params");
         poolIdToTime[poolId] = params[1];
+        uint256 tokenPoolId = params[2];
         lockDealNFT.mintForProvider(address(this), provider); //Main Coin Collector poolId + 1
         lockDealNFT.mintForProvider(address(this), provider); //Token Collector poolId + 2
         uint256 mainCoinHolderId = lockDealNFT.mintForProvider(address(this), provider); //hold main coin for the project owner poolId + 3
         provider.registerPool(mainCoinHolderId, params); // just need the 0 index, left amount
         lockDealNFT.copyVaultId(poolId, poolId + 1);
+        lockDealNFT.copyVaultId(tokenPoolId, poolId + 2);
         lockDealNFT.copyVaultId(poolId, mainCoinHolderId);
         assert(mainCoinHolderId == poolId + 3);
         //need to call this from the refund, then call copyVaultId to this Id's

@@ -140,7 +140,7 @@ describe('test-driven development', function () {
     });
 
     it('should be revert, wrong pool id in refund register', async () => {
-      await collateralProvider.createNewPool([receiver.address, token], [amount, startTime]);
+      await collateralProvider.createNewPool([receiver.address, token], [amount, startTime, 0]);
       const poolId = (await lockDealNFT.totalSupply()).toNumber() - 1;
       const params = [poolId, ratio];
       const nonValidPoolId = 999999;
