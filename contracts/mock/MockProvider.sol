@@ -40,8 +40,8 @@ contract MockProvider is IFundsManager {
     }
 
     function registerNewRefundPool(address owner, IProvider provider) external returns (uint256 poolId) {
-        uint256 subPoolId = lockDealNFT.mintForProvider(owner, provider);
         poolId = lockDealNFT.mintForProvider(owner, _provider);
+        uint256 subPoolId = lockDealNFT.mintForProvider(owner, provider);
         uint256[] memory params = new uint256[](2);
         params[0] = subPoolId;
         params[1] = 1e18;

@@ -154,6 +154,21 @@ describe('Refund Provider', function () {
       addresses[3] = refundProvider.address;
       await expect(refundProvider.createNewRefundPool(addresses, params)).to.be.revertedWith('invalid provider type');
     });
+
+    it('should register new refund by other approved contract', async () => {
+      await mockProvider.registerNewRefundPool(receiver.address, collateralProvider.address);
+      poolId = (await lockDealNFT.totalSupply()).toNumber() - 2;
+      const poolData = await lockDealNFT.getData(poolId);
+      const params = [0, poolId + 1, MAX_RATIO];
+      expect(poolData).to.deep.equal([
+        refundProvider.address,
+        poolId,
+        0,
+        receiver.address,
+        constants.AddressZero,
+        params,
+      ]);
+    });
   });
 
   describe('Split Pool', async () => {
