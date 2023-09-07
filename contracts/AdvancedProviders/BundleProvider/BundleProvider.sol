@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./BundleModifiers.sol";
 import "../../util/CalcUtils.sol";
-import "../../SimpleProviders/Provider/BasicProvider.sol";
+import "../../interfaces/ISimpleProvider.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import "../../ERC165/Bundable.sol";
@@ -82,7 +82,7 @@ contract BundleProvider is BundleModifiers, ERC721Holder {
         for (uint256 i = poolId + 1; i <= lastSubPoolId; ++i) {
             address provider = address(lockDealNFT.poolIdToProvider(i));
             uint256 amount = lockDealNFT.getWithdrawableAmount(i);
-            (uint256 subPoolWithdrawnAmount, bool subPoolIsFinal) = BasicProvider(provider).withdraw(i, amount);
+            (uint256 subPoolWithdrawnAmount, bool subPoolIsFinal) = ISimpleProvider(provider).withdraw(i, amount);
             withdrawnAmount += subPoolWithdrawnAmount;
             isFinal = isFinal && subPoolIsFinal;
         }

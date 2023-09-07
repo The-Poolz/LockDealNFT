@@ -293,6 +293,26 @@ describe('Refund Provider', function () {
       ]);
     });
 
+    it('should withdraw with DealProvider', async () => {
+      poolId = (await lockDealNFT.totalSupply()).toNumber();
+      const params = [amount, ratio, ratio, finishTime];
+      addresses = [receiver.address, token, BUSD, dealProvider.address];
+      await refundProvider.connect(projectOwner).createNewRefundPool(addresses, params);
+      vaultId = await mockVaultManager.Id();
+      await lockDealNFT
+        .connect(receiver)
+        ['safeTransferFrom(address,address,uint256)'](receiver.address, lockDealNFT.address, poolId);
+      const poolData = await lockDealNFT.getData(poolId + 1);
+      expect(poolData).to.deep.equal([
+        dealProvider.address,
+        poolId + 1,
+        vaultId.sub(1),
+        refundProvider.address,
+        token,
+        [0],
+      ]);
+    });
+
     it('should increase token collector pool after halfTime', async () => {
       await time.setNextBlockTimestamp(startTime + halfTime);
       await lockDealNFT

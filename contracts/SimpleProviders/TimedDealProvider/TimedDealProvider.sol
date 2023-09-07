@@ -19,12 +19,7 @@ contract TimedDealProvider is LockDealState, DealProviderState {
         lockDealNFT = _lockDealNFT;
         name = "TimedDealProvider";
     }
-
-    /// @dev use revert only for permissions
-    function withdraw(uint256 poolId) public override onlyProvider returns (uint256 withdrawnAmount, bool isFinal) {
-        (withdrawnAmount, isFinal) = _withdraw(poolId, getWithdrawableAmount(poolId));
-    }
-
+    
     function _withdraw(
         uint256 poolId,
         uint256 amount
