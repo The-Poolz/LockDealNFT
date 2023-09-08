@@ -53,8 +53,6 @@ contract RefundBundleBuilder is ERC721Holder {
         uint256 collateralPoolId = _createCollateralProvider(mainCoin, collateralParams);
         // create refund pool with full token amount
         uint256 refundPoolId = _createRefundProvider(collateralPoolId, token, tokenAmount, mainCoinAmount);
-        // copy token vault id | the main coins are already copied in the collateral pool
-        lockDealNFT.copyVaultId(refundPoolId, collateralPoolId + 2);
         // create bundle pool with all token time locks and amounts
         _createBundleProvider(addressParams, params);
 
@@ -62,6 +60,7 @@ contract RefundBundleBuilder is ERC721Holder {
             uint256 userAmount = userSplits[i].amount;
             address user = userSplits[i].user;
             uint256 ratio = userAmount.calcRate(tokenAmount);
+            tokenAmount -= userAmount;
             // By splitting, the user will receive refund pool, which in turn contains bundle, which in turn contains simple providers :)
             lockDealNFT.safeTransferFrom(address(this), address(lockDealNFT), refundPoolId, abi.encode(ratio, user));
             // also by splitting every refund pool save collateral pool id that give opportunity to swap tokens to main coins
