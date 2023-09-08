@@ -70,6 +70,13 @@ describe('Refund Provider', function () {
     expect(await refundProvider.name()).to.equal('RefundProvider');
   });
 
+  it('should return empty array if pool id is not refund provider', async () => {
+    poolId = (await lockDealNFT.totalSupply()).toNumber();
+    await dealProvider.createNewPool(addresses, params);
+
+    expect(await refundProvider.getParams(poolId)).to.deep.equal([]);
+  });
+
   describe('Pool Creation', async () => {
     it('should return refund pool data after creation', async () => {
       const poolData = await lockDealNFT.getData(poolId);
