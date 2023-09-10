@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./LockDealNFTModifiers.sol";
-import "../AdvancedProviders/CollateralProvider/IInnerWithdraw.sol";
+import "../interfaces/IInnerWithdraw.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 
 abstract contract LockDealNFTInternal is LockDealNFTModifiers {
