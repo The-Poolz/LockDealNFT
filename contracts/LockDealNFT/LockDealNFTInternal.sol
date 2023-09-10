@@ -59,7 +59,9 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers {
             withdrawnAmount = 0;
             uint256[] memory ids = IInnerWithdraw(address(provider)).getInnerIdsArray(poolId);
             for (uint256 i = 0; i < ids.length; ++i) {
-                _withdraw(from, ids[i]);
+                uint256 id = ids[i];
+                require(ownerOf(id) == address(poolIdToProvider[poolId]), "invalid inner id");
+                _withdraw(from, id);
             }
         }
         _withdrawFromVault(poolId, withdrawnAmount, from);
