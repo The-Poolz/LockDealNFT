@@ -78,14 +78,11 @@ contract RefundProvider is RefundState, IERC721Receiver, RefundModifiers {
             params[paramsLength - 3],
             collateralProvider
         );
-        uint256[] memory collateralParams = new uint256[](2);
+        uint256[] memory collateralParams = new uint256[](3);
         collateralParams[0] = params[paramsLength - 3];
         collateralParams[1] = params[paramsLength - 1];
+        collateralParams[2] = dataPoolID;
         collateralProvider.registerPool(collateralPoolId, collateralParams);
-        // save vaults ids
-        lockDealNFT.copyVaultId(collateralPoolId, collateralPoolId + 1);
-        lockDealNFT.copyVaultId(dataPoolID, collateralPoolId + 2);
-        lockDealNFT.copyVaultId(collateralPoolId, collateralPoolId + 3);
         // save refund data
         uint256[] memory refundRegisterParams = new uint256[](currentParamsTargetLenght());
         refundRegisterParams[0] = collateralPoolId;
@@ -126,7 +123,11 @@ contract RefundProvider is RefundState, IERC721Receiver, RefundModifiers {
     function withdraw(uint256 poolId) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
         uint256 userDataPoolId = poolId + 1;
         // user withdraws his tokens
-        (withdrawnAmount, isFinal) = lockDealNFT.poolIdToProvider(userDataPoolId).withdraw(userDataPoolId);
+        address provider = address(lockDealNFT.poolIdToProvider(userDataPoolId));
+        (withdrawnAmount, isFinal) = ISimpleProvider(provider).withdraw(
+            userDataPoolId,
+            lockDealNFT.getWithdrawableAmount(userDataPoolId)
+        );
         if (collateralProvider.poolIdToTime(poolIdToCollateralId[poolId]) >= block.timestamp) {
             uint256 mainCoinAmount = withdrawnAmount.calcAmount(poolIdToRateToWei[poolId]);
             collateralProvider.handleWithdraw(poolIdToCollateralId[poolId], mainCoinAmount);

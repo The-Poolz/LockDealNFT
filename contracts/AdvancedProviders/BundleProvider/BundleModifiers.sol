@@ -12,6 +12,11 @@ abstract contract BundleModifiers is BundleProviderState {
         _;
     }
 
+    modifier validProviderInterface(IProvider provider, bytes4 interfaceId) {
+        _validProviderInterface(provider, interfaceId);
+        _;
+    }
+
     modifier validLastPoolId(uint256 poolId, uint256 lastSubPoolId) {
         _validLastPoolId(poolId, lastSubPoolId);
         _;

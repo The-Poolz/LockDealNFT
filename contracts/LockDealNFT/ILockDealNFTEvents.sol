@@ -7,7 +7,6 @@ import "../interfaces/IProvider.sol";
 /// @notice Contains all events emitted by the LockDealNFT
 interface ILockDealNFTEvents {
     event ProviderApproved(IProvider indexed provider, bool status);
-    event MintInitiated(IProvider indexed provider);
     event BaseURIChanged(string oldBaseURI, string newBaseURI);
     event TokenWithdrawn(uint256 poolId, address indexed owner, uint256 withdrawnAmount, uint256 leftAmount);
     event PoolSplit(

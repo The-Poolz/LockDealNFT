@@ -1,5 +1,5 @@
 ignore:
-  - 'mock'
+  - "**/mock"
 
 coverage:
   status:

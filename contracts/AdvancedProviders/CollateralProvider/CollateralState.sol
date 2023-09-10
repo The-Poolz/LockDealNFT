@@ -7,11 +7,9 @@ import "./IInnerWithdraw.sol";
 abstract contract CollateralState is LockDealState, IInnerWithdraw {
     function getParams(uint256 poolId) public view override returns (uint256[] memory params) {
         (, , uint256 mainCoinHolderId) = getInnerIds(poolId);
-        if (lockDealNFT.exist(mainCoinHolderId)) {
-            params = new uint256[](2);
-            params[0] = provider.getParams(mainCoinHolderId)[0];
-            params[1] = poolIdToTime[poolId];
-        }
+        params = new uint256[](2);
+        params[0] = provider.getParams(mainCoinHolderId)[0];
+        params[1] = poolIdToTime[poolId];
     }
 
     function getInnerIdsArray(uint256 poolId) public view override returns (uint256[] memory ids) {
@@ -49,6 +47,6 @@ abstract contract CollateralState is LockDealState, IInnerWithdraw {
     ///@dev Collateral can't be Refundble or Bundleble
     /// Override basic provider supportsInterface
     function supportsInterface(bytes4 interfaceId) public view virtual override(BasicProvider) returns (bool) {
-        return interfaceId == type(IERC165).interfaceId;
+        return interfaceId == type(IERC165).interfaceId || interfaceId == type(IInnerWithdraw).interfaceId;
     }
 }

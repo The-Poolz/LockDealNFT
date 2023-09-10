@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./BundleModifiers.sol";
 import "../../util/CalcUtils.sol";
-import "../../SimpleProviders/Provider/BasicProvider.sol";
+import "../../interfaces/ISimpleProvider.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import "../../ERC165/Bundable.sol";
@@ -48,22 +48,26 @@ contract BundleProvider is BundleModifiers, ERC721Holder {
     function registerPool(
         uint256 poolId,
         uint256[] calldata params
-    ) external override onlyProvider validParamsLength(params.length, currentParamsTargetLenght()) {
+    )
+        external
+        override
+        validBundleParams(poolId, params[0])
+        onlyProvider
+        validParamsLength(params.length, currentParamsTargetLenght())
+    {
         _registerPool(poolId, params);
     }
 
     ///@param params[0] = lastSubPoolId
-    function _registerPool(
-        uint256 poolId,
-        uint256[] memory params
-    ) internal validBundleParams(poolId, params[0]) validLastPoolId(poolId, params[0]) {
+    function _registerPool(uint256 poolId, uint256[] memory params) internal validLastPoolId(poolId, params[0]) {
         bundlePoolIdToLastSubPoolId[poolId] = params[0];
         emit UpdateParams(poolId, params);
     }
 
-    function _createNewSubPool(address provider, uint256[] memory params) internal {
-        // check if the provider address is valid
-        require(provider != address(lockDealNFT) && provider != address(this), "invalid provider address");
+    function _createNewSubPool(
+        address provider,
+        uint256[] memory params
+    ) internal validProviderInterface(IProvider(provider), Bundable._INTERFACE_ID_BUNDABLE) {
         _createNewSubPool(IProvider(provider), params);
     }
 
@@ -76,13 +80,11 @@ contract BundleProvider is BundleModifiers, ERC721Holder {
         uint256 lastSubPoolId = bundlePoolIdToLastSubPoolId[poolId];
         isFinal = true;
         for (uint256 i = poolId + 1; i <= lastSubPoolId; ++i) {
-            if (lockDealNFT.exist(i)) {
-                address provider = address(lockDealNFT.poolIdToProvider(i));
-                uint256 amount = lockDealNFT.getWithdrawableAmount(i);
-                (uint256 subPoolWithdrawnAmount, bool subPoolIsFinal) = BasicProvider(provider).withdraw(i, amount);
-                withdrawnAmount += subPoolWithdrawnAmount;
-                isFinal = isFinal && subPoolIsFinal;
-            }
+            address provider = address(lockDealNFT.poolIdToProvider(i));
+            uint256 amount = lockDealNFT.getWithdrawableAmount(i);
+            (uint256 subPoolWithdrawnAmount, bool subPoolIsFinal) = ISimpleProvider(provider).withdraw(i, amount);
+            withdrawnAmount += subPoolWithdrawnAmount;
+            isFinal = isFinal && subPoolIsFinal;
         }
     }
 
@@ -99,7 +101,7 @@ contract BundleProvider is BundleModifiers, ERC721Holder {
     function getParams(uint256 poolId) public view override returns (uint256[] memory params) {
         params = new uint256[](currentParamsTargetLenght() + 1);
         params[0] = getTotalRemainingAmount(poolId);
-        params[1] = bundlePoolIdToLastSubPoolId[poolId]; //TODO this will change to the Last Pool Id
+        params[1] = bundlePoolIdToLastSubPoolId[poolId];
     }
 
     function getTotalRemainingAmount(

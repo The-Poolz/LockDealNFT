@@ -70,6 +70,13 @@ describe('Refund Provider', function () {
     expect(await refundProvider.name()).to.equal('RefundProvider');
   });
 
+  it('should return empty array if pool id is not refund provider', async () => {
+    poolId = (await lockDealNFT.totalSupply()).toNumber();
+    await dealProvider.createNewPool(addresses, params);
+
+    expect(await refundProvider.getParams(poolId)).to.deep.equal([]);
+  });
+
   describe('Pool Creation', async () => {
     it('should return refund pool data after creation', async () => {
       const poolData = await lockDealNFT.getData(poolId);
@@ -150,17 +157,24 @@ describe('Refund Provider', function () {
       ]);
     });
 
-    xit('should return metada register after creation', async () => {
-      //TODO: fix this test
-      const tx = await mockProvider.registerPool(poolId, params);
-      await tx.wait();
-      const events = await lockDealNFT.queryFilter(lockDealNFT.filters.MetadataUpdate());
-      expect(events[events.length - 1].args._tokenId).to.equal(poolId);
-    });
-
     it('should revert invalid provider', async () => {
       addresses[3] = refundProvider.address;
       await expect(refundProvider.createNewRefundPool(addresses, params)).to.be.revertedWith('invalid provider type');
+    });
+
+    it('should register new refund by other approved contract', async () => {
+      await mockProvider.registerNewRefundPool(receiver.address, collateralProvider.address);
+      poolId = (await lockDealNFT.totalSupply()).toNumber() - 2;
+      const poolData = await lockDealNFT.getData(poolId);
+      const params = [0, poolId + 1, MAX_RATIO];
+      expect(poolData).to.deep.equal([
+        refundProvider.address,
+        poolId,
+        0,
+        receiver.address,
+        constants.AddressZero,
+        params,
+      ]);
     });
   });
 
@@ -283,6 +297,26 @@ describe('Refund Provider', function () {
         refundProvider.address,
         token,
         params,
+      ]);
+    });
+
+    it('should withdraw with DealProvider', async () => {
+      poolId = (await lockDealNFT.totalSupply()).toNumber();
+      const params = [amount, ratio, ratio, finishTime];
+      addresses = [receiver.address, token, BUSD, dealProvider.address];
+      await refundProvider.connect(projectOwner).createNewRefundPool(addresses, params);
+      vaultId = await mockVaultManager.Id();
+      await lockDealNFT
+        .connect(receiver)
+        ['safeTransferFrom(address,address,uint256)'](receiver.address, lockDealNFT.address, poolId);
+      const poolData = await lockDealNFT.getData(poolId + 1);
+      expect(poolData).to.deep.equal([
+        dealProvider.address,
+        poolId + 1,
+        vaultId.sub(1),
+        refundProvider.address,
+        token,
+        [0],
       ]);
     });
 

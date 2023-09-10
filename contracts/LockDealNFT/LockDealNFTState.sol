@@ -36,33 +36,32 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
         }
     }
 
+    /// @dev Retrieves user data by tokens between a specified index range.
+    /// This is used by the front-end to fetch NFTs linked to a predefined set of supported tokens.
+    /// It's primarily queried off-chain, so gas costs are not a concern here.
+    /// @param user The address of the user.
+    /// @param tokens The list of supported tokens.
+    /// @param from Starting index for the query.
+    /// @param to Ending index for the query.
+    /// @return userPoolInfo An array containing pool information for the user's NFTs within the specified range.
     function getUserDataByTokens(
         address user,
-        address[] memory tokens,
+        address[] calldata tokens,
         uint256 from,
         uint256 to
     ) public view returns (BasePoolInfo[] memory userPoolInfo) {
         require(from <= to, "Invalid range");
-        require(to - from < balanceOf(user), "Range greater than user pool count");
+        require(to < balanceOf(user, tokens), "Range greater than user pool count");
         userPoolInfo = new BasePoolInfo[](to - from + 1);
         uint256 userPoolIndex = 0;
         for (uint256 i = from; i <= to; ++i) {
-            uint256 poolId = tokenOfOwnerByIndex(user, i);
-            if (Array.isInArray(tokens, tokenOf(poolId))) {
-                userPoolInfo[userPoolIndex++] = getData(poolId);
-            }
+            uint256 poolId = tokenOfOwnerByIndex(user, tokens, i);
+            userPoolInfo[userPoolIndex++] = getData(poolId);
         }
     }
 
     function tokenOf(uint256 poolId) public view returns (address token) {
         token = vaultManager.vaultIdToTokenAddress(poolIdToVaultId[poolId]);
-    }
-
-    /// @dev Checks if a pool with the given ID exists
-    /// @param poolId The ID of the pool
-    /// @return boolean indicating whether the pool exists or not
-    function exist(uint256 poolId) external view returns (bool) {
-        return _exists(poolId);
     }
 
     function getWithdrawableAmount(uint256 poolId) external view returns (uint256 withdrawalAmount) {
@@ -85,5 +84,40 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
             interfaceId == type(IERC2981).interfaceId ||
             interfaceId == type(ILockDealNFT).interfaceId ||
             super.supportsInterface(interfaceId);
+    }
+
+    /// @dev Returns the balance of NFTs owned by an address, which are also in the provided tokens list.
+    /// @param owner The address of the owner.
+    /// @param tokens List of supported tokens to filter by.
+    /// @return balance The number of NFTs owned by the address and present in the tokens list.
+    function balanceOf(address owner, address[] calldata tokens) public view returns (uint256 balance) {
+        uint256 fullBalanceOf = balanceOf(owner);
+        for (uint256 i = 0; i < fullBalanceOf; ++i) {
+            if (Array.isInArray(tokens, tokenOf(tokenOfOwnerByIndex(owner, i)))) {
+                ++balance;
+            }
+        }
+    }
+
+    /// @dev Retrieves a token ID owned by an address at a specific index, which is also in the provided tokens list.
+    /// @param owner The address of the owner.
+    /// @param tokens List of supported tokens to filter by.
+    /// @param index The index to retrieve the token ID from.
+    /// @return poolId The token ID owned by the address at the specified index.
+    function tokenOfOwnerByIndex(
+        address owner,
+        address[] calldata tokens,
+        uint256 index
+    ) public view returns (uint256 poolId) {
+        uint256 length = balanceOf(owner, tokens);
+        require(index < length, "invalid poolId index by token association");
+        uint256 fullBalanceOf = balanceOf(owner);
+        uint256 j = 0;
+        for (uint256 i = 0; i < fullBalanceOf; ++i) {
+            poolId = tokenOfOwnerByIndex(owner, i);
+            if (Array.isInArray(tokens, tokenOf(poolId)) && j++ == index) {
+                return poolId;
+            }
+        }
     }
 }
