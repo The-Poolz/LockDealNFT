@@ -73,6 +73,15 @@ contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
         return IERC721Receiver.onERC721Received.selector;
     }
 
+    /// @dev used by multiwithdraw to update data directly in provider
+    function withdrawForProvider(uint256 poolId)
+        external override
+        onlyApprovedProvider(IProvider(msg.sender))
+        returns (uint256 withdrawnAmount, bool isFinal)
+    {
+        (withdrawnAmount, isFinal)= poolIdToProvider[poolId].withdraw(poolId);
+    }
+
     function updateAllMetadata() external onlyOwner {
         emit MetadataUpdate(type(uint256).max);
     }

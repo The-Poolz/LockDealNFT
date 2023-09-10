@@ -3,8 +3,10 @@ pragma solidity ^0.8.0;
 
 import "./TransactionState.sol";
 import "../../AdvancedProviders/CollateralProvider/IInnerWithdraw.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "hardhat/console.sol";
 
-contract MultiWithdrawProvider is TransactionState, IInnerWithdraw{
+contract MultiWithdrawProvider is TransactionState, IInnerWithdraw, IERC721Receiver{
 
     constructor(ILockDealNFT nftContract, uint256 _maxPoolsPerTx) {
         name = "MultiWithdrawProvider";
@@ -23,6 +25,17 @@ contract MultiWithdrawProvider is TransactionState, IInnerWithdraw{
         clearTransactionState();
     }
 
+    function getWithdrawableAmountOfToken(address _owner, address _token) external view returns(uint256 amount) {
+        uint256[] memory poolIds = getAllPoolsOfOwner(_owner);
+        for(uint256 i = 0; i < poolIds.length;) {
+            address tokenAddress = lockDealNFT.tokenOf(poolIds[i]);
+            if(tokenAddress == _token) {
+                amount += lockDealNFT.poolIdToProvider(poolIds[i]).getWithdrawableAmount(poolIds[i]);
+            }
+            unchecked { ++i; }
+        }
+    }
+
     function setTransactionState(uint256[] memory poolIds, uint256 _mintedPoolId, address _owner) private {
         mintedPoolId = _mintedPoolId;
         for(uint256 i = 0; i < poolIds.length;) {
@@ -32,7 +45,7 @@ contract MultiWithdrawProvider is TransactionState, IInnerWithdraw{
                 uniqueVaultIds.push(vaultId);
                 vaultIdToPoolId[vaultId] = poolId; // only need to store the first poolId
             }
-            (uint256 withdrawnAmount, bool isFinal) = lockDealNFT.poolIdToProvider(poolId).withdraw(poolId);
+            (uint256 withdrawnAmount, bool isFinal) = lockDealNFT.withdrawForProvider(poolId);
             vaultIdToSum[vaultId] += withdrawnAmount;
             if(isFinal){
                 lockDealNFT.transferFrom(_owner, address(this), poolId);
@@ -74,12 +87,26 @@ contract MultiWithdrawProvider is TransactionState, IInnerWithdraw{
         validataPoolId(poolId)
         returns (uint256[] memory ids)
     {
-        require(iterator == 0, "Invalid Iterator");
+        require(iterator != 0, "Invalid Iterator");
         ids = new uint256[](uniqueVaultIds.length);
         for(uint256 i = 0; i < uniqueVaultIds.length; ) {
             ids[i] = mintedPoolId;
             unchecked { ++i; }
         }
+    }
+
+    function onERC721Received(
+        address operator,
+        address,
+        uint256,
+        bytes calldata
+    ) external view override returns (bytes4) {
+        require(operator == address(this), "invalid nft contract");
+        return IERC721Receiver.onERC721Received.selector;
+    }
+
+    function supportsInterface(bytes4 interfaceId) public view virtual returns (bool) {
+        return interfaceId == type(IERC165).interfaceId || interfaceId == type(IInnerWithdraw).interfaceId;
     }
 
     function getAllPoolsOfOwner(address _owner) public view returns (uint256[] memory) {

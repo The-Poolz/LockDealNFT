@@ -12,9 +12,13 @@ contract MockVaultManager {
     }
 
     function depositByToken(address _tokenAddress, address, uint) external returns (uint vaultId) {
-        vaultId = ++Id;
-        vaultIdtoToken[vaultId] = _tokenAddress;
-        tokenToVaultId[_tokenAddress] = vaultId;
+        if(tokenToVaultId[_tokenAddress] == 0) {
+            vaultId = ++Id;
+            vaultIdtoToken[vaultId] = _tokenAddress;
+            tokenToVaultId[_tokenAddress] = vaultId;
+        } else {
+            vaultId = tokenToVaultId[_tokenAddress];
+        }
     }
 
     function withdrawByVaultId(uint _vaultId, address to, uint _amount) external {
