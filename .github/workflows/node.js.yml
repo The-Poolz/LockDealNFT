@@ -39,13 +39,10 @@ jobs:
           BSCSCAN_API_KEY: ${{ secrets.BSCSCAN_API_KEY }}
           CMC_API_KEY: ${{ secrets.CMC_API_KEY }}
 
-      - name: Generate Markdown Table and Save to Env
-        run: node parseGasReport.js
-
       - name: Comment PR with Gas Test Report
         uses: thollander/actions-comment-pull-request@v2
         with:
-          filePath: md_gas_report.txt
+          filePath: gas-report.txt
           comment_tag: 'gas_report'
 
   Coverage-Test:
