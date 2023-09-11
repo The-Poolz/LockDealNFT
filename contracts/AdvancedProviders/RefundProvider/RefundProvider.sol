@@ -126,8 +126,10 @@ contract RefundProvider is RefundState, IERC721Receiver, RefundModifiers {
         IProvider provider = lockDealNFT.poolIdToProvider(userDataPoolId);
         uint256 amountToBeWithdrawed = provider.getWithdrawableAmount(userDataPoolId);
         if (collateralProvider.poolIdToTime(poolIdToCollateralId[poolId]) >= block.timestamp) {
-            uint256 mainCoinAmount = amountToBeWithdrawed.calcAmount(poolIdToRateToWei[poolId]);
-            collateralProvider.handleWithdraw(poolIdToCollateralId[poolId], mainCoinAmount);
+            collateralProvider.handleWithdraw(
+                poolIdToCollateralId[poolId],
+                amountToBeWithdrawed.calcAmount(poolIdToRateToWei[poolId])
+            );
         }
         isFinal = provider.getParams(userDataPoolId)[0] == amountToBeWithdrawed;
     }
