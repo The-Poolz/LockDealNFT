@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import "./LockDealNFTInternal.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "../AdvancedProviders/CollateralProvider/IInnerWithdraw.sol";
 
 /// @title LockDealNFT contract
 /// @notice Implements a non-fungible token (NFT) contract for locking deals
