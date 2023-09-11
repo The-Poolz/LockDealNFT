@@ -11,7 +11,7 @@ fs.readFile('gas-report.txt', 'utf8', (err, data) => {
   const modifiedContent = '```' + data + '```';
 
   // Write the modified content back to the file
-  fs.writeFile(filePath, modifiedContent, 'utf8', (err) => {
+  fs.writeFile('gas-report.txt', modifiedContent, 'utf8', (err) => {
     if (err) {
       console.error('Error writing to the file:', err);
     } else {
