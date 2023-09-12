@@ -12,11 +12,11 @@ fs.readFile('gas-report.txt', 'utf8', (err, data) => {
 
   // Add the Methods table header
   mdContent +=
-    '## Methods\n| Contract | Method | Min | Max | Avg | # calls | usd (avg) |\n|----------|--------|-----|-----|-----|---------|-----------|\n';
+    '## Methods\n| Contract | Method | Min | Max | Avg | # calls |\n|----------|--------|-----|-----|-----|---------|\n';
 
   // Add the Deployments table header
   let mdDeployments =
-    '## Deployments\n| Contract | Min | Max | Avg | % of limit | usd (avg) |\n|----------|-----|-----|-----|------------|-----------|\n';
+    '## Deployments\n| Contract | Min | Max | Avg | % of limit |\n|----------|-----|-----|-----|------------|\n';
 
   // Split the file into lines
   const lines = data.split('\n');
@@ -36,7 +36,7 @@ fs.readFile('gas-report.txt', 'utf8', (err, data) => {
       );
       if (match) {
         const [, contract, method, min, max, avg, calls, usd] = match;
-        mdContent += `| ${contract} | ${method} | ${min} | ${max} | ${avg} | ${calls} | ${usd} |\n`;
+        mdContent += `| ${contract} | ${method} | ${min} | ${max} | ${avg} | ${calls} |\n`;
       }
     } else {
       const match = line.match(/(\w+)\s+·\s+(\d+|-)\s+·\s+(\d+|-)\s+·\s+(\d+|-)\s+·\s+(\d+\.\s?\d+\s%)\s+·\s+(-|\d+)/);
