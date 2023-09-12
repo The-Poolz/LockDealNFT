@@ -104,6 +104,7 @@ contract RefundProvider is RefundState, IERC721Receiver, RefundModifiers {
         uint256 poolId,
         uint256[] memory params
     ) internal validParamsLength(params.length, currentParamsTargetLenght()) {
+        require(lockDealNFT.ownerOf(poolId + 1) == address(this), "Must Own poolId+1");
         poolIdToCollateralId[poolId] = params[0];
         poolIdToRateToWei[poolId] = params[1];
         emit UpdateParams(poolId, params);

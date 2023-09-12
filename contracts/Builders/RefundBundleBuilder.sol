@@ -40,32 +40,28 @@ contract RefundBundleBuilder is ERC721Holder {
         uint256[][] calldata params
     ) public {
         //TODO require lenghts
-        address token = addressParams[0];
-        address mainCoin = addressParams[1];
-        uint256 splitLength = userSplits.length;
-        uint256 tokenAmount = 0;
-        for (uint256 i = 0; i < splitLength; i++) {
-            tokenAmount += userSplits[i].amount;
+        (uint256 poolId, uint256 tokenAmount) = _createRefundProvider(addressParams, params);
+        if (!_splitToUsers(poolId, tokenAmount, userSplits)) {
+            lockDealNFT.safeTransferFrom(address(this), msg.sender, poolId);
         }
-        uint256 mainCoinAmount = params[0][0];
-        uint256[] memory collateralParams = params[0];
-        // create collateral pool with main coin total amount for Project Owner (buildRefundBundle caller)
-        uint256 collateralPoolId = _createCollateralProvider(mainCoin, collateralParams);
-        // create refund pool with full token amount
-        uint256 refundPoolId = _createRefundProvider(collateralPoolId, token, tokenAmount, mainCoinAmount);
-        // copy token vault id | the main coins are already copied in the collateral pool
-        lockDealNFT.copyVaultId(refundPoolId, collateralPoolId + 2);
-        // create bundle pool with all token time locks and amounts
-        _createBundleProvider(addressParams, params);
+    }
 
+    function _splitToUsers(
+        uint256 poolId,
+        uint256 amount,
+        UserSplit[] memory userSplits
+    ) internal returns (bool isFinished) {
+        uint256 splitLength = userSplits.length;
         for (uint256 i = 0; i < splitLength; ++i) {
             uint256 userAmount = userSplits[i].amount;
             address user = userSplits[i].user;
-            uint256 ratio = userAmount.calcRate(tokenAmount);
+            uint256 ratio = userAmount.calcRate(amount);
             // By splitting, the user will receive refund pool, which in turn contains bundle, which in turn contains simple providers :)
-            lockDealNFT.safeTransferFrom(address(this), address(lockDealNFT), refundPoolId, abi.encode(ratio, user));
+            lockDealNFT.safeTransferFrom(address(this), address(lockDealNFT), poolId, abi.encode(ratio, user));
             // also by splitting every refund pool save collateral pool id that give opportunity to swap tokens to main coins
+            amount -= userAmount;
         }
+        isFinished = amount == 0;
     }
 
     function _createCollateralProvider(address mainCoin, uint256[] memory params) internal returns (uint256 poolId) {
@@ -74,16 +70,24 @@ contract RefundBundleBuilder is ERC721Holder {
     }
 
     function _createRefundProvider(
-        uint256 collateralPoolId,
-        address token,
-        uint256 tokenAmount,
-        uint256 mainCoinAmount
-    ) internal returns (uint256 poolId) {
-        uint256[] memory params = new uint256[](2);
-        params[0] = collateralPoolId;
-        params[1] = mainCoinAmount.calcRate(tokenAmount);
+        address[] calldata addressParams,
+        uint256[][] calldata params
+    ) internal returns (uint256 poolId, uint256 tokenAmount) {
+        for (uint256 i = 1; i < params.length; i++) {
+            tokenAmount += params[i][0];
+        }
+        address token = addressParams[0];
+        address mainCoin = addressParams[1];
+        uint256 mainCoinAmount = params[0][0];
+        uint256[] memory collateralParams = params[0];
+        // create collateral pool with main coin total amount for Project Owner (buildRefundBundle caller)
+        uint256 collateralPoolId = _createCollateralProvider(mainCoin, collateralParams);
+        uint256[] memory refundParams = new uint256[](2);
+        refundParams[0] = collateralPoolId;
+        refundParams[1] = mainCoinAmount.calcRate(tokenAmount);
         poolId = lockDealNFT.mintAndTransfer(address(this), token, msg.sender, tokenAmount, refundProvider);
-        refundProvider.registerPool(poolId, params);
+        _createBundleProvider(addressParams, params);
+        refundProvider.registerPool(poolId, refundParams);
     }
 
     function _createBundleProvider(
