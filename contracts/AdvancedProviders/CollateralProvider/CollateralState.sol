@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "../../SimpleProviders/LockProvider/LockDealState.sol";
-import "./IInnerWithdraw.sol";
+import "../../interfaces/IInnerWithdraw.sol";
 
 abstract contract CollateralState is LockDealState, IInnerWithdraw {
     function getParams(uint256 poolId) public view override returns (uint256[] memory params) {
