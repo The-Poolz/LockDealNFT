@@ -66,8 +66,8 @@ contract RefundBundleBuilder is ERC721Holder {
             uint256 userAmount = userSplits[i].amount;
             address user = userSplits[i].user;
             uint256 ratio = userAmount.calcRate(tokenAmount);
-            tokenAmount -= tokenAmount.calcAmount(ratio);
-            // tokenAmount -= userAmount;
+            //tokenAmount -= tokenAmount.calcAmount(ratio);
+            tokenAmount -= userAmount;
             // By splitting, the user will receive refund pool, which in turn contains bundle, which in turn contains simple providers :)
             lockDealNFT.safeTransferFrom(address(this), address(lockDealNFT), refundPoolId, abi.encode(ratio, user));
             // also by splitting every refund pool save collateral pool id that give opportunity to swap tokens to main coins
