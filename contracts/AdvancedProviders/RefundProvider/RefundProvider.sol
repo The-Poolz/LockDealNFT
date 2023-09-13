@@ -96,6 +96,7 @@ contract RefundProvider is RefundState, IERC721Receiver, RefundModifiers {
         uint256 poolId,
         uint256[] calldata params
     ) public override onlyProvider validProviderId(poolId) validProviderAssociation(params[0], collateralProvider) {
+        require(lockDealNFT.ownerOf(poolId + 1) == address(this), "Must Own poolId+1");
         require(params[1] <= 1e18, "invalid rateToWei");
         _registerPool(poolId, params);
     }
