@@ -96,7 +96,7 @@ describe('Builder', function () {
   // 0 - refund
   // 1 - bundle (1, 2, 3)
   // 2 - collateral (4, 5, 6, 7)
-  it('should check collateral data after builder creation', async () => {
+  it('should check collateral data after Builder creation', async () => {
     poolId += 4; // collateral pool id
     const poolData = await lockDealNFT.getData(poolId);
     vaultId = (await mockVaultManager.Id()).toNumber();
@@ -114,7 +114,7 @@ describe('Builder', function () {
   // 0 - refund
   // 1 - bundle (1, 2, 3)
   // 2 - collateral (4, 5, 6, 7)
-  it('should check users refund user pools after builder creation', async () => {
+  it('should check users refund pools data after builder creation', async () => {
     const collateralPoolId = poolId + 4;
     poolId += 8; // users pool ids start from poolId + 8
     for (let i = poolId; i < poolId + userSplits.length * 3; i += 4) {
