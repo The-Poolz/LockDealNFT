@@ -96,7 +96,7 @@ contract RefundProvider is RefundState, IERC721Receiver, RefundModifiers {
         uint256 poolId,
         uint256[] calldata params
     ) public override onlyProvider validProviderId(poolId) validProviderAssociation(params[0], collateralProvider) {
-        require(params[1] <= 1e18, "invalid rateToWei");
+        require(params[1] <= 1e21, "invalid rateToWei");
         _registerPool(poolId, params);
     }
 

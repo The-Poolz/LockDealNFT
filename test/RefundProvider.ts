@@ -22,7 +22,7 @@ describe('Refund Provider', function () {
   let mockVaultManager: MockVaultManager;
   let collateralProvider: CollateralProvider;
   let halfTime: number;
-  const rate = ethers.utils.parseEther('0.1');
+  const rate = ethers.utils.parseUnits('0.1', 21);
   const mainCoinAmount = ethers.utils.parseEther('10');
   let lockDealNFT: LockDealNFT;
   let poolId: number;
