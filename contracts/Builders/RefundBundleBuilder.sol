@@ -36,8 +36,8 @@ contract RefundBundleBuilder is ERC721Holder {
     // params[1+][0] - the sum need to be equal to the token amount (sum of userSplits)
     function buildRefundBundle(
         UserSplit[] memory userSplits,
-        address[] calldata addressParams,
-        uint256[][] calldata params
+        address[] memory addressParams,
+        uint256[][] memory params
     ) public {
         //TODO require lenghts
         address token = addressParams[0];
@@ -48,48 +48,57 @@ contract RefundBundleBuilder is ERC721Holder {
             tokenAmount += userSplits[i].amount;
         }
         uint256 mainCoinAmount = params[0][0];
-        uint256[] memory collateralParams = params[0];
-        // create collateral pool with main coin total amount for Project Owner (buildRefundBundle caller)
-        uint256 collateralPoolId = _createCollateralProvider(mainCoin, collateralParams);
         // create refund pool with full token amount
-        uint256 refundPoolId = _createRefundProvider(collateralPoolId, token, tokenAmount, mainCoinAmount);
-        // create bundle pool with all token time locks and amounts
+        (uint256 refundPoolId, uint256[] memory refundParams) = _createRefundProvider(
+            token,
+            tokenAmount,
+            mainCoinAmount
+        );
+        // create bundle pool with all token time locks and amounts (poolID + 1 for RefundProvider)
         _createBundleProvider(addressParams, params);
+        // create collateral pool with main coin total amount for Project Owner (buildRefundBundle caller)
+        uint256 collateralPoolId = _createCollateralProvider(mainCoin, refundPoolId, params[0]);
+        // register refund provider after collateral provider to get collateral pool id
+        refundParams[0] = collateralPoolId;
+        refundProvider.registerPool(refundPoolId, refundParams);
 
         for (uint256 i = 0; i < splitLength; ++i) {
             uint256 userAmount = userSplits[i].amount;
             address user = userSplits[i].user;
             uint256 ratio = userAmount.calcRate(tokenAmount);
-            tokenAmount -= userAmount;
+            tokenAmount -= tokenAmount.calcAmount(ratio);
+            // tokenAmount -= userAmount;
             // By splitting, the user will receive refund pool, which in turn contains bundle, which in turn contains simple providers :)
             lockDealNFT.safeTransferFrom(address(this), address(lockDealNFT), refundPoolId, abi.encode(ratio, user));
             // also by splitting every refund pool save collateral pool id that give opportunity to swap tokens to main coins
         }
     }
 
-    function _createCollateralProvider(address mainCoin, uint256[] memory params) internal returns (uint256 poolId) {
+    function _createCollateralProvider(
+        address mainCoin,
+        uint256 refundPoolId,
+        uint256[] memory params
+    ) internal returns (uint256 poolId) {
         poolId = lockDealNFT.mintAndTransfer(msg.sender, mainCoin, msg.sender, params[0], collateralProvider);
-        collateralProvider.registerPool(poolId, params);
+        uint256[] memory collateralParams = new uint256[](3);
+        collateralParams[0] = params[0];
+        collateralParams[1] = params[1];
+        collateralParams[2] = refundPoolId;
+        collateralProvider.registerPool(poolId, collateralParams);
     }
 
     function _createRefundProvider(
-        uint256 collateralPoolId,
         address token,
         uint256 tokenAmount,
         uint256 mainCoinAmount
-    ) internal returns (uint256 poolId) {
-        uint256[] memory params = new uint256[](2);
-        params[0] = collateralPoolId;
-        params[1] = mainCoinAmount.calcRate(tokenAmount);
+    ) internal returns (uint256 poolId, uint256[] memory params) {
         poolId = lockDealNFT.mintAndTransfer(address(this), token, msg.sender, tokenAmount, refundProvider);
-        refundProvider.registerPool(poolId, params);
+        params = new uint256[](2);
+        params[1] = mainCoinAmount.calcRate(tokenAmount);
     }
 
-    function _createBundleProvider(
-        address[] calldata addressParams,
-        uint256[][] calldata params
-    ) internal returns (uint256 poolId) {
-        poolId = lockDealNFT.mintForProvider(address(refundProvider), bundleProvider);
+    function _createBundleProvider(address[] memory addressParams, uint256[][] memory params) internal {
+        uint256 poolId = lockDealNFT.mintForProvider(address(refundProvider), bundleProvider);
         for (uint256 i = 2; i < addressParams.length; ++i) {
             IProvider provider = IProvider(addressParams[i]);
             uint256 innerPoolId = lockDealNFT.mintForProvider(address(bundleProvider), provider);
