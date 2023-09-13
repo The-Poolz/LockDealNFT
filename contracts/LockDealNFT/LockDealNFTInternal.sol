@@ -80,7 +80,7 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers {
         uint256 ratio,
         address newOwner
     ) private notZeroAddress(newOwner) notZeroAmount(ratio) returns (bool isFinal) {
-        require(ratio <= 1e18, "split amount exceeded");
+        require(ratio <= 1e21, "split amount exceeded");
         IProvider provider = poolIdToProvider[poolId];
         uint256 newPoolId = _mint(newOwner, provider);
         poolIdToVaultId[newPoolId] = poolIdToVaultId[poolId];

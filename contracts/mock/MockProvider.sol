@@ -44,7 +44,7 @@ contract MockProvider is IFundsManager {
         uint256 subPoolId = lockDealNFT.mintForProvider(owner, provider);
         uint256[] memory params = new uint256[](2);
         params[0] = subPoolId;
-        params[1] = 1e18;
+        params[1] = 1e21;
         _provider.registerPool(poolId, params);
     }
 
