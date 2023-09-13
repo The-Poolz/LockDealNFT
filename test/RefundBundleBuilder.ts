@@ -91,49 +91,39 @@ describe('Builder', function () {
     ];
     vaultId = (await mockVaultManager.Id()).toNumber() + 1;
     await bundleBuilder.connect(projectOwner).buildRefundBundle(userSplits, addressParams, params);
-    //______________________________
-    // 0 - collateral               |
-    // 1 - main coin DealProvider   |
-    // 2 - token DealProvider       |
-    // 3 - main coin DealProvider   |
-    // 4 - refund Provider          |
-    // 5 - bundle Provider          |
-    //```````````````````````````````
   });
 
-  it('should check collateral data after builder creation', async () => {
+  // 0 - refund
+  // 1 - bundle (1, 2, 3)
+  // 2 - collateral (4, 5, 6, 7)
+  it('should check collateral data after Builder creation', async () => {
+    poolId += 4; // collateral pool id
     const poolData = await lockDealNFT.getData(poolId);
+    vaultId = (await mockVaultManager.Id()).toNumber();
     const params = [mainCoinAmount, finishTime];
     expect(poolData).to.deep.equal([collateralProvider.address, poolId, vaultId, projectOwner.address, BUSD, params]);
   });
 
   it('check starter refund provider data after builder creation', async () => {
-    const poolData = await lockDealNFT.getData(poolId + 4);
-    const collateralPoolId = poolId;
-    const rateToWei = ethers.utils.parseEther('0.1').toString();
-    const params = [mainCoinAmount, collateralPoolId, rateToWei];
-    const vaultId = (await mockVaultManager.Id()).toNumber();
-    //expect(poolData).to.deep.equal([refundProvider.address, poolId + 4, vaultId, bundleBuilder.address, token, params]);
+    const collateralPoolId = await refundProvider.poolIdToCollateralId(poolId);
+    const rateToWei = await refundProvider.poolIdToRateToWei(poolId);
+    expect(collateralPoolId).to.equal(poolId + userSplits.length);
+    expect(rateToWei).to.equal(ethers.utils.parseEther('0.1').toString());
   });
 
-  it('should check users refund token data after builder creation', async () => {
-    // poolId = poolId += 3;
-    // for (let i = poolId; i < userSplits.length; i += 2) {
-    //   const userData = await lockDealNFT.getData(i + poolId);
-    //   expect(userData.provider).to.equal(refundProvider.address);
-    //console.log(userData.provider);
-    // console.log(i)
-    // console.log(dealProvider.address);
-    // console.log(lockProvider.address);
-    // console.log(timedProvider.address);
-    // console.log('refundProvider', refundProvider.address);
-    // console.log('collateralProvider', collateralProvider.address);
-    // console.log('lockDealNFT', lockDealNFT.address);
-    // console.log('bundleProvider', bundleProvider.address);
-    // console.log('bundleBuilder', bundleBuilder.address);
-    // console.log('UserData', userData.provider);
-    //console.log("addressParams", addressParams[j])
-    //expect(userData.poolInfo).to.deep.equal([poolId, userSplits[k++].user, token])
-    //}
+  // 0 - refund
+  // 1 - bundle (1, 2, 3)
+  // 2 - collateral (4, 5, 6, 7)
+  it('should check users refund pools data after builder creation', async () => {
+    const collateralPoolId = poolId + 4;
+    poolId += 8; // users pool ids start from poolId + 8
+    for (let i = poolId; i < poolId + userSplits.length * 3; i += 4) {
+      const userData = await lockDealNFT.getData(i);
+      expect(userData.provider).to.equal(refundProvider.address);
+      expect(userData.poolId).to.equal(i);
+      expect(userData.owner).to.equal(userSplits[(i - poolId) / 4].user);
+      expect(userData.token).to.equal(token);
+      expect(userData.params).to.deep.equal([amount, collateralPoolId, ethers.utils.parseEther('0.1').toString()]);
+    }
   });
 });
