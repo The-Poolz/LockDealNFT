@@ -24,7 +24,7 @@ describe('test-driven development', function () {
   let timedProvider: TimedDealProvider;
   let mockVaultManager: MockVaultManager;
   let collateralProvider: CollateralProvider;
-  const rate = ethers.utils.parseEther('0.1');
+  const rate = ethers.utils.parseUnits('0.1', 21);
   const mainCoinAmount = ethers.utils.parseEther('10');
   let lockDealNFT: LockDealNFT;
   let receiver: SignerWithAddress;
