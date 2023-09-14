@@ -164,9 +164,9 @@ describe('Refund Provider', function () {
 
     it('should register new refund by other approved contract', async () => {
       await mockProvider.registerNewRefundPool(receiver.address, collateralProvider.address);
-      poolId = (await lockDealNFT.totalSupply()).toNumber() - 2;
+      poolId = (await lockDealNFT.totalSupply()).toNumber() - 3;
       const poolData = await lockDealNFT.getData(poolId);
-      const params = [0, poolId + 1, MAX_RATIO];
+      const params = [0, poolId + 2, MAX_RATIO];
       expect(poolData).to.deep.equal([
         refundProvider.address,
         poolId,
