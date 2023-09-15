@@ -107,7 +107,7 @@ describe('Simple Builder', function () {
       expect(userData.poolId).to.equal(i);
       expect(userData.owner).to.equal(userPools[k++].user);
       expect(userData.token).to.equal(token);
-      expect(userData.params).to.deep.equal([amount, collateralPoolId, ethers.utils.parseEther('0.1').toString()]);
+      expect(userData.params).to.deep.equal([amount, collateralPoolId, ethers.utils.parseUnits('0.1', 21)]);
     }
   });
 });

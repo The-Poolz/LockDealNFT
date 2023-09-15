@@ -7,6 +7,6 @@ library CalcUtils {
     }
 
     function calcRate(uint256 tokenAValue, uint256 tokenBValue) internal pure returns (uint256 rate) {
-        return (tokenAValue * 1e18) / tokenBValue;
+        return (tokenAValue * 1e21) / tokenBValue;
     }
 }
