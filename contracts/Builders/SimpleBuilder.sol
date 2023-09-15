@@ -32,7 +32,7 @@ contract SimpleBuilder is ERC721Holder {
     /// @param addressParams[1] = mainCoin
     /// @param params[0] = collateral params, [0] start amount, [1] finish time
     function buildRefundSimple(
-        UserPool[] memory userPools,
+        UserPool[] calldata userPools,
         address[] calldata addressParams,
         uint256[] calldata params
     ) public {
@@ -52,7 +52,7 @@ contract SimpleBuilder is ERC721Holder {
 
     function _createRefundPools(
         address[] calldata addressParams,
-        UserPool[] memory userPools
+        UserPool[] calldata userPools
     ) internal returns (uint256 lastPoolId, uint256 totalAmount) {
         address token = addressParams[0];
         uint256 length = userPools.length;
@@ -80,7 +80,7 @@ contract SimpleBuilder is ERC721Holder {
     function _createCollateralProvider(
         address mainCoin,
         uint256 refundPoolId,
-        uint256[] memory params
+        uint256[] calldata params
     ) internal returns (uint256 poolId) {
         poolId = lockDealNFT.mintAndTransfer(msg.sender, mainCoin, msg.sender, params[0], collateralProvider);
         uint256[] memory collateralParams = new uint256[](3);
