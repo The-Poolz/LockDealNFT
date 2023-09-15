@@ -31,7 +31,6 @@ contract SimpleBuilder is ERC721Holder {
     /// @param addressParams[0] = token
     /// @param addressParams[1] = mainCoin
     /// @param params[0] = collateral params, [0] start amount, [1] finish time
-    /// @param params[1+][0] - amounts
     function buildRefundSimple(
         UserPool[] memory userPools,
         address[] calldata addressParams,
