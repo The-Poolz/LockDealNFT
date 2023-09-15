@@ -53,7 +53,7 @@ contract SimpleBuilder is ERC721Holder {
     function _createRefundPools(
         address[] calldata addressParams,
         UserPool[] memory userPools
-    ) internal returns (uint256 lastPoolID, uint256 totalAmount) {
+    ) internal returns (uint256 lastPoolId, uint256 totalAmount) {
         address token = addressParams[0];
         uint256 length = userPools.length;
         uint256[] memory params = new uint256[](simpleProvider.currentParamsTargetLenght());
@@ -61,7 +61,7 @@ contract SimpleBuilder is ERC721Holder {
             uint256 userAmount = userPools[i].amount;
             address user = userPools[i].user;
             // mint refund pools for users
-            lastPoolID = lockDealNFT.mintAndTransfer(user, token, msg.sender, userAmount, refundProvider);
+            lockDealNFT.mintAndTransfer(user, token, msg.sender, userAmount, refundProvider);
             // mint and save simple provider
             uint256 poolId = lockDealNFT.mintAndTransfer(
                 address(refundProvider),
@@ -74,6 +74,7 @@ contract SimpleBuilder is ERC721Holder {
             simpleProvider.registerPool(poolId, params);
             totalAmount += userAmount;
         }
+        lastPoolId = lockDealNFT.totalSupply() - 2;
     }
 
     function _createCollateralProvider(
