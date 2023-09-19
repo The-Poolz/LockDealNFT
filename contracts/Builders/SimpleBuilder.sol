@@ -36,7 +36,6 @@ contract SimpleBuilder {
         uint256 totalAmount = _calcTotalAmount(userPools);
         // one time transfer for deacrease number transactions
         uint256 poolId = lockDealNFT.mintAndTransfer(msg.sender, token, msg.sender, totalAmount, provider);
-        // regiter default values for first pool
         for (uint256 i = 0; i < length; ++i) {
             uint256 userPoolId = lockDealNFT.mintForProvider(userPools[i].user, provider);
             provider.registerPool(userPoolId, _concatParams(userPools[i].amount, params));
