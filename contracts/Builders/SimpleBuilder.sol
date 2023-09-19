@@ -37,8 +37,12 @@ contract SimpleBuilder {
         // one time transfer for deacrease number transactions
         uint256 poolId = lockDealNFT.mintAndTransfer(msg.sender, token, msg.sender, totalAmount, provider);
         for (uint256 i = 0; i < length; ++i) {
-            uint256 userPoolId = lockDealNFT.mintForProvider(userPools[i].user, provider);
-            provider.registerPool(userPoolId, _concatParams(userPools[i].amount, params));
+            uint256 userAmount = userPools[i].amount;
+            address userAddress = userPools[i].user;
+            require(userAmount > 0, "invalid user amount");
+            require(userAddress != address(0x0), "invalid user address");
+            uint256 userPoolId = lockDealNFT.mintForProvider(userAddress, provider);
+            provider.registerPool(userPoolId, _concatParams(userAmount, params));
             lockDealNFT.copyVaultId(poolId, userPoolId);
         }
     }
