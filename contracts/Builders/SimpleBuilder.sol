@@ -4,10 +4,11 @@ pragma solidity ^0.8.0;
 import "../interfaces/ISimpleProvider.sol";
 import "../interfaces/ILockDealNFT.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
+import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 
 /// @title SimpleBuilder contract
 /// @notice This contract is used to create mass lock deals(NFTs)
-contract SimpleBuilder {
+contract SimpleBuilder is ERC721Holder {
     ILockDealNFT public lockDealNFT;
 
     constructor(ILockDealNFT _nft) {
@@ -40,7 +41,7 @@ contract SimpleBuilder {
         require(length > 1, "invalid userPools length");
         uint256 totalAmount = _calcTotalAmount(userPools);
         // one time transfer for deacrease number transactions
-        uint256 poolId = lockDealNFT.mintAndTransfer(address(lockDealNFT), token, msg.sender, totalAmount, provider);
+        uint256 poolId = lockDealNFT.mintAndTransfer(address(this), token, msg.sender, totalAmount, provider);
         for (uint256 i = 0; i < length; ++i) {
             _createNewNFT(provider, poolId, userPools[i], params);
         }
