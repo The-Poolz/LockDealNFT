@@ -43,15 +43,31 @@ describe('Simple Builder tests', function () {
     userPools = await _createUsers(amount, userCount);
     const lastPoolId = (await lockDealNFT.totalSupply()).toNumber();
     await simpleBuilder.connect(projectOwner).buildMassPools(addressParams, userPools, params);
+    await _logGasPrice(params);
     let k = 0;
+    params.splice(0, 0, ethers.BigNumber.from(amount));
+    if (provider == timedProvider.address) {
+      params.push(ethers.BigNumber.from(amount));
+    }
     for (let i = lastPoolId + 1; i < userPools.length + lastPoolId; i++) {
       const userData = await lockDealNFT.getData(i);
       expect(userData.provider).to.equal(provider);
       expect(userData.poolId).to.equal(i);
       expect(userData.owner).to.equal(userPools[k++].user);
       expect(userData.token).to.equal(token);
-      //expect(userData.params).to.deep.equal(params);
+      expect(userData.params).to.deep.equal(params);
     }
+  }
+
+  async function _logGasPrice(params: BigNumber[]) {
+    const tx = await simpleBuilder.connect(projectOwner).buildMassPools(addressParams, userPools, params);
+    const txReceipt = await tx.wait();
+    const gasUsed = txReceipt.gasUsed;
+    const gasPrice = await ethers.provider.getGasPrice();
+    const gasCost = gasUsed.mul(gasPrice);
+    console.log(`Gas Used: ${gasUsed.toString()}`);
+    console.log(`Gas Price: ${gasPrice.toString()}`);
+    console.log(`Gas Cost: ${ethers.utils.formatEther(gasCost)} ETH`);
   }
 
   function _createProviderParams(provider: string) {
@@ -85,18 +101,18 @@ describe('Simple Builder tests', function () {
     finishTime = startTime.add(7 * ONE_DAY); // plus 7 days from `startTime`
   });
 
-  it('should create 10 timedProvider pools', async () => {
+  it('should create 10 dealProvider pools', async () => {
     const userCount = '10';
-    const params = _createProviderParams(timedProvider.address);
-    addressParams[0] = timedProvider.address;
-    await _testMassPoolsData(timedProvider.address, amount, userCount, params);
+    const params = _createProviderParams(dealProvider.address);
+    addressParams[0] = dealProvider.address;
+    await _testMassPoolsData(dealProvider.address, amount, userCount, params);
   });
 
-  it('should create 50 timedProvider pools', async () => {
+  it('should create 50 dealProvider pools', async () => {
     const userCount = '50';
-    const params = _createProviderParams(timedProvider.address);
-    addressParams[0] = timedProvider.address;
-    await _testMassPoolsData(timedProvider.address, amount, userCount, params);
+    const params = _createProviderParams(dealProvider.address);
+    addressParams[0] = dealProvider.address;
+    await _testMassPoolsData(dealProvider.address, amount, userCount, params);
   });
 
   it('should create 10 lockProvider pools', async () => {
@@ -113,17 +129,17 @@ describe('Simple Builder tests', function () {
     await _testMassPoolsData(lockProvider.address, amount, userCount, params);
   });
 
-  it('should create 10 dealProvider pools', async () => {
+  it('should create 10 timedProvider pools', async () => {
     const userCount = '10';
-    const params = _createProviderParams(dealProvider.address);
-    addressParams[0] = dealProvider.address;
-    await _testMassPoolsData(dealProvider.address, amount, userCount, params);
+    const params = _createProviderParams(timedProvider.address);
+    addressParams[0] = timedProvider.address;
+    await _testMassPoolsData(timedProvider.address, amount, userCount, params);
   });
 
-  it('should create 50 dealProvider pools', async () => {
+  it('should create 50 timedProvider pools', async () => {
     const userCount = '50';
-    const params = _createProviderParams(dealProvider.address);
-    addressParams[0] = dealProvider.address;
-    await _testMassPoolsData(dealProvider.address, amount, userCount, params);
+    const params = _createProviderParams(timedProvider.address);
+    addressParams[0] = timedProvider.address;
+    await _testMassPoolsData(timedProvider.address, amount, userCount, params);
   });
 });
