@@ -18,7 +18,7 @@ describe('Simple Builder tests', function () {
   let timedProvider: TimedDealProvider;
   let simpleBuilder: SimpleBuilder;
   let lockDealNFT: LockDealNFT;
-  let userPools: { user: string; amount: string }[];
+  let userData: SimpleBuilder.BuilderStruct;
   let addressParams: [string, string];
   let projectOwner: SignerWithAddress;
   let startTime: BigNumber, finishTime: BigNumber;
@@ -26,46 +26,47 @@ describe('Simple Builder tests', function () {
   const ONE_DAY = 86400;
 
   // helper functions
-  async function _createUsers(amount: string, userCount: string) {
+  async function _createUsers(amount: string, userCount: string): Promise<SimpleBuilder.BuilderStruct> {
     const pools = [];
     const length = parseInt(userCount);
     // Create signers
-    for (let i = 0; i < length; i++) {
+    for (let i = 0; i < length; ++i) {
       const privateKey = ethers.Wallet.createRandom().privateKey;
       const signer = new ethers.Wallet(privateKey);
       const user = signer.address;
       pools.push({ user: user, amount: amount });
     }
-    return pools;
+    const totalAmount = ethers.BigNumber.from(amount).mul(length);
+    return { userPools: pools, totalAmount: totalAmount };
   }
 
   async function _testMassPoolsData(provider: string, amount: string, userCount: string, params: BigNumber[]) {
-    userPools = await _createUsers(amount, userCount);
+    userData = await _createUsers(amount, userCount);
     const lastPoolId = (await lockDealNFT.totalSupply()).toNumber();
-    await simpleBuilder.connect(projectOwner).buildMassPools(addressParams, userPools, params);
+    await simpleBuilder.connect(projectOwner).buildMassPools(addressParams, userData, params);
     await _logGasPrice(params);
     let k = 0;
     params.splice(0, 0, ethers.BigNumber.from(amount));
     if (provider == timedProvider.address) {
       params.push(ethers.BigNumber.from(amount));
     }
-    for (let i = lastPoolId + 1; i < userPools.length + lastPoolId; i++) {
-      const userData = await lockDealNFT.getData(i);
-      expect(userData.provider).to.equal(provider);
-      expect(userData.poolId).to.equal(i);
-      expect(userData.owner).to.equal(userPools[k++].user);
-      expect(userData.token).to.equal(token);
-      expect(userData.params).to.deep.equal(params);
+    for (let i = lastPoolId; i < userData.userPools.length + lastPoolId; i++) {
+      const data = await lockDealNFT.getData(i);
+      expect(data.provider).to.equal(provider);
+      expect(data.poolId).to.equal(i);
+      expect(data.owner).to.equal(userData.userPools[k++].user);
+      expect(data.token).to.equal(token);
+      expect(data.params).to.deep.equal(params);
     }
   }
 
   async function _logGasPrice(params: BigNumber[]) {
-    const tx = await simpleBuilder.connect(projectOwner).buildMassPools(addressParams, userPools, params);
+    const tx = await simpleBuilder.connect(projectOwner).buildMassPools(addressParams, userData, params);
     const txReceipt = await tx.wait();
     const gasUsed = txReceipt.gasUsed;
     const GREEN_TEXT = '\x1b[32m';
     console.log(`${GREEN_TEXT}Gas Used: ${gasUsed.toString()}`);
-    console.log(`Price per one pool: ${gasUsed.div(userPools.length)}`);
+    console.log(`Price per one pool: ${gasUsed.div(userData.userPools.length)}`);
   }
 
   function _createProviderParams(provider: string) {
@@ -94,7 +95,7 @@ describe('Simple Builder tests', function () {
   });
 
   beforeEach(async () => {
-    userPools = await _createUsers(amount, '4');
+    userData = await _createUsers(amount, '4');
     addressParams = [timedProvider.address, token];
     startTime = ethers.BigNumber.from((await time.latest()) + ONE_DAY); // plus 1 day
     finishTime = startTime.add(7 * ONE_DAY); // plus 7 days from `startTime`
