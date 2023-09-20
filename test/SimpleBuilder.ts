@@ -69,6 +69,7 @@ describe('Simple Builder tests', function () {
   }
 
   function _createProviderParams(provider: string) {
+    addressParams[0] = provider;
     return provider == dealProvider.address
       ? []
       : provider == lockProvider.address
@@ -102,63 +103,54 @@ describe('Simple Builder tests', function () {
   it('should create 10 dealProvider pools', async () => {
     const userCount = '10';
     const params = _createProviderParams(dealProvider.address);
-    addressParams[0] = dealProvider.address;
     await _testMassPoolsData(dealProvider.address, amount, userCount, params);
   });
 
   it('should create 50 dealProvider pools', async () => {
     const userCount = '50';
     const params = _createProviderParams(dealProvider.address);
-    addressParams[0] = dealProvider.address;
     await _testMassPoolsData(dealProvider.address, amount, userCount, params);
   });
 
   it('should create 100 dealProvider pools', async () => {
     const userCount = '100';
     const params = _createProviderParams(dealProvider.address);
-    addressParams[0] = dealProvider.address;
     await _testMassPoolsData(dealProvider.address, amount, userCount, params);
   });
 
   it('should create 10 lockProvider pools', async () => {
     const userCount = '10';
     const params = _createProviderParams(lockProvider.address);
-    addressParams[0] = lockProvider.address;
     await _testMassPoolsData(lockProvider.address, amount, userCount, params);
   });
 
   it('should create 50 lockProvider pools', async () => {
     const userCount = '50';
     const params = _createProviderParams(lockProvider.address);
-    addressParams[0] = lockProvider.address;
     await _testMassPoolsData(lockProvider.address, amount, userCount, params);
   });
 
   it('should create 100 lockProvider pools', async () => {
     const userCount = '100';
     const params = _createProviderParams(lockProvider.address);
-    addressParams[0] = lockProvider.address;
     await _testMassPoolsData(lockProvider.address, amount, userCount, params);
   });
 
   it('should create 10 timedProvider pools', async () => {
     const userCount = '10';
     const params = _createProviderParams(timedProvider.address);
-    addressParams[0] = timedProvider.address;
     await _testMassPoolsData(timedProvider.address, amount, userCount, params);
   });
 
   it('should create 50 timedProvider pools', async () => {
     const userCount = '50';
     const params = _createProviderParams(timedProvider.address);
-    addressParams[0] = timedProvider.address;
     await _testMassPoolsData(timedProvider.address, amount, userCount, params);
   });
 
   it('should create 100 timedProvider pools', async () => {
     const userCount = '100';
     const params = _createProviderParams(timedProvider.address);
-    addressParams[0] = timedProvider.address;
     await _testMassPoolsData(timedProvider.address, amount, userCount, params);
   });
 });
