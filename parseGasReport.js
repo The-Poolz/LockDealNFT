@@ -36,13 +36,17 @@ fs.readFile('gas-report.txt', 'utf8', (err, data) => {
       );
       if (match) {
         const [, contract, method, min, max, avg, calls, usd] = match;
+          if (!contract.toLowerCase().includes('mock')) {
         mdContent += `| ${contract} | ${method} | ${min} | ${max} | ${avg} | ${calls} |\n`;
+          }
       }
     } else {
       const match = line.match(/(\w+)\s+·\s+(\d+|-)\s+·\s+(\d+|-)\s+·\s+(\d+|-)\s+·\s+(\d+\.\s?\d+\s%)\s+·\s+(-|\d+)/);
       if (match) {
         const [, contract, min, max, avg, limit, usd] = match;
+          if (!contract.toLowerCase().includes('mock')) {
         mdDeployments += `| ${contract} | ${min} | ${max} | ${avg} | ${limit} | ${usd} |\n`;
+          }
       }
     }
   });
