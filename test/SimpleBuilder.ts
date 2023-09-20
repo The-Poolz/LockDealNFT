@@ -63,7 +63,9 @@ describe('Simple Builder tests', function () {
     const tx = await simpleBuilder.connect(projectOwner).buildMassPools(addressParams, userPools, params);
     const txReceipt = await tx.wait();
     const gasUsed = txReceipt.gasUsed;
-    console.log(`Gas Used: ${gasUsed.toString()}`);
+    const GREEN_TEXT = '\x1b[32m';
+    console.log(`${GREEN_TEXT}Gas Used: ${gasUsed.toString()}`);
+    console.log(`Price per one pool: ${gasUsed.div(userPools.length)}`);
   }
 
   function _createProviderParams(provider: string) {
