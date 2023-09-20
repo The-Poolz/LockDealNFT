@@ -63,11 +63,7 @@ describe('Simple Builder tests', function () {
     const tx = await simpleBuilder.connect(projectOwner).buildMassPools(addressParams, userPools, params);
     const txReceipt = await tx.wait();
     const gasUsed = txReceipt.gasUsed;
-    const gasPrice = await ethers.provider.getGasPrice();
-    const gasCost = gasUsed.mul(gasPrice);
     console.log(`Gas Used: ${gasUsed.toString()}`);
-    console.log(`Gas Price: ${gasPrice.toString()}`);
-    console.log(`Gas Cost: ${ethers.utils.formatEther(gasCost)} ETH`);
   }
 
   function _createProviderParams(provider: string) {
