@@ -86,10 +86,24 @@ describe('LockDealNFT', function () {
     expect(await lockDealNFT.owner()).to.equal(newOwner);
   });
 
+  it("should revert transferOwnership from not owner's address", async () => {
+    const lockDealNFT: LockDealNFT = await deployed('LockDealNFT', mockVaultManager.address, '');
+    await expect(lockDealNFT.connect(notOwner).transferOwnership(notOwner.address)).to.be.revertedWith(
+      'Ownable: caller is not the owner',
+    );
+  });
+
   it('should renounceOwnership to zero address', async () => {
     const lockDealNFT: LockDealNFT = await deployed('LockDealNFT', mockVaultManager.address, '');
     await lockDealNFT.renounceOwnership();
     expect(await lockDealNFT.owner()).to.equal(constants.AddressZero);
+  });
+
+  it("should revert renounceOwnership from not owner's address", async () => {
+    const lockDealNFT: LockDealNFT = await deployed('LockDealNFT', mockVaultManager.address, '');
+    await expect(lockDealNFT.connect(notOwner).renounceOwnership()).to.be.revertedWith(
+      'Ownable: caller is not the owner',
+    );
   });
 
   it('should revert the same transfer status', async () => {
