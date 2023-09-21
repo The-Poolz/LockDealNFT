@@ -79,6 +79,19 @@ describe('LockDealNFT', function () {
     await lockDealNFT.connect(receiver).approvePoolTransfers(false);
   });
 
+  it('should transferOwnership to new owner', async () => {
+    const lockDealNFT: LockDealNFT = await deployed('LockDealNFT', mockVaultManager.address, '');
+    const newOwner = notOwner.address;
+    await lockDealNFT.transferOwnership(newOwner);
+    expect(await lockDealNFT.owner()).to.equal(newOwner);
+  });
+
+  it('should renounceOwnership to new owner', async () => {
+    const lockDealNFT: LockDealNFT = await deployed('LockDealNFT', mockVaultManager.address, '');
+    await lockDealNFT.renounceOwnership();
+    expect(await lockDealNFT.owner()).to.equal(constants.AddressZero);
+  });
+
   it('should revert the same transfer status', async () => {
     const status = await lockDealNFT.approvedPoolUserTransfers(receiver.address);
     await expect(lockDealNFT.connect(receiver).approvePoolTransfers(status)).to.be.revertedWith(
