@@ -3,11 +3,10 @@ pragma solidity ^0.8.0;
 
 import "../../SimpleProviders/LockProvider/LockDealState.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
-import "../../SimpleProviders/Provider/ProviderState.sol";
 import "../../SimpleProviders/Provider/ProviderModifiers.sol";
 import "../../interfaces/IInnerWithdraw.sol";
 
-abstract contract CollateralState is LockDealState, IInnerWithdraw, ProviderState, IERC165, ProviderModifiers {
+abstract contract CollateralState is LockDealState, IInnerWithdraw, IERC165, ProviderModifiers {
     function getParams(uint256 poolId) public view override returns (uint256[] memory params) {
         (, , uint256 mainCoinHolderId) = getInnerIds(poolId);
         params = new uint256[](2);
@@ -49,7 +48,7 @@ abstract contract CollateralState is LockDealState, IInnerWithdraw, ProviderStat
 
     ///@dev Collateral can't be Refundble or Bundleble
     /// Override basic provider supportsInterface
-    function supportsInterface(bytes4 interfaceId) public view virtual returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
         return interfaceId == type(IERC165).interfaceId || interfaceId == type(IInnerWithdraw).interfaceId;
     }
 }
