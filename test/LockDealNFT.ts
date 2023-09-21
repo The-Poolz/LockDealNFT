@@ -86,7 +86,7 @@ describe('LockDealNFT', function () {
     expect(await lockDealNFT.owner()).to.equal(newOwner);
   });
 
-  it('should renounceOwnership to new owner', async () => {
+  it('should renounceOwnership to zero address', async () => {
     const lockDealNFT: LockDealNFT = await deployed('LockDealNFT', mockVaultManager.address, '');
     await lockDealNFT.renounceOwnership();
     expect(await lockDealNFT.owner()).to.equal(constants.AddressZero);
