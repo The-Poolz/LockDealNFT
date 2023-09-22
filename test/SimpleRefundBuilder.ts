@@ -13,7 +13,7 @@ import { expect } from 'chai';
 import { BigNumber } from 'ethers';
 import { ethers } from 'hardhat';
 
-describe('Simple Builder', function () {
+describe('Simple Refund Builder', function () {
   let lockProvider: LockDealProvider;
   let dealProvider: DealProvider;
   let mockVaultManager: MockVaultManager;
@@ -52,7 +52,7 @@ describe('Simple Builder', function () {
     collateralProvider = await deployed('CollateralProvider', lockDealNFT.address, dealProvider.address);
     refundProvider = await deployed('RefundProvider', lockDealNFT.address, collateralProvider.address);
     simpleBuilder = await deployed(
-      'SimpleBuilder',
+      'SimpleRefundBuilder',
       lockDealNFT.address,
       refundProvider.address,
       dealProvider.address,

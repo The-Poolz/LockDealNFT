@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../interfaces/ISimpleProvider.sol";
-import "../interfaces/ILockDealNFT.sol";
+import "../../interfaces/ISimpleProvider.sol";
+import "../../interfaces/ILockDealNFT.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
-import "./BuilderModifiers.sol";
+import "../Builder/BuilderModifiers.sol";
 
 /// @title SimpleBuilder contract
 /// @notice This contract is used to create mass lock deals(NFTs)

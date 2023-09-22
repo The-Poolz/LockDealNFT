@@ -1,16 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../interfaces/IProvider.sol";
-import "../interfaces/ILockDealNFT.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
-import "../util/CalcUtils.sol";
+import "../Builder/BuilderModifiers.sol";
+import "../../util/CalcUtils.sol";
 
 /// @title SimpleRefundBuilder contract
 /// @notice Implements a contract for building refund simple providers
-contract SimpleRefundBuilder is ERC721Holder {
+contract SimpleRefundBuilder is ERC721Holder, BuilderModifiers {
     using CalcUtils for uint256;
-    ILockDealNFT public lockDealNFT;
     IProvider public refundProvider;
     IProvider public simpleProvider;
     IProvider public collateralProvider;
@@ -20,11 +18,6 @@ contract SimpleRefundBuilder is ERC721Holder {
         refundProvider = _refund;
         simpleProvider = _simpleProvider;
         collateralProvider = _collateral;
-    }
-
-    struct UserPool {
-        address user;
-        uint256 amount;
     }
 
     /// @param userPools - array of user pools
