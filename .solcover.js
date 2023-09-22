@@ -1,5 +1,5 @@
 module.exports = {
-  istanbulReporter: ['text', 'text-summary', 'json'],
+  istanbulReporter: ['text', 'text-summary', 'json', 'html', 'lcov'],
   configureYulOptimizer: true,
   solcOptimizerDetails: {
     peephole: false,
