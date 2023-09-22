@@ -21,22 +21,23 @@ contract SimpleBuilder is ERC721Holder, BuilderModifiers {
     function buildMassPools(
         address[] calldata addressParams,
         Builder calldata userData,
-        uint256[] calldata params
-    )
-        external
-        validParamsLength(addressParams.length, 2)
-        validProviderInterface(addressParams[0], type(ISimpleProvider).interfaceId)
-        validParamsLength(userData.userPools.length, 1)
-        notZeroAmount(userData.totalAmount)
-        notZeroAddress(addressParams[1])
-    {
-        ISimpleProvider provider = ISimpleProvider(addressParams[0]);
-        address token = addressParams[1];
-        uint256 length = userData.userPools.length;
+        uint256[] memory params
+    ) external validParamsLength(addressParams.length, 2) notZeroAddress(addressParams[1]) {
+        require(
+            ERC165Checker.supportsInterface(addressParams[0], type(ISimpleProvider).interfaceId),
+            "invalid provider type"
+        );
+        require(userData.userPools.length > 0, "invalid params length");
         uint256 totalAmount = userData.totalAmount;
+        _notZeroAmount(totalAmount);
+        address token = addressParams[1];
+        ISimpleProvider provider = ISimpleProvider(addressParams[0]);
+        UserPool calldata firstUserData = userData.userPools[0];
+        uint256 length = userData.userPools.length;
         // one time transfer for deacrease number transactions
-        (uint256 poolId, uint256 amount) = _createFirstNFT(provider, token, totalAmount, userData.userPools[0], params);
-        totalAmount -= amount;
+        params = _concatParams(firstUserData.amount, params);
+        uint256 poolId;
+        (poolId, totalAmount) = _createFirstNFT(provider, token, totalAmount, firstUserData, params);
         for (uint256 i = 1; i < length; ) {
             totalAmount -= _createNewNFT(provider, poolId, userData.userPools[i], params);
             unchecked {
@@ -51,27 +52,28 @@ contract SimpleBuilder is ERC721Holder, BuilderModifiers {
         address token,
         uint256 totalAmount,
         UserPool calldata userData,
-        uint256[] calldata params
+        uint256[] memory params
     ) internal validUserData(userData) returns (uint256 poolId, uint256 amount) {
         poolId = lockDealNFT.mintAndTransfer(userData.user, token, msg.sender, totalAmount, provider);
-        provider.registerPool(poolId, _concatParams(userData.amount, params));
-        amount = userData.amount;
+        provider.registerPool(poolId, params);
+        amount = totalAmount - userData.amount;
     }
 
     function _createNewNFT(
         ISimpleProvider provider,
         uint256 tokenPoolId,
         UserPool calldata userData,
-        uint256[] calldata params
+        uint256[] memory params
     ) internal validUserData(userData) returns (uint256 amount) {
         amount = userData.amount;
         uint256 poolId = lockDealNFT.mintForProvider(userData.user, provider);
-        provider.registerPool(poolId, _concatParams(amount, params));
+        params[0] = userData.amount;
+        provider.registerPool(poolId, params);
         lockDealNFT.copyVaultId(tokenPoolId, poolId);
     }
 
     ///@dev if params is empty, then return [amount]
-    function _concatParams(uint amount, uint256[] calldata params) internal pure returns (uint256[] memory result) {
+    function _concatParams(uint amount, uint256[] memory params) internal pure returns (uint256[] memory result) {
         uint256 length = params.length;
         result = new uint256[](length + 1);
         result[0] = amount;
