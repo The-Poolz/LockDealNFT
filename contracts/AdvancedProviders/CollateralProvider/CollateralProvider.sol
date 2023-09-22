@@ -31,7 +31,7 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState {
     ///@param params[0] = StartAmount
     ///@param params[1] = FinishTime
     ///@param params[2] = token pool Id
-    function _registerPool(uint256 poolId, uint256[] calldata params) internal override {
+    function _registerPool(uint256 poolId, uint256[] calldata params) internal {
         require(block.timestamp <= params[1], "start time must be in the future");
         require(poolId == lockDealNFT.totalSupply() - 1, "invalid params");
         poolIdToTime[poolId] = params[1];

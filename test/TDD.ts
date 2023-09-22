@@ -140,11 +140,13 @@ describe('test-driven development', function () {
     });
 
     it('should be revert, wrong pool id in refund register', async () => {
-      await collateralProvider.createNewPool([receiver.address, token], [amount, startTime, 0]);
-      const poolId = (await lockDealNFT.totalSupply()).toNumber() - 1;
-      const params = [poolId, ratio];
+      const poolId = (await lockDealNFT.totalSupply()).toNumber() + 2; // collateral pool id
+      const params = [amount, ratio, ratio, finishTime];
+      const addresses = [receiver.address, token, BUSD, dealProvider.address];
+      await refundProvider.createNewRefundPool(addresses, params);
+      const newParams = [poolId, ratio];
       const nonValidPoolId = 999999;
-      await expect(refundMockProvider.registerPool(nonValidPoolId, params)).to.be.revertedWith(
+      await expect(refundMockProvider.registerPool(nonValidPoolId, newParams)).to.be.revertedWith(
         'Invalid provider poolId',
       );
     });

@@ -69,6 +69,7 @@ abstract contract BasicProvider is ProviderModifiers, ISimpleProvider, ERC165 {
         return
             interfaceId == Refundble._INTERFACE_ID_REFUNDABLE ||
             interfaceId == Bundable._INTERFACE_ID_BUNDABLE ||
+            interfaceId == type(ISimpleProvider).interfaceId ||
             super.supportsInterface(interfaceId);
     }
 }
