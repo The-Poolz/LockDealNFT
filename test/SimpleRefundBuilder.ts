@@ -5,7 +5,7 @@ import { LockDealNFT } from '../typechain-types';
 import { LockDealProvider } from '../typechain-types';
 import { RefundProvider } from '../typechain-types';
 import { TimedDealProvider } from '../typechain-types';
-import { SimpleBuilder } from '../typechain-types';
+import { SimpleRefundBuilder } from '../typechain-types';
 import { deployed, token, BUSD } from './helper';
 import { time } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -20,7 +20,7 @@ describe('Simple Builder', function () {
   let refundProvider: RefundProvider;
   let timedProvider: TimedDealProvider;
   let collateralProvider: CollateralProvider;
-  let simpleBuilder: SimpleBuilder;
+  let simpleBuilder: SimpleRefundBuilder;
   let vaultId: number;
   let lockDealNFT: LockDealNFT;
   let poolId: number;

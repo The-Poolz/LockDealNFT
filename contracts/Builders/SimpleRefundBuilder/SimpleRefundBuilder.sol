@@ -6,9 +6,9 @@ import "../interfaces/ILockDealNFT.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "../util/CalcUtils.sol";
 
-/// @title SimpleBuilder contract
+/// @title SimpleRefundBuilder contract
 /// @notice Implements a contract for building refund simple providers
-contract SimpleBuilder is ERC721Holder {
+contract SimpleRefundBuilder is ERC721Holder {
     using CalcUtils for uint256;
     ILockDealNFT public lockDealNFT;
     IProvider public refundProvider;
