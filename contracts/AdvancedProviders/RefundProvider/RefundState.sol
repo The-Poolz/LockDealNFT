@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "../CollateralProvider/CollateralProvider.sol";
 import "../../interfaces/IInnerWithdraw.sol";
 
-abstract contract RefundState is ProviderModifiers, IInnerWithdraw, ERC165 {
+abstract contract RefundState is ProviderModifiers, IInnerWithdraw, IERC165 {
     CollateralProvider public collateralProvider;
     mapping(uint256 => uint256) public poolIdToCollateralId;
     mapping(uint256 => uint256) public poolIdToRateToWei;
