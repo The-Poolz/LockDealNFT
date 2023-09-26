@@ -57,4 +57,13 @@ contract SimpleBuilder is ERC721Holder, BuilderInternal {
         provider.registerPool(poolId, params);
         amount = totalAmount - userData.amount;
     }
+
+    function _createNewNFT(
+        ISimpleProvider provider,
+        uint256 tokenPoolId,
+        UserPool calldata userData,
+        uint256[] memory params
+    ) internal returns (uint256 amount) {
+        amount = _createNewNFT(provider, tokenPoolId, userData.user, userData.amount, params);
+    }
 }

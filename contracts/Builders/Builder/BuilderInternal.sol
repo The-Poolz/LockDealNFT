@@ -21,13 +21,14 @@ contract BuilderInternal is BuilderModifiers {
     function _createNewNFT(
         ISimpleProvider provider,
         uint256 tokenPoolId,
-        UserPool calldata userData,
+        address owner,
+        uint256 amount,
         uint256[] memory params
-    ) internal validUserData(userData) returns (uint256 amount) {
-        amount = userData.amount;
-        uint256 poolId = lockDealNFT.mintForProvider(userData.user, provider);
-        params[0] = userData.amount;
+    ) internal notZeroAddress(owner) notZeroAmount(amount) returns (uint256) {
+        uint256 poolId = lockDealNFT.mintForProvider(owner, provider);
+        params[0] = amount;
         provider.registerPool(poolId, params);
         lockDealNFT.copyVaultId(tokenPoolId, poolId);
+        return amount;
     }
 }

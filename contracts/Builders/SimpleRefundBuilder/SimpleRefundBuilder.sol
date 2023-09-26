@@ -61,15 +61,23 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal {
             refundProvider
         );
         params = _concatParams(userData.userPools[0].amount, params);
-        totalAmount -= _createNewNFT(simpleProvider, tokenPoolId, userData.userPools[0], params);
+        totalAmount -= _createNewNFT(
+            simpleProvider,
+            tokenPoolId,
+            address(refundProvider),
+            userData.userPools[0].amount,
+            params
+        );
         uint256 length = userData.userPools.length;
-        for (uint256 i = 1; i < length; ++i) {
+        for (uint256 i = 1; i < length; ) {
             uint256 userAmount = userData.userPools[i].amount;
             address user = userData.userPools[i].user;
             // mint refund pools for users
             lockDealNFT.mintForProvider(user, refundProvider);
-            params[0] = userAmount;
-            totalAmount -= _createNewNFT(simpleProvider, tokenPoolId, userData.userPools[i], params);
+            totalAmount -= _createNewNFT(simpleProvider, tokenPoolId, address(refundProvider), userAmount, params);
+            unchecked {
+                ++i;
+            }
         }
         lastPoolId = lockDealNFT.totalSupply() - 2;
         assert(totalAmount == 0);
