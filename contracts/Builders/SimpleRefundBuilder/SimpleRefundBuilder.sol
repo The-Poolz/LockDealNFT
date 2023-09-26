@@ -2,70 +2,72 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
-import "../Builder/BuilderModifiers.sol";
+import "../../interfaces/ISimpleProvider.sol";
+import "../Builder/BuilderInternal.sol";
 import "../../util/CalcUtils.sol";
 
 /// @title SimpleRefundBuilder contract
 /// @notice Implements a contract for building refund simple providers
-contract SimpleRefundBuilder is ERC721Holder, BuilderModifiers {
+contract SimpleRefundBuilder is ERC721Holder, BuilderInternal {
     using CalcUtils for uint256;
     IProvider public refundProvider;
-    IProvider public simpleProvider;
     IProvider public collateralProvider;
 
-    constructor(ILockDealNFT _nft, IProvider _refund, IProvider _simpleProvider, IProvider _collateral) {
+    constructor(ILockDealNFT _nft, IProvider _refund, IProvider _collateral) {
         lockDealNFT = _nft;
         refundProvider = _refund;
-        simpleProvider = _simpleProvider;
         collateralProvider = _collateral;
     }
 
-    /// @param userPools - array of user pools
+    /// @param userData - array of user pools
     /// @param addressParams[0] = token
     /// @param addressParams[1] = mainCoin
+    /// @param addressParams[2] = simpleProvider
     /// @param params[0] = collateral params, [0] start amount, [1] finish time
+    /// @param params[1] = Array of params for simpleProvider. May be empty if this is DealProvider
     function buildRefundSimple(
-        UserPool[] calldata userPools,
+        Builder calldata userData,
         address[] calldata addressParams,
-        uint256[] calldata params
+        uint256[][] calldata params
     ) public {
-        //TODO require
-        require(userPools.length > 1, "invalid userPools length");
-        require(addressParams.length > 1, "invalid addressParams length");
+        require(userData.userPools.length > 0, "invalid userPools length");
+        require(addressParams.length > 2, "invalid addressParams length");
         require(params.length > 1, "invalid params length");
         uint256 firstRefundPoolId = lockDealNFT.totalSupply();
-        (uint256 lastRefundPoolId, uint256 totalAmount) = _createRefundPools(addressParams, userPools);
+        uint256 lastRefundPoolId = _createRefundPools(addressParams, userData, params[1]);
         address mainCoin = addressParams[1];
-        uint256 collateralPoolId = _createCollateralProvider(mainCoin, lastRefundPoolId, params);
+        uint256 collateralPoolId = _createCollateralProvider(mainCoin, lastRefundPoolId, params[0]);
         // register refund pools
-        uint256 mainCoinAmount = params[0];
-        uint256 rateToWei = mainCoinAmount.calcRate(totalAmount);
+        uint256 mainCoinAmount = params[0][0];
+        uint256 rateToWei = mainCoinAmount.calcRate(userData.totalAmount);
         _registerRefundPools(collateralPoolId, firstRefundPoolId, lastRefundPoolId, rateToWei);
     }
 
     function _createRefundPools(
         address[] calldata addressParams,
-        UserPool[] calldata userPools
-    ) internal returns (uint256 lastPoolId, uint256 totalAmount) {
+        Builder calldata userData,
+        uint256[] memory params
+    ) internal returns (uint256 lastPoolId) {
         address token = addressParams[0];
-        uint256 length = userPools.length;
-        uint256[] memory params = new uint256[](simpleProvider.currentParamsTargetLenght());
-        for (uint256 i = 0; i < length; ++i) {
-            uint256 userAmount = userPools[i].amount;
-            address user = userPools[i].user;
+        ISimpleProvider simpleProvider = ISimpleProvider(addressParams[2]);
+        // one time transfer for deacrease number transactions
+        uint256 tokenPoolId = lockDealNFT.mintAndTransfer(
+            userData.userPools[0].user,
+            token,
+            msg.sender,
+            userData.totalAmount,
+            refundProvider
+        );
+        params = _concatParams(userData.userPools[0].amount, params);
+        _createNewNFT(simpleProvider, tokenPoolId, userData.userPools[0], params);
+        uint256 length = userData.userPools.length;
+        for (uint256 i = 1; i < length; ++i) {
+            uint256 userAmount = userData.userPools[i].amount;
+            address user = userData.userPools[i].user;
             // mint refund pools for users
-            lockDealNFT.mintAndTransfer(user, token, msg.sender, userAmount, refundProvider);
-            // mint and save simple provider
-            uint256 poolId = lockDealNFT.mintAndTransfer(
-                address(refundProvider),
-                token,
-                msg.sender,
-                userAmount,
-                simpleProvider
-            );
+            lockDealNFT.mintForProvider(user, refundProvider);
             params[0] = userAmount;
-            simpleProvider.registerPool(poolId, params);
-            totalAmount += userAmount;
+            _createNewNFT(simpleProvider, tokenPoolId, userData.userPools[i], params);
         }
         lastPoolId = lockDealNFT.totalSupply() - 2;
     }

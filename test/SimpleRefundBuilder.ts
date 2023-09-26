@@ -55,7 +55,6 @@ describe('Simple Refund Builder', function () {
       'SimpleRefundBuilder',
       lockDealNFT.address,
       refundProvider.address,
-      dealProvider.address,
       collateralProvider.address,
     );
     await lockDealNFT.setApprovedProvider(refundProvider.address, true);

@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../../interfaces/ISimpleProvider.sol";
 import "../../interfaces/ILockDealNFT.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
-import "../Builder/BuilderModifiers.sol";
+import "../Builder/BuilderInternal.sol";
 
 /// @title SimpleBuilder contract
 /// @notice This contract is used to create mass lock deals(NFTs)
-contract SimpleBuilder is ERC721Holder, BuilderModifiers {
+contract SimpleBuilder is ERC721Holder, BuilderInternal {
     constructor(ILockDealNFT _nft) {
         lockDealNFT = _nft;
     }
@@ -57,31 +56,5 @@ contract SimpleBuilder is ERC721Holder, BuilderModifiers {
         poolId = lockDealNFT.mintAndTransfer(userData.user, token, msg.sender, totalAmount, provider);
         provider.registerPool(poolId, params);
         amount = totalAmount - userData.amount;
-    }
-
-    function _createNewNFT(
-        ISimpleProvider provider,
-        uint256 tokenPoolId,
-        UserPool calldata userData,
-        uint256[] memory params
-    ) internal validUserData(userData) returns (uint256 amount) {
-        amount = userData.amount;
-        uint256 poolId = lockDealNFT.mintForProvider(userData.user, provider);
-        params[0] = userData.amount;
-        provider.registerPool(poolId, params);
-        lockDealNFT.copyVaultId(tokenPoolId, poolId);
-    }
-
-    ///@dev if params is empty, then return [amount]
-    function _concatParams(uint amount, uint256[] memory params) internal pure returns (uint256[] memory result) {
-        uint256 length = params.length;
-        result = new uint256[](length + 1);
-        result[0] = amount;
-        for (uint256 i = 0; i < length; ) {
-            result[i + 1] = params[i];
-            unchecked {
-                ++i;
-            }
-        }
     }
 }
