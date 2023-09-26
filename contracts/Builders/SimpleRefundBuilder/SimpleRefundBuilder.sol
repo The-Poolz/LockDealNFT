@@ -33,8 +33,9 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal {
         require(userData.userPools.length > 0, "invalid userPools length");
         require(addressParams.length > 2, "invalid addressParams length");
         require(params.length > 1, "invalid params length");
+        require(userData.totalAmount > 0, "invalid totalAmount");
         uint256 firstRefundPoolId = lockDealNFT.totalSupply();
-        uint256 lastRefundPoolId = _createRefundPools(addressParams, userData, params[1]);
+        uint256 lastRefundPoolId = _createSimpleRefundPools(addressParams, userData, params[1]);
         address mainCoin = addressParams[1];
         uint256 collateralPoolId = _createCollateralProvider(mainCoin, lastRefundPoolId, params[0]);
         // register refund pools
@@ -43,23 +44,24 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal {
         _registerRefundPools(collateralPoolId, firstRefundPoolId, lastRefundPoolId, rateToWei);
     }
 
-    function _createRefundPools(
+    function _createSimpleRefundPools(
         address[] calldata addressParams,
         Builder calldata userData,
         uint256[] memory params
     ) internal returns (uint256 lastPoolId) {
         address token = addressParams[0];
+        uint256 totalAmount = userData.totalAmount;
         ISimpleProvider simpleProvider = ISimpleProvider(addressParams[2]);
         // one time transfer for deacrease number transactions
         uint256 tokenPoolId = lockDealNFT.mintAndTransfer(
             userData.userPools[0].user,
             token,
             msg.sender,
-            userData.totalAmount,
+            totalAmount,
             refundProvider
         );
         params = _concatParams(userData.userPools[0].amount, params);
-        _createNewNFT(simpleProvider, tokenPoolId, userData.userPools[0], params);
+        totalAmount -= _createNewNFT(simpleProvider, tokenPoolId, userData.userPools[0], params);
         uint256 length = userData.userPools.length;
         for (uint256 i = 1; i < length; ++i) {
             uint256 userAmount = userData.userPools[i].amount;
@@ -67,9 +69,10 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal {
             // mint refund pools for users
             lockDealNFT.mintForProvider(user, refundProvider);
             params[0] = userAmount;
-            _createNewNFT(simpleProvider, tokenPoolId, userData.userPools[i], params);
+            totalAmount -= _createNewNFT(simpleProvider, tokenPoolId, userData.userPools[i], params);
         }
         lastPoolId = lockDealNFT.totalSupply() - 2;
+        assert(totalAmount == 0);
     }
 
     function _createCollateralProvider(
