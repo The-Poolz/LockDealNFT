@@ -47,7 +47,8 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal {
         refundParams[0] = _createCollateralProvider(mainCoin, poolId, params[0]);
         refundParams[1] = mainCoinAmount.calcRate(userData.totalAmount);
         refundProvider.registerPool(poolId, refundParams);
-        for (uint256 i = 1; i < length; ) {
+        // refund + simple + 4 collaterals
+        for (uint256 i = poolId + 6; i < poolId + 6 + length * 2; ) {
             uint256 userAmount = userData.userPools[i].amount;
             address user = userData.userPools[i].user;
             // mint refund pools for users
@@ -56,7 +57,7 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal {
             totalAmount -= _createNewNFT(provider, poolId, UserPool(address(refundProvider), userAmount), simpleParams);
             refundProvider.registerPool(i, refundParams);
             unchecked {
-                ++i;
+                i += 2;
             }
         }
         assert(totalAmount == 0);
