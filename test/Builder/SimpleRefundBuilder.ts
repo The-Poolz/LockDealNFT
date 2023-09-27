@@ -21,9 +21,10 @@ describe('Simple Refund Builder tests', function () {
   let simpleRefundBuilder: SimpleRefundBuilder;
   let lockDealNFT: LockDealNFT;
   let userData: SimpleRefundBuilder.BuilderStruct;
-  let addressParams: [string, string];
+  let addressParams: [string, string, string];
   let projectOwner: SignerWithAddress;
   let startTime: BigNumber, finishTime: BigNumber;
+  const mainCoinAmount = ethers.utils.parseEther('10');
   const amount = ethers.utils.parseEther('100').toString();
   const ONE_DAY = 86400;
   let refundProvider: RefundProvider;
@@ -31,23 +32,45 @@ describe('Simple Refund Builder tests', function () {
   let vaultId: number;
   let poolId: number;
 
-  async function _testMassPoolsData(provider: string, amount: string, userCount: string, params: BigNumber[]) {
+  async function _testMassPoolsData(provider: string, amount: string, userCount: string, params: string[][]) {
     userData = await _createUsers(amount, userCount);
     const lastPoolId = (await lockDealNFT.totalSupply()).toNumber();
-    let k = 0;
-    params.splice(0, 0, ethers.BigNumber.from(amount));
-    if (provider == timedProvider.address) {
-      params.push(ethers.BigNumber.from(amount));
-    }
+    await simpleRefundBuilder.connect(projectOwner).buildMassPools(addressParams, userData, params);
+    await _logGasPrice(params);
+    // let k = 0;
+    // params.splice(0, 0, ethers.BigNumber.from(amount));
+    // if (provider == timedProvider.address) {
+    //   params.push(ethers.BigNumber.from(amount));
+    // }
+    // for (let i = lastPoolId; i < userData.userPools.length + lastPoolId; i++) {
+    //   const data = await lockDealNFT.getData(i);
+    //   expect(data.provider).to.equal(provider);
+    //   expect(data.poolId).to.equal(i);
+    //   expect(data.owner).to.equal(userData.userPools[k++].user);
+    //   expect(data.token).to.equal(token);
+    //   expect(data.params).to.deep.equal(params);
+    // }
   }
 
-  function _createProviderParams(provider: string) {
+  async function _logGasPrice(params: string[][]) {
+    const tx = await simpleRefundBuilder.connect(projectOwner).buildMassPools(addressParams, userData, params);
+    const txReceipt = await tx.wait();
+    const gasUsed = txReceipt.gasUsed;
+    const GREEN_TEXT = '\x1b[32m';
+    console.log(`${GREEN_TEXT}Gas Used: ${gasUsed.toString()}`);
+    console.log(`${GREEN_TEXT}Price per one pool: ${gasUsed.div(userData.userPools.length)}`);
+  }
+
+  function _createProviderParams(provider: string): string[][] {
     addressParams[0] = provider;
     return provider == dealProvider.address
-      ? []
+      ? [[mainCoinAmount.toString(), finishTime.toString()], []]
       : provider == lockProvider.address
-      ? [finishTime]
-      : [startTime, finishTime];
+      ? [[mainCoinAmount.toString(), finishTime.toString()], [finishTime.toString()]]
+      : [
+          [mainCoinAmount.toString(), finishTime.toString()],
+          [startTime.toString(), finishTime.toString()],
+        ];
   }
 
   before(async () => {
@@ -77,7 +100,7 @@ describe('Simple Refund Builder tests', function () {
 
   beforeEach(async () => {
     userData = await _createUsers(amount, '4');
-    addressParams = [timedProvider.address, token];
+    addressParams = [timedProvider.address, token, BUSD];
     startTime = ethers.BigNumber.from((await time.latest()) + ONE_DAY); // plus 1 day
     finishTime = startTime.add(7 * ONE_DAY); // plus 7 days from `startTime`
   });
