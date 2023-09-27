@@ -50,22 +50,13 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal {
         uint256[] memory params
     ) internal returns (uint256 lastPoolId) {
         address token = addressParams[0];
-        uint256 totalAmount = userData.totalAmount;
-        ISimpleProvider simpleProvider = ISimpleProvider(addressParams[2]);
+        ISimpleProvider provider = ISimpleProvider(addressParams[2]);
         // one time transfer for deacrease number transactions
-        uint256 tokenPoolId = lockDealNFT.mintAndTransfer(
-            userData.userPools[0].user,
+        (uint256 tokenPoolId, uint256 totalAmount) = _createFirstNFT(
+            provider,
             token,
-            msg.sender,
-            totalAmount,
-            refundProvider
-        );
-        params = _concatParams(userData.userPools[0].amount, params);
-        totalAmount -= _createNewNFT(
-            simpleProvider,
-            tokenPoolId,
-            address(refundProvider),
-            userData.userPools[0].amount,
+            userData.totalAmount,
+            userData.userPools[0],
             params
         );
         uint256 length = userData.userPools.length;
@@ -74,13 +65,26 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal {
             address user = userData.userPools[i].user;
             // mint refund pools for users
             lockDealNFT.mintForProvider(user, refundProvider);
-            totalAmount -= _createNewNFT(simpleProvider, tokenPoolId, address(refundProvider), userAmount, params);
+            totalAmount -= _createNewNFT(provider, tokenPoolId, UserPool(address(refundProvider), userAmount), params);
             unchecked {
                 ++i;
             }
         }
         lastPoolId = lockDealNFT.totalSupply() - 2;
         assert(totalAmount == 0);
+    }
+
+    function _createFirstNFT(
+        ISimpleProvider provider,
+        address token,
+        uint256 totalAmount,
+        UserPool calldata userData,
+        uint256[] memory params
+    ) internal virtual override validUserData(userData) returns (uint256 poolId, uint256 amount) {
+        poolId = lockDealNFT.mintAndTransfer(userData.user, token, msg.sender, totalAmount, refundProvider);
+        params = _concatParams(userData.amount, params);
+        totalAmount -= _createNewNFT(provider, poolId, UserPool(address(refundProvider), userData.amount), params);
+        amount = totalAmount - userData.amount;
     }
 
     function _createCollateralProvider(
