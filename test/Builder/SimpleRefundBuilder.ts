@@ -27,6 +27,7 @@ describe('Simple Refund Builder tests', function () {
   const mainCoinAmount = ethers.utils.parseEther('10');
   const amount = ethers.utils.parseEther('100').toString();
   const ONE_DAY = 86400;
+  const gasLimit = 130_000_000;
   let refundProvider: RefundProvider;
   let collateralProvider: CollateralProvider;
   let vaultId: number;
@@ -35,7 +36,7 @@ describe('Simple Refund Builder tests', function () {
   async function _testMassPoolsData(provider: string, amount: string, userCount: string, params: string[][]) {
     userData = await _createUsers(amount, userCount);
     const lastPoolId = (await lockDealNFT.totalSupply()).toNumber();
-    await simpleRefundBuilder.connect(projectOwner).buildMassPools(addressParams, userData, params);
+    await simpleRefundBuilder.connect(projectOwner).buildMassPools(addressParams, userData, params, { gasLimit });
     await _logGasPrice(params);
     // let k = 0;
     // params.splice(0, 0, ethers.BigNumber.from(amount));
@@ -53,7 +54,7 @@ describe('Simple Refund Builder tests', function () {
   }
 
   async function _logGasPrice(params: string[][]) {
-    const tx = await simpleRefundBuilder.connect(projectOwner).buildMassPools(addressParams, userData, params);
+    const tx = await simpleRefundBuilder.connect(projectOwner).buildMassPools(addressParams, userData, params, { gasLimit });
     const txReceipt = await tx.wait();
     const gasUsed = txReceipt.gasUsed;
     const GREEN_TEXT = '\x1b[32m';
