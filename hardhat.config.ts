@@ -6,6 +6,7 @@ import { HardhatUserConfig } from 'hardhat/config';
 //import 'dotenv/config';
 
 const config: HardhatUserConfig = {
+  defaultNetwork: 'hardhat',
   solidity: {
     version: '0.8.18',
     settings: {
@@ -17,7 +18,9 @@ const config: HardhatUserConfig = {
     },
   },
   networks: {
-    hardhat: {},
+    hardhat: {
+      blockGasLimit: 130_000_000,
+    },
     ropsten: {
       url: 'https://ropsten.infura.io/v3/your-infura-project-id',
       accounts: [], // Replace with your testnet accounts' private keys

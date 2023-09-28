@@ -1,10 +1,10 @@
-import { MockVaultManager } from '../typechain-types';
-import { DealProvider } from '../typechain-types';
-import { LockDealNFT } from '../typechain-types';
-import { LockDealProvider } from '../typechain-types';
-import { TimedDealProvider } from '../typechain-types';
-import { SimpleBuilder } from '../typechain-types';
-import { deployed, token } from './helper';
+import { MockVaultManager } from '../../typechain-types';
+import { DealProvider } from '../../typechain-types';
+import { LockDealNFT } from '../../typechain-types';
+import { LockDealProvider } from '../../typechain-types';
+import { TimedDealProvider } from '../../typechain-types';
+import { SimpleBuilder } from '../../typechain-types';
+import { deployed, token, _createUsers } from '../helper';
 import { time } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
@@ -24,21 +24,6 @@ describe('Simple Builder tests', function () {
   let startTime: BigNumber, finishTime: BigNumber;
   const amount = ethers.utils.parseEther('100').toString();
   const ONE_DAY = 86400;
-
-  // helper functions
-  async function _createUsers(amount: string, userCount: string): Promise<SimpleBuilder.BuilderStruct> {
-    const pools = [];
-    const length = parseInt(userCount);
-    // Create signers
-    for (let i = 0; i < length; ++i) {
-      const privateKey = ethers.Wallet.createRandom().privateKey;
-      const signer = new ethers.Wallet(privateKey);
-      const user = signer.address;
-      pools.push({ user: user, amount: amount });
-    }
-    const totalAmount = ethers.BigNumber.from(amount).mul(length);
-    return { userPools: pools, totalAmount: totalAmount };
-  }
 
   async function _testMassPoolsData(provider: string, amount: string, userCount: string, params: BigNumber[]) {
     userData = await _createUsers(amount, userCount);

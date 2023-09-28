@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../interfaces/ILockDealNFT.sol";
+import "../../interfaces/ILockDealNFT.sol";
 
 contract BuilderState {
     ILockDealNFT public lockDealNFT;
