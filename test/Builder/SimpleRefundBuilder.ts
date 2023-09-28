@@ -10,7 +10,7 @@ import { deployed, token, BUSD, _createUsers } from '.././helper';
 import { time } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
-import { BigNumber } from 'ethers';
+import { BigNumber, constants } from 'ethers';
 import { ethers } from 'hardhat';
 
 describe('Simple Refund Builder tests', function () {
@@ -24,7 +24,7 @@ describe('Simple Refund Builder tests', function () {
   let addressParams: [string, string, string];
   let projectOwner: SignerWithAddress;
   let startTime: BigNumber, finishTime: BigNumber;
-  const mainCoinAmount = ethers.utils.parseEther('10');
+  let mainCoinAmount = ethers.utils.parseEther('10');
   const amount = ethers.utils.parseEther('100').toString();
   const ONE_DAY = 86400;
   const gasLimit = 130_000_000;
@@ -35,31 +35,53 @@ describe('Simple Refund Builder tests', function () {
 
   async function _testMassPoolsData(provider: string, amount: string, userCount: string, params: string[][]) {
     userData = await _createUsers(amount, userCount);
-    const lastPoolId = (await lockDealNFT.totalSupply()).toNumber();
     await simpleRefundBuilder.connect(projectOwner).buildMassPools(addressParams, userData, params, { gasLimit });
+    const lastPoolId = (await lockDealNFT.totalSupply()).toNumber();
     await _logGasPrice(params);
-    // let k = 0;
-    // params.splice(0, 0, ethers.BigNumber.from(amount));
-    // if (provider == timedProvider.address) {
-    //   params.push(ethers.BigNumber.from(amount));
-    // }
-    // for (let i = lastPoolId; i < userData.userPools.length + lastPoolId; i++) {
-    //   const data = await lockDealNFT.getData(i);
-    //   expect(data.provider).to.equal(provider);
-    //   expect(data.poolId).to.equal(i);
-    //   expect(data.owner).to.equal(userData.userPools[k++].user);
-    //   expect(data.token).to.equal(token);
-    //   expect(data.params).to.deep.equal(params);
-    // }
+    params[1].splice(0, 0, amount);
+    if (provider == timedProvider.address) {
+      params[1].push(amount);
+    }
+    const collateralId = poolId + 2;
+    const refundVaultId = vaultId + 1;
+    vaultId += 1;
+    await _checkRefundProviderData(poolId, collateralId, userData.userPools[0].user, token, refundVaultId);
+    await _checkSimpleProviderData(provider, poolId + 1, params[1], vaultId);// 1
+    await _checkCollateralData(collateralId, params[0]);// 2,3,4,5
+    let k = 1;
+    for(let i = poolId + 6; i < lastPoolId; i += 2) {
+      await _checkRefundProviderData(i, collateralId, userData.userPools[k++].user, constants.AddressZero, 0);
+      await _checkSimpleProviderData(provider, i + 1, params[1], refundVaultId);
+    }
   }
 
   async function _logGasPrice(params: string[][]) {
-    const tx = await simpleRefundBuilder.connect(projectOwner).buildMassPools(addressParams, userData, params, { gasLimit });
+    const tx = await simpleRefundBuilder
+      .connect(projectOwner)
+      .buildMassPools(addressParams, userData, params, { gasLimit });
     const txReceipt = await tx.wait();
     const gasUsed = txReceipt.gasUsed;
     const GREEN_TEXT = '\x1b[32m';
     console.log(`${GREEN_TEXT}Gas Used: ${gasUsed.toString()}`);
     console.log(`${GREEN_TEXT}Price per one pool: ${gasUsed.div(userData.userPools.length)}`);
+  }
+
+  async function _checkRefundProviderData(poolId: number, collateralId: number, user: string, token: string, vaultId: number) {
+    const rate = ethers.utils.parseUnits('0.1', 21);
+    const params = [amount, collateralId, rate];
+    const poolData = await lockDealNFT.getData(poolId);
+    expect(poolData).to.deep.equal([refundProvider.address, poolId, vaultId, user, token, params]);
+  }
+
+  async function _checkCollateralData(collateralId: number, params: string[]) {
+    vaultId += 1;
+    const poolData = await lockDealNFT.getData(collateralId);
+    expect(poolData).to.deep.equal([collateralProvider.address, collateralId, vaultId, projectOwner.address, BUSD, params]);
+  }
+
+  async function _checkSimpleProviderData(provider: string, simplePoolId: number, params: string[], vaultId: number) {
+    const poolData = await lockDealNFT.getData(simplePoolId);
+    expect(poolData).to.deep.equal([provider, simplePoolId, vaultId, refundProvider.address, token, params]);
   }
 
   function _createProviderParams(provider: string): string[][] {
@@ -100,62 +122,73 @@ describe('Simple Refund Builder tests', function () {
   });
 
   beforeEach(async () => {
+    vaultId = (await mockVaultManager.Id()).toNumber();
     userData = await _createUsers(amount, '4');
     addressParams = [timedProvider.address, token, BUSD];
     startTime = ethers.BigNumber.from((await time.latest()) + ONE_DAY); // plus 1 day
     finishTime = startTime.add(7 * ONE_DAY); // plus 7 days from `startTime`
+    poolId = (await lockDealNFT.totalSupply()).toNumber();
   });
 
   it('should create 10 simple refund pools with dealProvider', async () => {
     const userCount = '10';
+    mainCoinAmount = ethers.utils.parseEther('10').mul(userCount);
     const params = _createProviderParams(dealProvider.address);
     await _testMassPoolsData(dealProvider.address, amount, userCount, params);
   });
 
   it('should create 50 simple refund pools with dealProvider', async () => {
     const userCount = '50';
+    mainCoinAmount = ethers.utils.parseEther('10').mul(userCount);
     const params = _createProviderParams(dealProvider.address);
     await _testMassPoolsData(dealProvider.address, amount, userCount, params);
   });
 
   it('should create 100 simple refund pools with dealProvider', async () => {
     const userCount = '100';
+    mainCoinAmount = ethers.utils.parseEther('10').mul(userCount);
     const params = _createProviderParams(dealProvider.address);
     await _testMassPoolsData(dealProvider.address, amount, userCount, params);
   });
 
   it('should create 10 simple refund pools with lockProvider', async () => {
     const userCount = '10';
+    mainCoinAmount = ethers.utils.parseEther('10').mul(userCount);
     const params = _createProviderParams(lockProvider.address);
     await _testMassPoolsData(lockProvider.address, amount, userCount, params);
   });
 
   it('should create 50 simple refund pools with lockProvider', async () => {
     const userCount = '50';
+    mainCoinAmount = ethers.utils.parseEther('10').mul(userCount);
     const params = _createProviderParams(lockProvider.address);
     await _testMassPoolsData(lockProvider.address, amount, userCount, params);
   });
 
   it('should create 100 simple refund pools with lockProvider', async () => {
     const userCount = '100';
+    mainCoinAmount = ethers.utils.parseEther('10').mul(userCount);
     const params = _createProviderParams(lockProvider.address);
     await _testMassPoolsData(lockProvider.address, amount, userCount, params);
   });
 
   it('should create 10 simple refund pools with timedProvider', async () => {
     const userCount = '10';
+    mainCoinAmount = ethers.utils.parseEther('10').mul(userCount);
     const params = _createProviderParams(timedProvider.address);
     await _testMassPoolsData(timedProvider.address, amount, userCount, params);
   });
 
   it('should create 50 simple refund pools with timedProvider', async () => {
     const userCount = '50';
+    mainCoinAmount = ethers.utils.parseEther('10').mul(userCount);
     const params = _createProviderParams(timedProvider.address);
     await _testMassPoolsData(timedProvider.address, amount, userCount, params);
   });
 
   it('should create 100 simple refund pools with timedProvider', async () => {
     const userCount = '100';
+    mainCoinAmount = ethers.utils.parseEther('10').mul(userCount);
     const params = _createProviderParams(timedProvider.address);
     await _testMassPoolsData(timedProvider.address, amount, userCount, params);
   });
