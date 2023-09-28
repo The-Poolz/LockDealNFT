@@ -9,11 +9,6 @@ contract BuilderModifiers is BuilderState {
         _notZeroAddress(_address);
         _;
     }
-
-    modifier notZeroAmount(uint256 amount) {
-        _notZeroAmount(amount);
-        _;
-    }
     
     modifier validUserData(UserPool memory userData) {
         _notZeroAddress(userData.user);
