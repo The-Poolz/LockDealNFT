@@ -45,9 +45,9 @@ describe('Simple Refund Builder tests', function () {
     const collateralId = poolId + 2;
     const tokenVaultId = vaultId + 1;
     vaultId += 1;
-    await _checkRefundProviderData(poolId, collateralId, userData.userPools[0].user, token, tokenVaultId);
-    await _checkSimpleProviderData(provider, poolId + 1, params[1], vaultId);// 1
-    await _checkCollateralData(collateralId, params[0]);// 2,3,4,5
+    await _checkRefundProviderData(poolId, collateralId, userData.userPools[0].user, constants.AddressZero, 0);
+    await _checkSimpleProviderData(provider, poolId + 1, params[1], tokenVaultId);
+    await _checkCollateralData(collateralId, params[0]);
     let k = 1;
     for(let i = poolId + 6; i < lastPoolId; i += 2) {
       await _checkRefundProviderData(i, collateralId, userData.userPools[k++].user, constants.AddressZero, 0);
@@ -110,7 +110,7 @@ describe('Simple Refund Builder tests', function () {
       'SimpleRefundBuilder',
       lockDealNFT.address,
       refundProvider.address,
-      collateralProvider.address,
+      collateralProvider.address
     );
     await lockDealNFT.setApprovedProvider(refundProvider.address, true);
     await lockDealNFT.setApprovedProvider(lockProvider.address, true);
