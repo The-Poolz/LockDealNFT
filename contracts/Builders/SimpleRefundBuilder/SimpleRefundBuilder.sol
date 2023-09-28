@@ -5,7 +5,6 @@ import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "../../interfaces/ISimpleProvider.sol";
 import "../Builder/BuilderInternal.sol";
 import "../../util/CalcUtils.sol";
-import "hardhat/console.sol";
 
 /// @title SimpleRefundBuilder contract
 /// @notice Implements a contract for building refund simple providers
