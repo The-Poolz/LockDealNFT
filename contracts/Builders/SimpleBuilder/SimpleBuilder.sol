@@ -19,13 +19,13 @@ contract SimpleBuilder is ERC721Holder, BuilderInternal {
     function buildMassPools(
         address[] calldata addressParams,
         Builder calldata userData,
-        uint256[] memory params
+        uint256[] calldata params
     ) external validParamsLength(addressParams.length, 2) notZeroAddress(addressParams[1]) {
         require(
             ERC165Checker.supportsInterface(addressParams[0], type(ISimpleProvider).interfaceId),
             "invalid provider type"
         );
-        require(userData.userPools.length > 0, "invalid params length");
+        require(userData.userPools.length > 0, "invalid user length");
         uint256 totalAmount = userData.totalAmount;
         _notZeroAmount(totalAmount);
         address token = addressParams[1];
@@ -33,11 +33,12 @@ contract SimpleBuilder is ERC721Holder, BuilderInternal {
         UserPool calldata firstUserData = userData.userPools[0];
         uint256 length = userData.userPools.length;
         // one time transfer for deacrease number transactions
-        params = _concatParams(firstUserData.amount, params);
-        uint256 poolId;
-        (poolId, totalAmount) = _createFirstNFT(provider, token, totalAmount, firstUserData, params);
+        uint256[] memory simpleParams = _concatParams(firstUserData.amount, params);
+        uint256 poolId = _createFirstNFT(provider, token, firstUserData.user, totalAmount, simpleParams);
+        totalAmount -= firstUserData.amount;
         for (uint256 i = 1; i < length; ) {
-            totalAmount -= _createNewNFT(provider, poolId, userData.userPools[i], params);
+            UserPool calldata userPool = userData.userPools[i];
+            totalAmount -= _createNewNFT(provider, poolId, userPool, simpleParams);
             unchecked {
                 ++i;
             }
