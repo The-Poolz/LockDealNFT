@@ -15,9 +15,9 @@ fs.readFile('gas-report.txt', 'utf8', (err, data) => {
     '## LockDealNFT\n| Contract | Method | Min | Max | Avg | # calls |\n|----------|--------|-----|-----|-----|---------|\n';
 
   let mdSimpleProvider =
-    '## SimpleProvider\n| Contract | Method | Min | Max | Avg | # calls |\n|----------|--------|-----|-----|-----|---------|\n';
+    '## Simple Providers\n| Contract | Method | Min | Max | Avg | # calls |\n|----------|--------|-----|-----|-----|---------|\n';
   let mdAdvancedProvider =
-    '## AdvancedProvider\n| Contract | Method | Min | Max | Avg | # calls |\n|----------|--------|-----|-----|-----|---------|\n';
+    '## Advanced Providers\n| Contract | Method | Min | Max | Avg | # calls |\n|----------|--------|-----|-----|-----|---------|\n';
   let mdBuilders =
     '## Builders\n| Contract | Method | Min | Max | Avg | # calls |\n|----------|--------|-----|-----|-----|---------|\n';
   // Add the Deployments table header
