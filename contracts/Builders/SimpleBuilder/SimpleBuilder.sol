@@ -25,7 +25,7 @@ contract SimpleBuilder is ERC721Holder, BuilderInternal {
             ERC165Checker.supportsInterface(addressParams[0], type(ISimpleProvider).interfaceId),
             "invalid provider type"
         );
-        require(userData.userPools.length > 0, "invalid params length");
+        require(userData.userPools.length > 0, "invalid user length");
         uint256 totalAmount = userData.totalAmount;
         _notZeroAmount(totalAmount);
         address token = addressParams[1];
