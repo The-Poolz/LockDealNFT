@@ -34,7 +34,7 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal {
             addressParams,
             params
         );
-        require(userData.userPools.length > 0, "invalid params length");
+        require(userData.userPools.length > 0, "invalid user length");
         uint256 totalAmount = userData.totalAmount;
         require(totalAmount > 0, "invalid totalAmount");
         uint256[] memory simpleParams = _concatParams(userData.userPools[0].amount, params[1]);
