@@ -11,7 +11,10 @@ import "../util/CalcUtils.sol";
 contract DelayVaultProvider is IProvider, IBeforeTransfer, IERC165, DealProviderState {
     using CalcUtils for uint256;
 
-    constructor(ILockDealNFT _nftContract, ProviderData[] memory _providersData) {
+    constructor(address _token, ILockDealNFT _nftContract, ProviderData[] memory _providersData) {
+        require(address(_token) != address(0x0), "invalid address");
+        require(address(_nftContract) != address(0x0), "invalid address");
+        Token = _token;
         nftContract = _nftContract;
         typesCount = uint8(_providersData.length);
         for (uint8 i = 0; i < typesCount; i++) {
@@ -30,6 +33,7 @@ contract DelayVaultProvider is IProvider, IBeforeTransfer, IERC165, DealProvider
     mapping(uint8 => ProviderData) internal TypeToProviderData; //will be {typesCount} lentgh
     uint8 public typesCount;
     ILockDealNFT public nftContract;
+    address public Token;
     //this is onlty the delta
     //the amount taken from the user is the amount of the pool
     // params[0] = startTimeDelta (empty for DealProvider)
@@ -82,7 +86,7 @@ contract DelayVaultProvider is IProvider, IBeforeTransfer, IERC165, DealProvider
         UserToTotalAmount[to][theType] += amount;
     }
 
-    function registerPool(uint256 poolId, uint256[] calldata params) external override {
+    function registerPool(uint256 poolId, uint256[] calldata params) public override {
         uint8 theType = uint8(params[1]);
         uint256 amount = params[0];
         require(PoolToType[poolId] == 0, "pool already registered");
@@ -121,5 +125,14 @@ contract DelayVaultProvider is IProvider, IBeforeTransfer, IERC165, DealProvider
         require(newType > PoolToType[PoolId], "new type must be bigger than the old one");
         require(newType <= typesCount, "new type must be smaller than the types count");
         PoolToType[PoolId] = newType;
+    }
+
+    function CreateNewDelayVault(uint256[] calldata params) external returns (uint256 PoolId) {
+        uint256 amount = params[0];
+        uint8 theType = uint8(params[1]);
+        require(theType <= typesCount, "invalid type");
+        require(amount > 0, "amount must be bigger than 0");
+        PoolId = nftContract.mintAndTransfer(msg.sender, Token, msg.sender, amount, this);
+        registerPool(PoolId, params);
     }
 }
