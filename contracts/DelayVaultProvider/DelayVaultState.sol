@@ -11,7 +11,7 @@ abstract contract DelayVaultState is DealProviderState, LastPoolOwnerState, Hold
     ILockDealNFT public nftContract;
     address public Token;
 
-    function _beforeTransfer(address from, address to, uint256 poolId) internal override {
+    function beforeTransfer(address from, address to, uint256 poolId) external override onlyNFT {
         if (to == address(lockDealNFT))
             // this means it will be withdraw or split
             LastPoolOwner[poolId] = from; //this is the only way to know the owner of the pool
