@@ -63,7 +63,7 @@ contract DelayVaultProvider is IProvider, IBeforeTransfer, IERC165, DealProvider
         }
     }
 
-    function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) external pure override {
+    function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) external override {
         address oldOwner = LastPoolOwner[oldPoolId];
         address newOwner = nftContract.ownerOf(newPoolId);
         uint256 amount = poolIdToAmount[oldPoolId].calcAmount(ratio);
