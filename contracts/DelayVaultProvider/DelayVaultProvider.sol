@@ -14,6 +14,7 @@ contract DelayVaultProvider is IBeforeTransfer, IERC165, DealProviderState, Prov
     constructor(address _token, ILockDealNFT _nftContract, ProviderData[] memory _providersData) {
         require(address(_token) != address(0x0), "invalid address");
         require(address(_nftContract) != address(0x0), "invalid address");
+        require(_providersData.length <= 255, "too many providers");
         name = "DelayVaultProvider";
 
         Token = _token;
@@ -29,8 +30,8 @@ contract DelayVaultProvider is IBeforeTransfer, IERC165, DealProviderState, Prov
         }
     }
 
+    mapping(address => uint256[]) public UserToTotalAmount; //thw array will be {typesCount} lentgh
     mapping(uint256 => address) internal LastPoolOwner;
-    mapping(address => uint256[]) public UserToTotalAmount; //will be {typesCount} lentgh
     mapping(uint256 => uint8) internal PoolToType;
     mapping(uint8 => ProviderData) internal TypeToProviderData; //will be {typesCount} lentgh
     uint8 public typesCount;
