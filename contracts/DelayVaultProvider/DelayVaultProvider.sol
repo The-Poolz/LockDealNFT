@@ -14,7 +14,7 @@ contract DelayVaultProvider is IProvider, IBeforeTransfer, IERC165, DealProvider
         for (uint8 i = 0; i < typesCount; i++) {
             require(address(_providersData[i].provider) != address(0x0), "invalid address");
             require(
-                _providersData[i].provider.currentParamsTargetLenght() == _providersData[i].params.lenght + 1,
+                _providersData[i].provider.currentParamsTargetLenght() == _providersData[i].params.length + 1,
                 "invalid params length"
             );
             TypeToProviderData[i] = _providersData[i];
