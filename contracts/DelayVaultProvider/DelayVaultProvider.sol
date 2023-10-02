@@ -98,8 +98,8 @@ contract DelayVaultProvider is IProvider, IBeforeTransfer, IERC165, DealProvider
         params[1] = uint256(PoolToType[poolId]);
     }
 
-    function getWithdrawableAmount(uint256 poolId) external pure override returns (uint256 withdrawalAmount) {
-        withdrawalAmount = 0;
+    function getWithdrawableAmount(uint256 poolId) external view override returns (uint256 withdrawalAmount) {
+        withdrawalAmount = poolIdToAmount[poolId];
     }
 
     function currentParamsTargetLenght() external pure override returns (uint256) {
@@ -115,6 +115,7 @@ contract DelayVaultProvider is IProvider, IBeforeTransfer, IERC165, DealProvider
     }
 
     function UpgradeType(uint256 PoolId, uint8 newType) external {
+        require(nftContract.poolIdToProvider(PoolId) == this, "need to be THIS provider");
         require(PoolToType[PoolId] != 0, "pool not registered");
         require(msg.sender == nftContract.ownerOf(PoolId), "only the Owner can upgrade the type");
         require(newType > PoolToType[PoolId], "new type must be bigger than the old one");
