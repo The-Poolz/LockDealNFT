@@ -41,7 +41,7 @@ contract DelayVaultProvider is DelayVaultState {
         TypeToProviderData[theType].provider.registerPool(newPoolId, params);
         isFinal = true;
         withdrawnAmount = poolIdToAmount[tokenId] = 0;
-        UserToTotalAmount[owner][theType] -= params[0];
+        _subHoldersSum(owner, theType, params[0]);
         //This need to make a new pool without transfering the token, the pool data is taken from the settings
     }
 
@@ -61,12 +61,10 @@ contract DelayVaultProvider is DelayVaultState {
         uint8 theType = uint8(params[1]);
         uint256 amount = params[0];
         address owner = nftContract.ownerOf(poolId);
-        uint256 newAmount = UserToTotalAmount[owner][theType] + amount;
-        require(newAmount <= TypeToProviderData[theType].limit, "limit exceeded");
         require(PoolToType[poolId] == 0, "pool already registered");
         require(params.length == 2, "invalid params length");
         PoolToType[poolId] = theType;
-        UserToTotalAmount[owner][theType] = newAmount;
+        _addHoldersSum(owner, theType, amount);
         poolIdToAmount[poolId] = amount;
     }
 
@@ -82,7 +80,6 @@ contract DelayVaultProvider is DelayVaultState {
 
     function upgradeType(uint256 PoolId, uint8 newType) external {
         require(nftContract.poolIdToProvider(PoolId) == this, "need to be THIS provider");
-        require(PoolToType[PoolId] != 0, "pool not registered");
         require(msg.sender == nftContract.ownerOf(PoolId), "only the Owner can upgrade the type");
         require(newType > PoolToType[PoolId], "new type must be bigger than the old one");
         require(newType <= typesCount, "new type must be smaller than the types count");
@@ -96,9 +93,5 @@ contract DelayVaultProvider is DelayVaultState {
         require(amount > 0, "amount must be bigger than 0");
         PoolId = nftContract.mintAndTransfer(msg.sender, Token, msg.sender, amount, this);
         registerPool(PoolId, params);
-    }
-
-    function getLeftAmount(address owner, uint8 theType) external view returns (uint256) {
-        return TypeToProviderData[theType].limit - UserToTotalAmount[owner][theType];
     }
 }
