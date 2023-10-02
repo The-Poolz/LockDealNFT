@@ -113,4 +113,12 @@ contract DelayVaultProvider is IProvider, IBeforeTransfer, IERC165, DealProvider
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
         return interfaceId == type(IERC165).interfaceId || interfaceId == type(IBeforeTransfer).interfaceId;
     }
+
+    function UpgradeType(uint256 PoolId, uint8 newType) external {
+        require(PoolToType[PoolId] != 0, "pool not registered");
+        require(msg.sender == nftContract.ownerOf(PoolId), "only the Owner can upgrade the type");
+        require(newType > PoolToType[PoolId], "new type must be bigger than the old one");
+        require(newType <= typesCount, "new type must be smaller than the types count");
+        PoolToType[PoolId] = newType;
+    }
 }
