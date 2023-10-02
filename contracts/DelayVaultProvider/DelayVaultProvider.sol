@@ -58,6 +58,13 @@ contract DelayVaultProvider is BeforeTransfer {
 
     function _getWithdrawPoolParams(uint256 poolId, uint8 theType) internal view returns (uint256[] memory params) {
         uint256[] memory settings = TypeToProviderData[theType].params;
+        params = _getWithdrawPoolParams(poolId, settings);
+    }
+
+    function _getWithdrawPoolParams(
+        uint256 poolId,
+        uint256[] memory settings
+    ) internal view returns (uint256[] memory params) {
         uint256 length = settings.length + 1;
         params = new uint256[](length);
         params[0] = poolIdToAmount[poolId];
@@ -129,5 +136,9 @@ contract DelayVaultProvider is BeforeTransfer {
         require(amount > 0, "amount must be bigger than 0");
         PoolId = nftContract.mintAndTransfer(msg.sender, Token, msg.sender, amount, this);
         registerPool(PoolId, params);
+    }
+
+    function GetLeftAmount(address owner, uint8 theType) external view returns (uint256) {
+        return TypeToProviderData[theType].limit - UserToTotalAmount[owner][theType];
     }
 }
