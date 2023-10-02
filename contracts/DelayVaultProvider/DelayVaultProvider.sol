@@ -18,30 +18,19 @@ contract DelayVaultProvider is DelayVaultState {
         uint256 limit = _providersData[0].limit;
         for (uint8 i = 0; i < typesCount; i++) {
             ProviderData memory item = _providersData[i];
-            require(address(item.provider) != address(0x0), "invalid address");
-            require(item.provider.currentParamsTargetLenght() == item.params.length + 1, "invalid params length");
-            if (i > 0) {
-                require(item.limit >= limit, "limit must be bigger or equal than the previous on");
-                limit = item.limit;
-            }
-            TypeToProviderData[i] = item;
+            limit = _handleItem(i, limit, item);
         }
         TypeToProviderData[typesCount - 1].limit = type(uint256).max; //the last one is the max, token supply is out of the scope
     }
 
-    mapping(uint8 => ProviderData) internal TypeToProviderData; //will be {typesCount} lentgh
-    uint8 public typesCount;
-    ILockDealNFT public nftContract;
-    address public Token;
-
-    //this is only the delta
-    //the amount is the amount of the pool
-    // params[0] = startTimeDelta (empty for DealProvider)
-    // params[1] = endTimeDelta (only for TimedLockDealProvider)
-    struct ProviderData {
-        IProvider provider;
-        uint256[] params; // 0 for DealProvider,1 for LockProvider ,2 for TimedDealProvider
-        uint256 limit;
+    function _handleItem(uint8 index, uint256 lastLimit, ProviderData memory item) internal returns (uint256 limit) {
+        require(address(item.provider) != address(0x0), "invalid address");
+        require(item.provider.currentParamsTargetLenght() == item.params.length + 1, "invalid params length");
+        if (index > 0) {
+            limit = item.limit;
+            require(limit >= lastLimit, "limit must be bigger or equal than the previous on");
+        }
+        TypeToProviderData[index] = item;
     }
 
     function withdraw(uint256 tokenId) external override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
@@ -54,23 +43,6 @@ contract DelayVaultProvider is DelayVaultState {
         withdrawnAmount = poolIdToAmount[tokenId] = 0;
         UserToTotalAmount[owner][theType] -= params[0];
         //This need to make a new pool without transfering the token, the pool data is taken from the settings
-    }
-
-    function _getWithdrawPoolParams(uint256 poolId, uint8 theType) internal view returns (uint256[] memory params) {
-        uint256[] memory settings = TypeToProviderData[theType].params;
-        params = _getWithdrawPoolParams(poolId, settings);
-    }
-
-    function _getWithdrawPoolParams(
-        uint256 poolId,
-        uint256[] memory settings
-    ) internal view returns (uint256[] memory params) {
-        uint256 length = settings.length + 1;
-        params = new uint256[](length);
-        params[0] = poolIdToAmount[poolId];
-        for (uint256 i = 0; i < settings.length; i++) {
-            params[i + 1] = block.timestamp + settings[i];
-        }
     }
 
     function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) external override onlyNFT {
@@ -88,12 +60,13 @@ contract DelayVaultProvider is DelayVaultState {
     function registerPool(uint256 poolId, uint256[] calldata params) public override onlyProvider {
         uint8 theType = uint8(params[1]);
         uint256 amount = params[0];
-        uint256 newAmount = UserToTotalAmount[nftContract.ownerOf(poolId)][theType] + amount;
+        address owner = nftContract.ownerOf(poolId);
+        uint256 newAmount = UserToTotalAmount[owner][theType] + amount;
         require(newAmount <= TypeToProviderData[theType].limit, "limit exceeded");
         require(PoolToType[poolId] == 0, "pool already registered");
         require(params.length == 2, "invalid params length");
         PoolToType[poolId] = theType;
-        UserToTotalAmount[nftContract.ownerOf(poolId)][theType] = newAmount;
+        UserToTotalAmount[owner][theType] = newAmount;
         poolIdToAmount[poolId] = amount;
     }
 
@@ -107,20 +80,7 @@ contract DelayVaultProvider is DelayVaultState {
         withdrawalAmount = poolIdToAmount[poolId];
     }
 
-    function currentParamsTargetLenght() public view override returns (uint256) {
-        return 2;
-    }
-
-    function _handleTransfer(address from, address to, uint256 poolId) internal override returns (uint256 amount) {
-        uint8 theType = PoolToType[poolId];
-        amount = poolIdToAmount[poolId];
-        uint256 newAmount = UserToTotalAmount[to][theType] + amount;
-        require(newAmount <= TypeToProviderData[theType].limit, "limit exceeded");
-        UserToTotalAmount[from][theType] -= amount;
-        UserToTotalAmount[to][theType] = newAmount;
-    }
-
-    function UpgradeType(uint256 PoolId, uint8 newType) external {
+    function upgradeType(uint256 PoolId, uint8 newType) external {
         require(nftContract.poolIdToProvider(PoolId) == this, "need to be THIS provider");
         require(PoolToType[PoolId] != 0, "pool not registered");
         require(msg.sender == nftContract.ownerOf(PoolId), "only the Owner can upgrade the type");
@@ -129,7 +89,7 @@ contract DelayVaultProvider is DelayVaultState {
         PoolToType[PoolId] = newType;
     }
 
-    function CreateNewDelayVault(uint256[] calldata params) external returns (uint256 PoolId) {
+    function createNewDelayVault(uint256[] calldata params) external returns (uint256 PoolId) {
         uint256 amount = params[0];
         uint8 theType = uint8(params[1]);
         require(theType <= typesCount, "invalid type");
@@ -138,7 +98,7 @@ contract DelayVaultProvider is DelayVaultState {
         registerPool(PoolId, params);
     }
 
-    function GetLeftAmount(address owner, uint8 theType) external view returns (uint256) {
+    function getLeftAmount(address owner, uint8 theType) external view returns (uint256) {
         return TypeToProviderData[theType].limit - UserToTotalAmount[owner][theType];
     }
 }
