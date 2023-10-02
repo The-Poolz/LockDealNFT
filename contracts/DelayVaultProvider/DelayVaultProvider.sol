@@ -52,7 +52,7 @@ contract DelayVaultProvider is DelayVaultState {
         require(nftContract.poolIdToProvider(PoolId) == this, "need to be THIS provider");
         require(msg.sender == nftContract.ownerOf(PoolId), "only the Owner can upgrade the type");
         require(newType > oldType, "new type must be bigger than the old one");
-        require(newType <= typesCount, "new type must be smaller than the types count");
+        require(newType < typesCount, "new type must be smaller than the types count");
         PoolToType[PoolId] = newType;
         _subHoldersSum(msg.sender, oldType, amount);
         _addHoldersSum(msg.sender, newType, amount);
