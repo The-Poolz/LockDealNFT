@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./BeforeTransfer.sol";
-import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+import "./DelayVaultState.sol";
 import "../util/CalcUtils.sol";
 
-contract DelayVaultProvider is BeforeTransfer {
+contract DelayVaultProvider is DelayVaultState {
     using CalcUtils for uint256;
 
     constructor(address _token, ILockDealNFT _nftContract, ProviderData[] memory _providersData) {
