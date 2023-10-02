@@ -98,11 +98,11 @@ contract DelayVaultProvider is IProvider, IBeforeTransfer, IERC165, DealProvider
         params[1] = uint256(PoolToType[poolId]);
     }
 
-    function getWithdrawableAmount(uint256 poolId) external view override returns (uint256 withdrawalAmount) {
+    function getWithdrawableAmount(uint256 poolId) external pure override returns (uint256 withdrawalAmount) {
         withdrawalAmount = 0;
     }
 
-    function currentParamsTargetLenght() external view override returns (uint256) {
+    function currentParamsTargetLenght() external pure override returns (uint256) {
         return 2;
     }
 
