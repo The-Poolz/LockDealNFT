@@ -50,17 +50,22 @@ contract DelayVaultProvider is IBeforeTransfer, IERC165, DealProviderState, Prov
         uint8 theType = PoolToType[tokenId];
         address owner = LastPoolOwner[tokenId];
         uint256 newPoolId = nftContract.mintForProvider(owner, TypeToProviderData[theType].provider);
-        uint256[] memory settings = TypeToProviderData[theType].params;
-        uint256[] memory params = new uint256[](settings.length + 1);
-        params[0] = poolIdToAmount[tokenId];
-        for (uint256 i = 0; i < settings.length; i++) {
-            params[i + 1] = block.timestamp + settings[i];
-        }
+        uint256[] memory params = _getWithdrawPoolParams(tokenId, theType);
         TypeToProviderData[theType].provider.registerPool(newPoolId, params);
         isFinal = true;
         withdrawnAmount = poolIdToAmount[tokenId] = 0;
         UserToTotalAmount[owner][theType] -= params[0];
         //This need to make a new pool without transfering the token, the pool data is taken from the settings
+    }
+
+    function _getWithdrawPoolParams(uint256 poolId, uint8 theType) internal view returns (uint256[] memory params) {
+        uint256[] memory settings = TypeToProviderData[theType].params;
+        uint256 length = settings.length + 1;
+        params = new uint256[](length);
+        params[0] = poolIdToAmount[poolId];
+        for (uint256 i = 0; i < settings.length; i++) {
+            params[i + 1] = block.timestamp + settings[i];
+        }
     }
 
     /*TODO add reentry guard*/
