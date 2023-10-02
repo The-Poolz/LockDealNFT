@@ -8,7 +8,10 @@ import "../interfaces/IBeforeTransfer.sol";
 
 abstract contract LockDealNFTInternal is LockDealNFTModifiers {
     function _transfer(address from, address to, uint256 poolId) internal override {
-        if (ERC165Checker.supportsInterface(address(poolIdToProvider[poolId]), type(IBeforeTransfer).interfaceId)) {
+        if (
+            from != address(0) &&
+            ERC165Checker.supportsInterface(address(poolIdToProvider[poolId]), type(IBeforeTransfer).interfaceId)
+        ) {
             IBeforeTransfer(address(poolIdToProvider[poolId])).beforeTransfer(from, to, poolId);
         }
         // check for split and withdraw transfers
