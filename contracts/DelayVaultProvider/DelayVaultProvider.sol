@@ -27,6 +27,7 @@ contract DelayVaultProvider is BeforeTransfer {
             }
             TypeToProviderData[i] = item;
         }
+        TypeToProviderData[typesCount - 1].limit = type(uint256).max; //the last one is the max, token supply is out of the scope
     }
 
     mapping(uint8 => ProviderData) internal TypeToProviderData; //will be {typesCount} lentgh
