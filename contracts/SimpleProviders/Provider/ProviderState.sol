@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "../../interfaces/ILockDealNFT.sol";
+import "../../interfaces/IProvider.sol";
 
 abstract contract ProviderState is IProvider {
     ///@dev Each provider sets its own name

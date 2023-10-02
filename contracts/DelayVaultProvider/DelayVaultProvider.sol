@@ -1,19 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../interfaces/IProvider.sol";
 import "../interfaces/ILockDealNFT.sol";
 import "../interfaces/IBeforeTransfer.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import "../SimpleProviders/DealProvider/DealProviderState.sol";
 import "../util/CalcUtils.sol";
+import "../SimpleProviders/Provider/ProviderModifiers.sol";
 
-contract DelayVaultProvider is IProvider, IBeforeTransfer, IERC165, DealProviderState {
+contract DelayVaultProvider is IBeforeTransfer, IERC165, DealProviderState, ProviderModifiers {
     using CalcUtils for uint256;
 
     constructor(address _token, ILockDealNFT _nftContract, ProviderData[] memory _providersData) {
         require(address(_token) != address(0x0), "invalid address");
         require(address(_nftContract) != address(0x0), "invalid address");
+        name = "DelayVaultProvider";
+
         Token = _token;
         nftContract = _nftContract;
         typesCount = uint8(_providersData.length);
@@ -28,14 +30,15 @@ contract DelayVaultProvider is IProvider, IBeforeTransfer, IERC165, DealProvider
     }
 
     mapping(uint256 => address) internal LastPoolOwner;
-    mapping(address => uint256[]) internal UserToTotalAmount; //will be {typesCount} lentgh
+    mapping(address => uint256[]) public UserToTotalAmount; //will be {typesCount} lentgh
     mapping(uint256 => uint8) internal PoolToType;
     mapping(uint8 => ProviderData) internal TypeToProviderData; //will be {typesCount} lentgh
     uint8 public typesCount;
     ILockDealNFT public nftContract;
     address public Token;
-    //this is onlty the delta
-    //the amount taken from the user is the amount of the pool
+
+    //this is only the delta
+    //the amount is the amount of the pool
     // params[0] = startTimeDelta (empty for DealProvider)
     // params[1] = endTimeDelta (only for TimedLockDealProvider)
     struct ProviderData {
@@ -43,7 +46,7 @@ contract DelayVaultProvider is IProvider, IBeforeTransfer, IERC165, DealProvider
         uint256[] params;
     }
 
-    function withdraw(uint256 tokenId) external override returns (uint256 withdrawnAmount, bool isFinal) {
+    function withdraw(uint256 tokenId) external override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
         uint8 theType = PoolToType[tokenId];
         address owner = LastPoolOwner[tokenId];
         uint256 newPoolId = nftContract.mintForProvider(owner, TypeToProviderData[theType].provider);
@@ -60,14 +63,17 @@ contract DelayVaultProvider is IProvider, IBeforeTransfer, IERC165, DealProvider
         //This need to make a new pool without transfering the token, the pool data is taken from the settings
     }
 
-    function beforeTransfer(address from, address to, uint256 poolId /*NonReentry*/) external override {
-        if (to == address(nftContract)) LastPoolOwner[poolId] = from;
+    /*TODO add reentry guard*/
+    function beforeTransfer(address from, address to, uint256 poolId) external override onlyNFT {
+        if (to == address(nftContract))
+            // this means it will be withdraw or split
+            LastPoolOwner[poolId] = from; //this is the only way to know the owner of the pool
         else {
             _handleTransfer(from, to, poolId);
         }
     }
 
-    function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) external override {
+    function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) external override onlyNFT {
         address oldOwner = LastPoolOwner[oldPoolId];
         address newOwner = nftContract.ownerOf(newPoolId);
         uint256 amount = poolIdToAmount[oldPoolId].calcAmount(ratio);
@@ -86,7 +92,7 @@ contract DelayVaultProvider is IProvider, IBeforeTransfer, IERC165, DealProvider
         UserToTotalAmount[to][theType] += amount;
     }
 
-    function registerPool(uint256 poolId, uint256[] calldata params) public override {
+    function registerPool(uint256 poolId, uint256[] calldata params) public override onlyProvider {
         uint8 theType = uint8(params[1]);
         uint256 amount = params[0];
         require(PoolToType[poolId] == 0, "pool already registered");
@@ -106,12 +112,8 @@ contract DelayVaultProvider is IProvider, IBeforeTransfer, IERC165, DealProvider
         withdrawalAmount = poolIdToAmount[poolId];
     }
 
-    function currentParamsTargetLenght() external pure override returns (uint256) {
+    function currentParamsTargetLenght() public view override returns (uint256) {
         return 2;
-    }
-
-    function name() external pure override returns (string memory) {
-        return "DelayVaultProvider";
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
