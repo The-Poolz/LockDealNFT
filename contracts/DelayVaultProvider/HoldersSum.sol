@@ -18,6 +18,10 @@ abstract contract HoldersSum {
     mapping(uint8 => ProviderData) internal TypeToProviderData; //will be {typesCount} lentgh
     uint8 public typesCount;
 
+    function getLeftAmount(address owner, uint8 theType) external view returns (uint256) {
+        return TypeToProviderData[theType].limit - _getHoldersSum(owner, theType);
+    }
+
     function _addHoldersSum(address user, uint8 theType, uint256 amount) internal {
         uint256 newAmount = UserToTotalAmount[user][theType] + amount;
         _setHoldersSum(user, theType, newAmount);
@@ -44,7 +48,18 @@ abstract contract HoldersSum {
         amount = UserToTotalAmount[user][theType];
     }
 
-    function getLeftAmount(address owner, uint8 theType) external view returns (uint256) {
-        return TypeToProviderData[theType].limit - _getHoldersSum(owner, theType);
+    function _setTypeToProviderData(
+        uint8 theType,
+        uint256 lastLimit,
+        ProviderData memory item
+    ) internal returns (uint256 limit) {
+        require(address(item.provider) != address(0x0), "invalid address");
+        require(item.provider.currentParamsTargetLenght() == item.params.length + 1, "invalid params length");
+        limit = item.limit;
+        require(limit >= lastLimit, "limit must be bigger or equal than the previous on");
+        TypeToProviderData[theType] = item;
+        if (theType == typesCount - 1) {
+            TypeToProviderData[theType].limit = type(uint256).max; //the last one is the max, token supply is out of the scope
+        }
     }
 }
