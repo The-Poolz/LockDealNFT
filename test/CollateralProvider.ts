@@ -17,7 +17,7 @@ describe('Collateral Provider', function () {
   let mockProvider: MockProvider;
   let mockVaultManager: MockVaultManager;
   let poolId: number;
-  let params: [number, number, number];
+  let params: [number, number, BigNumber, number];
   let receiver: SignerWithAddress;
   let projectOwner: SignerWithAddress;
   let finishTime: number;
@@ -41,7 +41,7 @@ describe('Collateral Provider', function () {
     const ONE_DAY = 86400;
     finishTime = (await time.latest()) + 14 * ONE_DAY; // plus 14 days
     poolId = (await lockDealNFT.totalSupply()).toNumber();
-    params = [amount, finishTime, poolId];
+    params = [amount, finishTime, halfRatio, poolId];
     await mockProvider.createNewPool([projectOwner.address, token], params);
     vaultId = await mockVaultManager.Id();
   });
@@ -91,12 +91,12 @@ describe('Collateral Provider', function () {
 
   it('should revert invalid finish time', async () => {
     await expect(
-      mockProvider.createNewPool([receiver.address, token], [amount, (await time.latest()) - 1]),
+      mockProvider.createNewPool([receiver.address, token], [amount, (await time.latest()) - 1, 0, 0]),
     ).to.be.revertedWith('start time must be in the future');
   });
 
   it('should deposit tokens', async () => {
-    await mockProvider.handleRefund(poolId, amount, amount / 2);
+    await mockProvider.handleRefund(poolId, projectOwner.address, amount);
     const tokenCollectorId = poolId + 2;
     const mainCoinHolderId = poolId + 3;
     let poolData = await lockDealNFT.getData(tokenCollectorId);
@@ -106,7 +106,7 @@ describe('Collateral Provider', function () {
   });
 
   it('should deposit main coin', async () => {
-    await mockProvider.handleWithdraw(poolId, amount / 2);
+    await mockProvider.handleWithdraw(poolId, amount);
     const mainCoinCollectorId = poolId + 1;
     const mainCoinHolderId = poolId + 3;
     let poolData = await lockDealNFT.getData(mainCoinHolderId);
@@ -122,7 +122,7 @@ describe('Collateral Provider', function () {
   });
 
   it('should withdraw before time main coins', async () => {
-    await mockProvider.handleWithdraw(poolId, amount / 2);
+    await mockProvider.handleWithdraw(poolId, amount);
     await lockDealNFT
       .connect(projectOwner)
       ['safeTransferFrom(address,address,uint256)'](projectOwner.address, lockDealNFT.address, poolId);
@@ -132,7 +132,7 @@ describe('Collateral Provider', function () {
   });
 
   it('should withdraw tokens before time', async () => {
-    await mockProvider.handleRefund(poolId, amount / 2, amount / 2);
+    await mockProvider.handleRefund(poolId, projectOwner.address, amount);
     await lockDealNFT
       .connect(projectOwner)
       ['safeTransferFrom(address,address,uint256)'](projectOwner.address, lockDealNFT.address, poolId);
@@ -142,8 +142,8 @@ describe('Collateral Provider', function () {
   });
 
   it('should withdraw main coins and tokens before time', async () => {
-    await mockProvider.handleWithdraw(poolId, amount / 2);
-    await mockProvider.handleRefund(poolId, amount / 2, amount / 2);
+    await mockProvider.handleWithdraw(poolId, amount);
+    await mockProvider.handleRefund(poolId, projectOwner.address, amount);
     await lockDealNFT
       .connect(projectOwner)
       ['safeTransferFrom(address,address,uint256)'](projectOwner.address, lockDealNFT.address, poolId);
@@ -174,8 +174,10 @@ describe('Collateral Provider', function () {
     expect(withdrawAmount).to.equal(amount);
   });
 
-  it('should get half amount', async () => {
-    await mockProvider.handleWithdraw(poolId, amount / 2);
+  it('should get half main coin amount', async () => {
+    params = [amount, finishTime, halfRatio, poolId];
+    await mockProvider.createNewPool([projectOwner.address, token], params);
+    await mockProvider.handleWithdraw(poolId, amount);
     const withdrawAmount = await lockDealNFT.getWithdrawableAmount(poolId);
     expect(withdrawAmount).to.equal(amount / 2);
   });
@@ -219,7 +221,7 @@ describe('Collateral Provider', function () {
   });
 
   it('should split Main Coin Collector pool', async () => {
-    await mockProvider.handleWithdraw(poolId, amount / 2);
+    await mockProvider.handleWithdraw(poolId, amount);
     const packedData = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [halfRatio, projectOwner.address]);
     await lockDealNFT
       .connect(projectOwner)
@@ -238,7 +240,7 @@ describe('Collateral Provider', function () {
   });
 
   it('should split Token Collector pool', async () => {
-    await mockProvider.handleRefund(poolId, amount / 2, amount / 2);
+    await mockProvider.handleRefund(poolId, projectOwner.address, amount);
     const packedData = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [halfRatio, projectOwner.address]);
     await lockDealNFT
       .connect(projectOwner)
@@ -252,8 +254,8 @@ describe('Collateral Provider', function () {
     const newTokenCoolectorId = tokenCollectorId + 4;
     const poolData = await lockDealNFT.getData(tokenCollectorId);
     const newPoolData = await lockDealNFT.getData(newTokenCoolectorId);
-    expect(poolData.params[0]).to.equal(amount / 4);
-    expect(newPoolData.params[0]).to.equal(amount / 4);
+    expect(poolData.params[0]).to.equal(amount / 2);
+    expect(newPoolData.params[0]).to.equal(amount / 2);
   });
 
   it('should split main coin holder pool', async () => {

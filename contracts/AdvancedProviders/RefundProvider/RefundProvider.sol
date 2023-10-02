@@ -3,12 +3,9 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "./RefundModifiers.sol";
-import "../../util/CalcUtils.sol";
 import "../../ERC165/Refundble.sol";
 
 contract RefundProvider is RefundState, IERC721Receiver, RefundModifiers {
-    using CalcUtils for uint256;
-
     constructor(ILockDealNFT nftContract, address provider) {
         require(address(nftContract) != address(0x0) && provider != address(0x0), "invalid address");
         lockDealNFT = nftContract;
@@ -29,16 +26,10 @@ contract RefundProvider is RefundState, IERC721Receiver, RefundModifiers {
             require(collateralProvider.poolIdToTime(collateralPoolId) > block.timestamp, "too late");
             ISimpleProvider dealProvider = collateralProvider.provider();
             uint256 userDataPoolId = poolId + 1;
-            // user withdraws his tokens
+            // user withdraws his tokens and will receives refund
             uint256 amount = dealProvider.getParams(userDataPoolId)[0];
             (uint256 withdrawnAmount, ) = dealProvider.withdraw(userDataPoolId, amount);
-            uint256 mainCoinAmount = withdrawnAmount.calcAmount(poolIdToRateToWei[poolId]);
-            collateralProvider.handleRefund(collateralPoolId, withdrawnAmount, mainCoinAmount);
-            uint256 newMainCoinPoolId = lockDealNFT.mintForProvider(user, dealProvider);
-            uint256[] memory params = new uint256[](1);
-            params[0] = mainCoinAmount;
-            dealProvider.registerPool(newMainCoinPoolId, params);
-            lockDealNFT.copyVaultId(collateralPoolId, newMainCoinPoolId);
+            collateralProvider.handleRefund(collateralPoolId, user, withdrawnAmount);
         }
         return IERC721Receiver.onERC721Received.selector;
     }
@@ -78,15 +69,15 @@ contract RefundProvider is RefundState, IERC721Receiver, RefundModifiers {
             params[paramsLength - 3],
             collateralProvider
         );
-        uint256[] memory collateralParams = new uint256[](3);
+        uint256[] memory collateralParams = new uint256[](4);
         collateralParams[0] = params[paramsLength - 3];
         collateralParams[1] = params[paramsLength - 1];
-        collateralParams[2] = dataPoolID;
+        collateralParams[2] = params[paramsLength - 2];
+        collateralParams[3] = dataPoolID;
         collateralProvider.registerPool(collateralPoolId, collateralParams);
         // save refund data
         uint256[] memory refundRegisterParams = new uint256[](currentParamsTargetLenght());
         refundRegisterParams[0] = collateralPoolId;
-        refundRegisterParams[1] = params[paramsLength - 2];
         _registerPool(poolId, refundRegisterParams);
     }
 
@@ -106,7 +97,6 @@ contract RefundProvider is RefundState, IERC721Receiver, RefundModifiers {
         uint256[] memory params
     ) internal validParamsLength(params.length, currentParamsTargetLenght()) {
         poolIdToCollateralId[poolId] = params[0];
-        poolIdToRateToWei[poolId] = params[1];
         emit UpdateParams(poolId, params);
     }
 
@@ -114,23 +104,18 @@ contract RefundProvider is RefundState, IERC721Receiver, RefundModifiers {
     function split(uint256 poolId, uint256 newPoolId, uint256 ratio) external onlyNFT {
         uint256[] memory params = new uint256[](currentParamsTargetLenght());
         params[0] = poolIdToCollateralId[poolId];
-        params[1] = poolIdToRateToWei[poolId];
         _registerPool(newPoolId, params);
         uint256 userPoolId = poolId + 1;
         lockDealNFT.safeTransferFrom(address(this), address(lockDealNFT), userPoolId, abi.encode(ratio));
     }
 
     ///@dev user withdraws his tokens
-    function withdraw(uint256 poolId) public override onlyNFT returns (uint256, bool isFinal) {
+    function withdraw(uint256 poolId) public override onlyNFT returns (uint256 amountToBeWithdrawed, bool isFinal) {
         uint256 userDataPoolId = poolId + 1;
-        // user withdraws his tokens
         IProvider provider = lockDealNFT.poolIdToProvider(userDataPoolId);
-        uint256 amountToBeWithdrawed = provider.getWithdrawableAmount(userDataPoolId);
+        amountToBeWithdrawed = provider.getWithdrawableAmount(userDataPoolId);
         if (collateralProvider.poolIdToTime(poolIdToCollateralId[poolId]) >= block.timestamp) {
-            collateralProvider.handleWithdraw(
-                poolIdToCollateralId[poolId],
-                amountToBeWithdrawed.calcAmount(poolIdToRateToWei[poolId])
-            );
+            collateralProvider.handleWithdraw(poolIdToCollateralId[poolId], amountToBeWithdrawed);
         }
         isFinal = provider.getParams(userDataPoolId)[0] == amountToBeWithdrawed;
     }

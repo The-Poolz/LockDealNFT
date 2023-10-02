@@ -4,8 +4,11 @@ pragma solidity ^0.8.0;
 import "../../interfaces/IFundsManager.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "./CollateralState.sol";
+import "../../util/CalcUtils.sol";
 
 contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState {
+    using CalcUtils for uint256;
+
     ///@dev withdraw tokens
     constructor(ILockDealNFT _lockDealNFT, address _dealProvider) {
         require(address(_lockDealNFT) != address(0x0) && _dealProvider != address(0x0), "invalid address");
@@ -30,12 +33,14 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState {
     ///@dev each provider decides how many parameters it needs by overriding this function
     ///@param params[0] = StartAmount
     ///@param params[1] = FinishTime
-    ///@param params[2] = token pool Id
+    ///@param params[2] = rate to wei (1e21) = 100%
+    ///@param params[3] = token pool Id
     function _registerPool(uint256 poolId, uint256[] calldata params) internal {
         require(block.timestamp <= params[1], "start time must be in the future");
         require(poolId == lockDealNFT.totalSupply() - 1, "invalid params");
         poolIdToTime[poolId] = params[1];
-        uint256 tokenPoolId = params[2];
+        poolIdToRateToWei[poolId] = params[2];
+        uint256 tokenPoolId = params[3];
         lockDealNFT.mintForProvider(address(this), provider); //Main Coin Collector poolId + 1
         lockDealNFT.mintForProvider(address(this), provider); //Token Collector poolId + 2
         uint256 mainCoinHolderId = lockDealNFT.mintForProvider(address(this), provider); //hold main coin for the project owner poolId + 3
@@ -78,20 +83,24 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState {
 
     function handleRefund(
         uint256 poolId,
-        uint256 tokenAmount,
-        uint256 mainCoinAmount
+        address user,
+        uint256 tokenAmount
     ) public override onlyProvider validProviderId(poolId) {
         (, uint256 tokenCollectorId, uint256 mainCoinHolderId) = getInnerIds(poolId);
+        uint256 mainCoinAmount = tokenAmount.calcAmount(poolIdToRateToWei[poolId]);
         provider.withdraw(mainCoinHolderId, mainCoinAmount);
         _deposit(tokenCollectorId, tokenAmount);
+        uint256 newMainCoinPoolId = lockDealNFT.mintForProvider(user, provider);
+        uint256[] memory params = new uint256[](1);
+        params[0] = mainCoinAmount;
+        provider.registerPool(newMainCoinPoolId, params);
+        lockDealNFT.copyVaultId(mainCoinHolderId, newMainCoinPoolId);
     }
 
-    function handleWithdraw(
-        uint256 poolId,
-        uint256 mainCoinAmount
-    ) public override onlyProvider validProviderId(poolId) {
+    function handleWithdraw(uint256 poolId, uint256 tokenAmount) public override onlyProvider validProviderId(poolId) {
         uint256 mainCoinCollectorId = poolId + 1;
         uint256 mainCoinHolderId = poolId + 3;
+        uint256 mainCoinAmount = tokenAmount.calcAmount(poolIdToRateToWei[poolId]);
         provider.withdraw(mainCoinHolderId, mainCoinAmount);
         _deposit(mainCoinCollectorId, mainCoinAmount);
     }
