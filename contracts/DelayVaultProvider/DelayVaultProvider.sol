@@ -6,8 +6,11 @@ import "../interfaces/ILockDealNFT.sol";
 import "../interfaces/IBeforeTransfer.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import "../SimpleProviders/DealProvider/DealProviderState.sol";
+import "../util/CalcUtils.sol";
 
 contract DelayVaultProvider is IProvider, IBeforeTransfer, IERC165, DealProviderState {
+    using CalcUtils for uint256;
+
     constructor(ILockDealNFT _nftContract, ProviderData[] memory _providersData) {
         nftContract = _nftContract;
         typesCount = uint8(_providersData.length);
