@@ -8,6 +8,7 @@ abstract contract HoldersSum is ProviderModifiers {
     //the amount is the amount of the pool
     // params[0] = startTimeDelta (empty for DealProvider)
     // params[1] = endTimeDelta (only for TimedLockDealProvider)
+    event HoldersSumChanged(address indexed user, uint8 indexed theType, uint256 amount);
     struct ProviderData {
         IProvider provider;
         uint256[] params; // 0 for DealProvider,1 for LockProvider ,2 for TimedDealProvider
@@ -31,7 +32,7 @@ abstract contract HoldersSum is ProviderModifiers {
         uint256 oldAmount = _getHoldersSum(user, theType);
         require(oldAmount >= amount, "amount exceeded");
         uint256 newAmount = oldAmount - amount;
-        UserToTotalAmount[user][theType] = newAmount;
+        _setHoldersSum(user, theType, newAmount);
     }
 
     function _setHoldersSum(address user, uint8 theType, uint256 amount) internal {
@@ -42,6 +43,7 @@ abstract contract HoldersSum is ProviderModifiers {
             UserToTotalAmount[user] = amountsByType;
         }
         UserToTotalAmount[user][theType] = amount;
+        emit HoldersSumChanged(user, theType, amount);
     }
 
     function _getHoldersSum(address user, uint8 theType) internal view returns (uint256 amount) {

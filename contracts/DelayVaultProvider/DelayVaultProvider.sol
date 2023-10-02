@@ -39,12 +39,23 @@ contract DelayVaultProvider is DelayVaultState {
         withdrawalAmount = poolIdToAmount[poolId];
     }
 
-    function upgradeType(uint256 PoolId, uint8 newType) external {
+    function upgradeTypes(uint256[] calldata poolIds, uint8 newType) public {
+        for (uint256 i = 0; i < poolIds.length; i++) {
+            upgradeType(poolIds[i], newType);
+        }
+    }
+
+    function upgradeType(uint256 PoolId, uint8 newType) public {
+        uint8 oldType = PoolToType[PoolId];
+        uint256 amount = poolIdToAmount[PoolId];
+        require(amount > 0, "pool is empty");
         require(nftContract.poolIdToProvider(PoolId) == this, "need to be THIS provider");
         require(msg.sender == nftContract.ownerOf(PoolId), "only the Owner can upgrade the type");
-        require(newType > PoolToType[PoolId], "new type must be bigger than the old one");
+        require(newType > oldType, "new type must be bigger than the old one");
         require(newType <= typesCount, "new type must be smaller than the types count");
         PoolToType[PoolId] = newType;
+        _subHoldersSum(msg.sender, oldType, amount);
+        _addHoldersSum(msg.sender, newType, amount);
     }
 
     function createNewDelayVault(uint256[] calldata params) external returns (uint256 PoolId) {
