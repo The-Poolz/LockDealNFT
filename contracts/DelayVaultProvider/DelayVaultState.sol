@@ -2,12 +2,11 @@
 pragma solidity ^0.8.0;
 
 import "../SimpleProviders/DealProvider/DealProviderState.sol";
-import "../SimpleProviders/Provider/ProviderModifiers.sol";
 import "./LastPoolOwnerState.sol";
 import "./HoldersSum.sol";
 import "../util/CalcUtils.sol";
 
-abstract contract DelayVaultState is DealProviderState, ProviderModifiers, LastPoolOwnerState, HoldersSum {
+abstract contract DelayVaultState is DealProviderState, LastPoolOwnerState, HoldersSum {
     using CalcUtils for uint256;
     ILockDealNFT public nftContract;
     address public Token;
