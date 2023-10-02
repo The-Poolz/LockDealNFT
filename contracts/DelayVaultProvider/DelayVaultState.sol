@@ -41,7 +41,7 @@ abstract contract DelayVaultState is DealProviderState, ProviderModifiers, LastP
         UserToTotalAmount[to][theType] = newAmount;
     }
 
-    function currentParamsTargetLenght() public view override returns (uint256) {
+    function currentParamsTargetLenght() public pure override returns (uint256) {
         return 2;
     }
 
