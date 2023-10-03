@@ -97,7 +97,7 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal {
         uint256 mainCoinAmount,
         uint256[] memory collateralParams
     ) internal returns (uint256[] memory refundParams) {
-        refundParams = new uint256[](2);
+        refundParams = new uint256[](1);
         refundParams[0] = _createCollateralProvider(mainCoin, poolId, totalAmount, mainCoinAmount, collateralParams);
         refundProvider.registerPool(poolId, refundParams);
     }
