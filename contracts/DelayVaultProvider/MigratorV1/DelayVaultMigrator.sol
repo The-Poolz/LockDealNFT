@@ -11,15 +11,24 @@ contract DelayVaultMigrator is IDelayVaultData {
     address public token;
     address public vaultManager;
     ILockDealNFT public nftContract;
+    bool public isInitialized;
+    address public owner = msg.sender; // Initialize owner at declaration
 
-    constructor(IDelayVaultProvider _newVault, IDelayVaultV1 _oldVault, address _vaultManager) {
-        newVault = _newVault;
+    constructor(IDelayVaultV1 _oldVault) {
         oldVault = _oldVault;
-        token = newVault.Token();
-        vaultManager = _vaultManager;
-        nftContract = _newVault.nftContract();
     }
 
+    function finilize(IDelayVaultProvider _newVault) external {
+        require(owner != address(0), "DelayVaultMigrator: already initialized");
+        require(msg.sender == owner, "DelayVaultMigrator: not owner");
+        newVault = _newVault;
+        token = newVault.Token();
+        nftContract = newVault.nftContract();
+        vaultManager = nftContract.vaultManagerAddress();
+        owner = address(0); // Set owner to zero address
+    }
+
+    //this option is to get tokens from the DelayVaultV1 and deposit them to the DelayVaultV2 (LockDealNFT, v3)
     function fullMigrate() external {
         require(oldVault.Allowance(token, msg.sender), "DelayVaultMigrator: not allowed");
         uint256 amount = getUserV1Amount(msg.sender);
@@ -31,10 +40,7 @@ contract DelayVaultMigrator is IDelayVaultData {
         newVault.createNewDelayVault(msg.sender, params);
     }
 
-    function getUserV1Amount(address user) public view returns (uint256 amount) {
-        (amount, , , ) = oldVault.VaultMap(newVault.Token(), user);
-    }
-
+    //this option is to get tokens from the DelayVaultV1 and deposit them to the LockDealNFT (v3)
     function withdrawTokensFromV1Vault() external {
         require(oldVault.Allowance(token, msg.sender), "DelayVaultMigrator: not allowed");
         uint256 amount = getUserV1Amount(msg.sender);
@@ -51,5 +57,9 @@ contract DelayVaultMigrator is IDelayVaultData {
         );
         uint256[] memory params = newVault.getWithdrawPoolParams(amount, theType);
         providerData.provider.registerPool(newPoolId, params);
+    }
+
+    function getUserV1Amount(address user) public view returns (uint256 amount) {
+        (amount, , , ) = oldVault.VaultMap(token, user);
     }
 }

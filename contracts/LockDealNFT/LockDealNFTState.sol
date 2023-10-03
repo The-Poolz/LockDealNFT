@@ -22,6 +22,10 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
     mapping(address => bool) public approvedPoolUserTransfers;
     mapping(address => bool) public approvedContracts;
 
+    function vaultManagerAddress() external view returns (address) {
+        return address(vaultManager);
+    }
+
     function getData(uint256 poolId) public view returns (BasePoolInfo memory poolInfo) {
         if (_exists(poolId)) {
             IProvider provider = poolIdToProvider[poolId];
