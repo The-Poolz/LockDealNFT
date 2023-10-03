@@ -21,42 +21,48 @@ abstract contract DelayVaultState is DealProviderState, LastPoolOwnerState, Hold
     }
 
     function _handleTransfer(address from, address to, uint256 poolId) internal returns (uint256 amount) {
-        uint8 theType = PoolToType[poolId];
-        _subHoldersSum(from, theType, amount);
-        _addHoldersSum(to, theType, amount);
+        amount = poolIdToAmount[poolId];
+        _subHoldersSum(from, amount);
+        _addHoldersSum(to, amount, false);
     }
 
-    function currentParamsTargetLenght() public pure override returns (uint256) {
-        return 2;
-    }
-
-    function _getWithdrawPoolParams(uint256 poolId, uint8 theType) internal view returns (uint256[] memory params) {
+    function getWithdrawPoolParams(uint256 amount, uint8 theType) public view returns (uint256[] memory params) {
         uint256[] memory settings = TypeToProviderData[theType].params;
-        params = _getWithdrawPoolParams(poolId, settings);
+        params = _getWithdrawPoolParams(amount, settings);
     }
 
     function _getWithdrawPoolParams(
-        uint256 poolId,
+        uint256 amount,
         uint256[] memory settings
     ) internal view returns (uint256[] memory params) {
         uint256 length = settings.length + 1;
         params = new uint256[](length);
-        params[0] = poolIdToAmount[poolId];
+        params[0] = amount;
         for (uint256 i = 0; i < settings.length; i++) {
             params[i + 1] = block.timestamp + settings[i];
         }
     }
 
+    //This need to make a new pool without transfering the token, the pool data is taken from the settings
     function withdraw(uint256 tokenId) external override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
-        uint8 theType = PoolToType[tokenId];
         address owner = LastPoolOwner[tokenId];
-        uint256 newPoolId = nftContract.mintForProvider(owner, TypeToProviderData[theType].provider);
-        uint256[] memory params = _getWithdrawPoolParams(tokenId, theType);
-        TypeToProviderData[theType].provider.registerPool(newPoolId, params);
+        uint8 theType = UserToType[owner];
+        uint256 amount = poolIdToAmount[tokenId];
+        _createLockNFT(owner, amount, theType, tokenId);
         isFinal = true;
         withdrawnAmount = poolIdToAmount[tokenId] = 0;
-        _subHoldersSum(owner, theType, params[0]);
-        //This need to make a new pool without transfering the token, the pool data is taken from the settings
+        _subHoldersSum(owner, amount);
+        if (getTotalAmount(owner) == 0) {
+            UserToType[owner] = 0; //reset the type
+        }
+    }
+
+    function _createLockNFT(address owner, uint256 amount, uint8 theType, uint tokenId) internal {
+        ProviderData memory providerData = TypeToProviderData[theType];
+        uint256 newPoolId = nftContract.mintForProvider(owner, providerData.provider);
+        nftContract.copyVaultId(tokenId, newPoolId);
+        uint256[] memory params = getWithdrawPoolParams(amount, theType);
+        providerData.provider.registerPool(newPoolId, params);
     }
 
     function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) external override onlyNFT {
@@ -65,7 +71,6 @@ abstract contract DelayVaultState is DealProviderState, LastPoolOwnerState, Hold
         uint256 amount = poolIdToAmount[oldPoolId].calcAmount(ratio);
         poolIdToAmount[oldPoolId] -= amount;
         poolIdToAmount[newPoolId] = amount;
-        PoolToType[newPoolId] = PoolToType[oldPoolId];
         if (newOwner != oldOwner) {
             _handleTransfer(oldOwner, newOwner, oldPoolId);
         }

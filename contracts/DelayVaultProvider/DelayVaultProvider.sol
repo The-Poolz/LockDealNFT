@@ -18,52 +18,46 @@ contract DelayVaultProvider is DelayVaultState {
         }
     }
 
-    function registerPool(uint256 poolId, uint256[] calldata params) public override onlyProvider {
-        uint8 theType = uint8(params[1]);
+    //params[0] = amount
+    //params[1] = allowTypeChange, 0 = false, 1(or any) = true
+    function registerPool(uint256 poolId, uint256[] calldata params) public override onlyProvider onlyProvider {
         uint256 amount = params[0];
+        bool allowTypeChange = params[1] > 0;
         address owner = nftContract.ownerOf(poolId);
-        require(PoolToType[poolId] == 0, "pool already registered");
         require(params.length == 2, "invalid params length");
-        PoolToType[poolId] = theType;
-        _addHoldersSum(owner, theType, amount);
+        _addHoldersSum(owner, amount, allowTypeChange);
         poolIdToAmount[poolId] = amount;
     }
 
     function getParams(uint256 poolId) external view override returns (uint256[] memory params) {
         params = new uint256[](2);
         params[0] = poolIdToAmount[poolId];
-        params[1] = uint256(PoolToType[poolId]);
     }
 
     function getWithdrawableAmount(uint256 poolId) external view override returns (uint256 withdrawalAmount) {
         withdrawalAmount = poolIdToAmount[poolId];
     }
 
-    function upgradeTypes(uint256[] calldata poolIds, uint8 newType) public {
-        for (uint256 i = 0; i < poolIds.length; i++) {
-            upgradeType(poolIds[i], newType);
-        }
-    }
-
-    function upgradeType(uint256 PoolId, uint8 newType) public {
-        uint8 oldType = PoolToType[PoolId];
-        uint256 amount = poolIdToAmount[PoolId];
-        require(amount > 0, "pool is empty");
-        require(nftContract.poolIdToProvider(PoolId) == this, "need to be THIS provider");
-        require(msg.sender == nftContract.ownerOf(PoolId), "only the Owner can upgrade the type");
+    function upgradeType(uint8 newType) public {
+        uint8 oldType = UserToType[msg.sender];
+        uint256 amount = getTotalAmount(msg.sender);
+        require(amount > 0, "amount must be bigger than 0");
         require(newType > oldType, "new type must be bigger than the old one");
         require(newType < typesCount, "new type must be smaller than the types count");
-        PoolToType[PoolId] = newType;
-        _subHoldersSum(msg.sender, oldType, amount);
-        _addHoldersSum(msg.sender, newType, amount);
+        UserToType[msg.sender] = newType;
     }
 
     function createNewDelayVault(address owner, uint256[] calldata params) external returns (uint256 PoolId) {
         uint256 amount = params[0];
-        uint8 theType = uint8(params[1]);
-        require(theType <= typesCount, "invalid type");
+        bool allowTypeChange = params[1] > 0;
+        require(params.length == 2, "invalid params length");
+        require(!allowTypeChange || _isAllowedChanheType(owner), "only owner can upgrade type");
         require(amount > 0, "amount must be bigger than 0");
         PoolId = nftContract.mintAndTransfer(owner, Token, msg.sender, amount, this);
         registerPool(PoolId, params);
+    }
+
+    function _isAllowedChanheType(address owner) internal view returns (bool) {
+        return owner == msg.sender || lockDealNFT.approvedProviders(msg.sender);
     }
 }
