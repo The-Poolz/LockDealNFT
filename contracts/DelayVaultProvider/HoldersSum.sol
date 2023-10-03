@@ -58,7 +58,7 @@ abstract contract HoldersSum is ProviderModifiers, IDelayVaultData {
         emit HoldersSumChanged(user, amount);
     }
 
-    function _finilize(ProviderData[] calldata _providersData) internal {
+    function _finilize(ProviderData[] memory _providersData) internal {
         typesCount = uint8(_providersData.length);
         uint256 limit = 0;
         for (uint8 i = 0; i < typesCount; i++) {

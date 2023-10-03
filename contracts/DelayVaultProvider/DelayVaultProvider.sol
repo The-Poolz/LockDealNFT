@@ -4,14 +4,14 @@ pragma solidity ^0.8.0;
 import "./DelayVaultState.sol";
 
 contract DelayVaultProvider is DelayVaultState {
-    constructor(address _token, ILockDealNFT _nftContract, ProviderData[] calldata _providersData) {
+    constructor(address _token, ILockDealNFT _nftContract, ProviderData[] memory _providersData) {
         require(address(_token) != address(0x0), "invalid address");
         require(address(_nftContract) != address(0x0), "invalid address");
         require(_providersData.length <= 255, "too many providers");
         name = "DelayVaultProvider";
         Token = _token;
         lockDealNFT = _nftContract;
-        _finilize();
+        _finilize(_providersData);
     }
 
     //params[0] = amount
