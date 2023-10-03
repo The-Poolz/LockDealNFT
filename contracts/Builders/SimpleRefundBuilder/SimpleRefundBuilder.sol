@@ -58,13 +58,16 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal {
     function _createCollateralProvider(
         address mainCoin,
         uint256 tokenPoolId,
+        uint256 totalAmount,
+        uint256 mainCoinAmount,
         uint256[] memory params
     ) internal returns (uint256 poolId) {
         poolId = lockDealNFT.mintAndTransfer(msg.sender, mainCoin, msg.sender, params[0], collateralProvider);
-        uint256[] memory collateralParams = new uint256[](3);
+        uint256[] memory collateralParams = new uint256[](4);
         collateralParams[0] = params[0];
         collateralParams[1] = params[1];
-        collateralParams[2] = tokenPoolId;
+        collateralParams[2] = mainCoinAmount.calcRate(totalAmount);
+        collateralParams[3] = tokenPoolId;
         collateralProvider.registerPool(poolId, collateralParams);
     }
 
@@ -94,9 +97,8 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal {
         uint256 mainCoinAmount,
         uint256[] memory collateralParams
     ) internal returns (uint256[] memory refundParams) {
-        refundParams = new uint256[](2);
-        refundParams[0] = _createCollateralProvider(mainCoin, poolId, collateralParams);
-        refundParams[1] = mainCoinAmount.calcRate(totalAmount);
+        refundParams = new uint256[](1);
+        refundParams[0] = _createCollateralProvider(mainCoin, poolId, totalAmount, mainCoinAmount, collateralParams);
         refundProvider.registerPool(poolId, refundParams);
     }
 
