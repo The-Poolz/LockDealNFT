@@ -37,10 +37,10 @@ describe('Timed Deal Provider', function () {
     lockProvider = await deployed('LockDealProvider', lockDealNFT.address, dealProvider.address);
     timedDealProvider = await deployed('TimedDealProvider', lockDealNFT.address, lockProvider.address);
     mockProvider = await deployed('MockProvider', lockDealNFT.address, timedDealProvider.address);
-    await lockDealNFT.setApprovedProvider(dealProvider.address, true);
-    await lockDealNFT.setApprovedProvider(lockProvider.address, true);
-    await lockDealNFT.setApprovedProvider(timedDealProvider.address, true);
-    await lockDealNFT.setApprovedProvider(mockProvider.address, true);
+    await lockDealNFT.setApprovedContract(dealProvider.address, true);
+    await lockDealNFT.setApprovedContract(lockProvider.address, true);
+    await lockDealNFT.setApprovedContract(timedDealProvider.address, true);
+    await lockDealNFT.setApprovedContract(mockProvider.address, true);
   });
 
   beforeEach(async () => {

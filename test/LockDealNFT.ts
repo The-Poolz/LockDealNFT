@@ -31,10 +31,10 @@ describe('LockDealNFT', function () {
     dealProvider = await deployed('DealProvider', lockDealNFT.address);
     lockDealProvider = await deployed('LockDealProvider', lockDealNFT.address, dealProvider.address);
     timedDealProvider = await deployed('TimedDealProvider', lockDealNFT.address, lockDealProvider.address);
-    await lockDealNFT.setApprovedProvider(dealProvider.address, true);
-    await lockDealNFT.setApprovedProvider(lockDealProvider.address, true);
-    await lockDealNFT.setApprovedProvider(timedDealProvider.address, true);
-    await lockDealNFT.setApprovedProvider(mockVaultManager.address, true);
+    await lockDealNFT.setApprovedContract(dealProvider.address, true);
+    await lockDealNFT.setApprovedContract(lockDealProvider.address, true);
+    await lockDealNFT.setApprovedContract(timedDealProvider.address, true);
+    await lockDealNFT.setApprovedContract(mockVaultManager.address, true);
   });
 
   beforeEach(async () => {
@@ -55,12 +55,12 @@ describe('LockDealNFT', function () {
   });
 
   it('should set provider address', async () => {
-    await lockDealNFT.setApprovedProvider(dealProvider.address, true);
+    await lockDealNFT.setApprovedContract(dealProvider.address, true);
     expect(await lockDealNFT.approvedContracts(dealProvider.address)).to.be.true;
   });
 
   it('should return ContractApproved event', async () => {
-    const tx = await lockDealNFT.setApprovedProvider(dealProvider.address, true);
+    const tx = await lockDealNFT.setApprovedContract(dealProvider.address, true);
     await tx.wait();
     const events = await lockDealNFT.queryFilter(lockDealNFT.filters.ContractApproved());
     expect(events[events.length - 1].args.status).to.equal(true);

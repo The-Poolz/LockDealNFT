@@ -113,13 +113,13 @@ describe('Simple Refund Builder tests', function () {
       refundProvider.address,
       collateralProvider.address
     );
-    await lockDealNFT.setApprovedProvider(refundProvider.address, true);
-    await lockDealNFT.setApprovedProvider(lockProvider.address, true);
-    await lockDealNFT.setApprovedProvider(dealProvider.address, true);
-    await lockDealNFT.setApprovedProvider(timedProvider.address, true);
-    await lockDealNFT.setApprovedProvider(collateralProvider.address, true);
-    await lockDealNFT.setApprovedProvider(lockDealNFT.address, true);
-    await lockDealNFT.setApprovedProvider(simpleRefundBuilder.address, true);
+    await lockDealNFT.setApprovedContract(refundProvider.address, true);
+    await lockDealNFT.setApprovedContract(lockProvider.address, true);
+    await lockDealNFT.setApprovedContract(dealProvider.address, true);
+    await lockDealNFT.setApprovedContract(timedProvider.address, true);
+    await lockDealNFT.setApprovedContract(collateralProvider.address, true);
+    await lockDealNFT.setApprovedContract(lockDealNFT.address, true);
+    await lockDealNFT.setApprovedContract(simpleRefundBuilder.address, true);
   });
 
   beforeEach(async () => {
