@@ -31,9 +31,8 @@ contract DelayVaultMigrator is IDelayVaultData {
         newVault.createNewDelayVault(msg.sender, params);
     }
 
-    function getUserV1Amount(address user) public view returns (uint256) {
-        (uint256 amount, , , ) = oldVault.VaultMap(newVault.Token(), user);
-        return amount;
+    function getUserV1Amount(address user) public view returns (uint256 amount) {
+        (amount, , , ) = oldVault.VaultMap(newVault.Token(), user);
     }
 
     function withdrawTokensFromV1Vault() external {
