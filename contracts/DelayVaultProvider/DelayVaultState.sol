@@ -26,7 +26,7 @@ abstract contract DelayVaultState is DealProviderState, LastPoolOwnerState, Hold
         _addHoldersSum(to, amount, false);
     }
 
-    function _getWithdrawPoolParams(uint256 amount, uint8 theType) internal view returns (uint256[] memory params) {
+    function getWithdrawPoolParams(uint256 amount, uint8 theType) public view returns (uint256[] memory params) {
         uint256[] memory settings = TypeToProviderData[theType].params;
         params = _getWithdrawPoolParams(amount, settings);
     }
@@ -43,24 +43,6 @@ abstract contract DelayVaultState is DealProviderState, LastPoolOwnerState, Hold
         }
     }
 
-    function withdrawTokensFromV1Vault() external {
-        require(oldVault.Allowance(Token, msg.sender), "DelayVaultMigrator: not allowed");
-        uint256 amount = getUserV1Amount(msg.sender);
-        oldVault.redeemTokensFromVault(Token, msg.sender, amount);
-        uint8 theType = theTypeOf(_getTotalAmount(msg.sender));
-        ProviderData memory providerData = TypeToProviderData[theType];
-        // TODO add IERC20(Token).approve(vaultmanager, amount);
-        uint256 newPoolId = nftContract.mintAndTransfer(
-            msg.sender,
-            Token,
-            address(this),
-            amount,
-            providerData.provider
-        );
-        uint256[] memory params = _getWithdrawPoolParams(amount, theType);
-        providerData.provider.registerPool(newPoolId, params);
-    }
-
     //This need to make a new pool without transfering the token, the pool data is taken from the settings
     function withdraw(uint256 tokenId) external override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
         address owner = LastPoolOwner[tokenId];
@@ -70,7 +52,7 @@ abstract contract DelayVaultState is DealProviderState, LastPoolOwnerState, Hold
         isFinal = true;
         withdrawnAmount = poolIdToAmount[tokenId] = 0;
         _subHoldersSum(owner, amount);
-        if (_getTotalAmount(owner) == 0) {
+        if (getTotalAmount(owner) == 0) {
             UserToType[owner] = 0; //reset the type
         }
     }
@@ -79,7 +61,7 @@ abstract contract DelayVaultState is DealProviderState, LastPoolOwnerState, Hold
         ProviderData memory providerData = TypeToProviderData[theType];
         uint256 newPoolId = nftContract.mintForProvider(owner, providerData.provider);
         nftContract.copyVaultId(tokenId, newPoolId);
-        uint256[] memory params = _getWithdrawPoolParams(amount, theType);
+        uint256[] memory params = getWithdrawPoolParams(amount, theType);
         providerData.provider.registerPool(newPoolId, params);
     }
 

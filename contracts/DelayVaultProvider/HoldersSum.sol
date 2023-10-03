@@ -2,26 +2,24 @@
 pragma solidity ^0.8.0;
 
 import "../SimpleProviders/Provider/ProviderModifiers.sol";
-import "./MigratorV1/DelayVaultMigrator.sol";
+import "./MigratorV1/IDelayVaultProvider.sol";
+import "./MigratorV1/IMigrator.sol";
 
-abstract contract HoldersSum is ProviderModifiers, DelayVaultMigrator {
+abstract contract HoldersSum is ProviderModifiers, IDelayVaultData {
     //this is only the delta
     //the amount is the amount of the pool
     // params[0] = startTimeDelta (empty for DealProvider)
     // params[1] = endTimeDelta (only for TimedLockDealProvider)
     event HoldersSumChanged(address indexed user, uint256 amount);
-    struct ProviderData {
-        IProvider provider;
-        uint256[] params; // 0 for DealProvider,1 for LockProvider ,2 for TimedDealProvider
-        uint256 limit;
-    }
     mapping(address => uint256) public UserToAmount; //Each user got total amount
     mapping(address => uint8) public UserToType; //Each user got type, can go up. wjem withdraw to 0, its reset
     mapping(uint8 => ProviderData) public TypeToProviderData; //will be {typesCount} lentgh
     uint8 public typesCount; //max type + 1
 
-    function _getTotalAmount(address user) internal view returns (uint256) {
-        return UserToAmount[user] + getUserV1Amount(user);
+    IMigrator public Migrator;
+
+    function getTotalAmount(address user) public view returns (uint256) {
+        return UserToAmount[user] + Migrator.getUserV1Amount(user);
     }
 
     function theTypeOf(uint256 amount) public view returns (uint8 theType) {
@@ -46,7 +44,7 @@ abstract contract HoldersSum is ProviderModifiers, DelayVaultMigrator {
     }
 
     function _setHoldersSum(address user, uint256 amount, bool allowTypeUpgrade) internal {
-        uint8 newType = theTypeOf(_getTotalAmount(user) + amount);
+        uint8 newType = theTypeOf(getTotalAmount(user) + amount);
         if (allowTypeUpgrade) {
             // Upgrade the user type if the newType is greater
             if (newType > UserToType[user]) {

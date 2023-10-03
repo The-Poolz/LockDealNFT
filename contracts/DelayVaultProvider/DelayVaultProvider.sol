@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./DelayVaultState.sol";
 
-abstract contract DelayVaultProvider is DelayVaultState {
+contract DelayVaultProvider is DelayVaultState {
     constructor(address _token, ILockDealNFT _nftContract, ProviderData[] memory _providersData) {
         require(address(_token) != address(0x0), "invalid address");
         require(address(_nftContract) != address(0x0), "invalid address");
@@ -40,7 +40,7 @@ abstract contract DelayVaultProvider is DelayVaultState {
 
     function upgradeType(uint8 newType) public {
         uint8 oldType = UserToType[msg.sender];
-        uint256 amount = _getTotalAmount(msg.sender);
+        uint256 amount = getTotalAmount(msg.sender);
         require(amount > 0, "amount must be bigger than 0");
         require(newType > oldType, "new type must be bigger than the old one");
         require(newType < typesCount, "new type must be smaller than the types count");
