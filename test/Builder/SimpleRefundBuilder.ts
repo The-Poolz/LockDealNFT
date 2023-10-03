@@ -74,6 +74,8 @@ describe('Simple Refund Builder tests', function () {
 
   async function _checkCollateralData(collateralId: number, params: string[]) {
     vaultId += 1;
+    const rate = ethers.utils.parseUnits('0.1', 21).toString();
+    params.push(rate)
     const poolData = await lockDealNFT.getData(collateralId);
     expect(poolData).to.deep.equal([collateralProvider.address, collateralId, vaultId, projectOwner.address, BUSD, params]);
   }

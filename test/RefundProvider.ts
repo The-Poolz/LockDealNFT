@@ -107,7 +107,7 @@ describe('Refund Provider', function () {
 
     it('should return currect collateral pool data after creation', async () => {
       const poolData = await lockDealNFT.getData(poolId + 2);
-      const params = [mainCoinAmount, finishTime];
+      const params = [mainCoinAmount, finishTime, MAX_RATIO.div(10)];
       expect(poolData).to.deep.equal([
         collateralProvider.address,
         poolId + 2,

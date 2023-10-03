@@ -11,9 +11,10 @@ abstract contract CollateralState is LockDealState, IInnerWithdraw, IERC165, Pro
 
     function getParams(uint256 poolId) public view override returns (uint256[] memory params) {
         (, , uint256 mainCoinHolderId) = getInnerIds(poolId);
-        params = new uint256[](2);
+        params = new uint256[](3);
         params[0] = provider.getParams(mainCoinHolderId)[0];
         params[1] = poolIdToTime[poolId];
+        params[2] = poolIdToRateToWei[poolId];
     }
 
     function getInnerIdsArray(uint256 poolId) public view override returns (uint256[] memory ids) {

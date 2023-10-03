@@ -58,7 +58,7 @@ describe('Collateral Provider', function () {
 
   it('should register new collateral pool', async () => {
     const poolData = await lockDealNFT.getData(poolId);
-    const params = [amount, finishTime];
+    const params = [amount, finishTime, halfRatio];
     expect(poolData).to.deep.equal([collateralProvider.address, poolId, vaultId, projectOwner.address, token, params]);
   });
 
