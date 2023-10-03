@@ -56,10 +56,10 @@ describe('LockDealNFT', function () {
 
   it('should set provider address', async () => {
     await lockDealNFT.setApprovedProvider(dealProvider.address, true);
-    expect(await lockDealNFT.approvedProviders(dealProvider.address)).to.be.true;
+    expect(await lockDealNFT.approvedContracts(dealProvider.address)).to.be.true;
   });
 
-  it('should return ProviderApproved event', async () => {
+  it('should return ContractApproved event', async () => {
     const tx = await lockDealNFT.setApprovedProvider(dealProvider.address, true);
     await tx.wait();
     const events = await lockDealNFT.queryFilter(lockDealNFT.filters.ProviderApproved());
@@ -174,13 +174,13 @@ describe('LockDealNFT', function () {
       lockDealNFT
         .connect(notOwner)
         .mintAndTransfer(receiver.address, notOwner.address, token, 10, dealProvider.address),
-    ).to.be.revertedWith('Provider not approved');
+    ).to.be.revertedWith('Contract not approved');
   });
 
   it('only provider can mintForProvider', async () => {
     await expect(
       lockDealNFT.connect(notOwner).mintForProvider(receiver.address, dealProvider.address),
-    ).to.be.revertedWith('Provider not approved');
+    ).to.be.revertedWith('Contract not approved');
   });
 
   it('should return data from DealProvider using LockedDealNFT', async () => {
@@ -277,7 +277,7 @@ describe('LockDealNFT', function () {
   });
 
   it('check if the contract supports ILockDealNFT interface', async () => {
-    expect(await lockDealNFT.supportsInterface('0x6d728544')).to.equal(true);
+    expect(await lockDealNFT.supportsInterface('0xca3ff009')).to.equal(true);
   });
 
   it('shuld return royalty', async () => {

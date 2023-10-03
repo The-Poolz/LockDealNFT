@@ -275,7 +275,7 @@ describe('Timed Deal Provider', function () {
         lockDealNFT.address,
         timedDealProvider.address,
       );
-      await expect(invalidContract.createNewPool(addresses, params)).to.be.revertedWith('Provider not approved');
+      await expect(invalidContract.createNewPool(addresses, params)).to.be.revertedWith('Contract not approved');
     });
 
     it("invalid provider can't withdraw", async () => {

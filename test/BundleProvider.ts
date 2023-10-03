@@ -106,7 +106,7 @@ describe('Lock Deal Bundle Provider', function () {
     const _dealProvider: DealProvider = await deployed('DealProvider', lockDealNFT.address);
     addresses[2] = _dealProvider.address;
     await expect(bundleProvider.createNewPool(addresses, bundleProviderParams)).to.be.revertedWith(
-      'Provider not approved',
+      'Contract not approved',
     );
 
     // lockDealNFT address

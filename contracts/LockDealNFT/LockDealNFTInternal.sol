@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 abstract contract LockDealNFTInternal is LockDealNFTModifiers {
     function _transfer(address from, address to, uint256 poolId) internal override {
         // check for split and withdraw transfers
-        if (!(approvedProviders[IProvider(to)] || approvedProviders[IProvider(from)])) {
+        if (!(approvedContracts[to] || approvedContracts[from])) {
             require(approvedPoolUserTransfers[from], "Pool transfer not approved by user");
             require(
                 vaultManager.vaultIdToTradeStartTime(poolIdToVaultId[poolId]) < block.timestamp,
