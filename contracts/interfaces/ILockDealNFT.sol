@@ -5,7 +5,7 @@ import "./IProvider.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 
 interface ILockDealNFT is IERC721Enumerable {
-    function approvedProviders(IProvider provider) external view returns (bool);
+    function approvedProviders(address provider) external view returns (bool);
 
     function mintAndTransfer(
         address owner,

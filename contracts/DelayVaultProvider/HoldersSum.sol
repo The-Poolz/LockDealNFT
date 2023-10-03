@@ -2,52 +2,62 @@
 pragma solidity ^0.8.0;
 
 import "../SimpleProviders/Provider/ProviderModifiers.sol";
+import "./MigratorV1/DelayVaultMigrator.sol";
 
-abstract contract HoldersSum is ProviderModifiers {
+abstract contract HoldersSum is ProviderModifiers, DelayVaultMigrator {
     //this is only the delta
     //the amount is the amount of the pool
     // params[0] = startTimeDelta (empty for DealProvider)
     // params[1] = endTimeDelta (only for TimedLockDealProvider)
-    event HoldersSumChanged(address indexed user, uint8 indexed theType, uint256 amount);
+    event HoldersSumChanged(address indexed user, uint256 amount);
     struct ProviderData {
         IProvider provider;
         uint256[] params; // 0 for DealProvider,1 for LockProvider ,2 for TimedDealProvider
         uint256 limit;
     }
-    mapping(uint256 => uint8) internal PoolToType;
-    mapping(address => uint256[]) public UserToTotalAmount; //thw array will be {typesCount} lentgh
-    mapping(uint8 => ProviderData) internal TypeToProviderData; //will be {typesCount} lentgh
-    uint8 public typesCount;
+    mapping(address => uint256) public UserToAmount; //Each user got total amount
+    mapping(address => uint8) public UserToType; //Each user got type, can go up. wjem withdraw to 0, its reset
+    mapping(uint8 => ProviderData) public TypeToProviderData; //will be {typesCount} lentgh
+    uint8 public typesCount; //max type + 1
 
-    function getLeftAmount(address owner, uint8 theType) external view returns (uint256) {
-        return TypeToProviderData[theType].limit - _getHoldersSum(owner, theType);
+    function _getTotalAmount(address user) internal view returns (uint256) {
+        return UserToAmount[user] + getUserV1Amount(user);
     }
 
-    function _addHoldersSum(address user, uint8 theType, uint256 amount) internal {
-        uint256 newAmount = _getHoldersSum(user, theType) + amount;
-        _setHoldersSum(user, theType, newAmount);
+    function theTypeOf(uint256 amount) public view returns (uint8 theType) {
+        for (uint8 i = 0; i < typesCount; i++) {
+            if (amount <= TypeToProviderData[i].limit) {
+                theType = i;
+                break;
+            }
+        }
     }
 
-    function _subHoldersSum(address user, uint8 theType, uint256 amount) internal {
-        uint256 oldAmount = _getHoldersSum(user, theType);
+    function _addHoldersSum(address user, uint256 amount, bool allowTypeUpgrade) internal {
+        uint256 newAmount = UserToAmount[user] + amount;
+        _setHoldersSum(user, newAmount, allowTypeUpgrade);
+    }
+
+    function _subHoldersSum(address user, uint256 amount) internal {
+        uint256 oldAmount = UserToAmount[user];
         require(oldAmount >= amount, "amount exceeded");
         uint256 newAmount = oldAmount - amount;
-        _setHoldersSum(user, theType, newAmount);
+        _setHoldersSum(user, newAmount, false);
     }
 
-    function _setHoldersSum(address user, uint8 theType, uint256 amount) internal {
-        uint256[] memory amountsByType = UserToTotalAmount[user];
-        require(amount <= TypeToProviderData[theType].limit, "limit exceeded");
-        if (amountsByType.length == 0) {
-            amountsByType = new uint256[](typesCount);
-            UserToTotalAmount[user] = amountsByType;
+    function _setHoldersSum(address user, uint256 amount, bool allowTypeUpgrade) internal {
+        uint8 newType = theTypeOf(_getTotalAmount(user) + amount);
+        if (allowTypeUpgrade) {
+            // Upgrade the user type if the newType is greater
+            if (newType > UserToType[user]) {
+                UserToType[user] = newType;
+            }
+        } else {
+            // Ensure the type doesn't change if upgrades are not allowed
+            require(newType <= UserToType[user], "type must be the same or lower");
         }
-        UserToTotalAmount[user][theType] = amount;
-        emit HoldersSumChanged(user, theType, amount);
-    }
-
-    function _getHoldersSum(address user, uint8 theType) internal view returns (uint256 amount) {
-        amount = UserToTotalAmount[user][theType];
+        UserToAmount[user] = amount;
+        emit HoldersSumChanged(user, amount);
     }
 
     function _setTypeToProviderData(
