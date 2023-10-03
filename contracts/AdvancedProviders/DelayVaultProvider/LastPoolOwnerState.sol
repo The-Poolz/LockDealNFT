@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../interfaces/IBeforeTransfer.sol";
+import "../../interfaces/IBeforeTransfer.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 abstract contract LastPoolOwnerState is IBeforeTransfer, IERC165 {

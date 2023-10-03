@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../SimpleProviders/Provider/ProviderModifiers.sol";
+import "../../SimpleProviders/Provider/ProviderModifiers.sol";
 import "./MigratorV1/IDelayVaultProvider.sol";
 import "./MigratorV1/IMigrator.sol";
 
@@ -10,12 +10,12 @@ abstract contract HoldersSum is ProviderModifiers, IDelayVaultData {
     //the amount is the amount of the pool
     // params[0] = startTimeDelta (empty for DealProvider)
     // params[1] = endTimeDelta (only for TimedLockDealProvider)
-    event HoldersSumChanged(address indexed user, uint256 amount);
+    event VaultValueChanged(address indexed Token, address indexed Owner, uint256 Amount);
     mapping(address => uint256) public UserToAmount; //Each user got total amount
     mapping(address => uint8) public UserToType; //Each user got type, can go up. wjem withdraw to 0, its reset
     mapping(uint8 => ProviderData) public TypeToProviderData; //will be {typesCount} lentgh
     uint8 public typesCount; //max type + 1
-
+    address public Token;
     IMigrator public Migrator;
 
     function getTotalAmount(address user) public view returns (uint256) {
@@ -55,7 +55,7 @@ abstract contract HoldersSum is ProviderModifiers, IDelayVaultData {
             require(newType <= UserToType[user], "type must be the same or lower");
         }
         UserToAmount[user] = amount;
-        emit HoldersSumChanged(user, amount);
+        emit VaultValueChanged(Token, user, amount);
     }
 
     function _finilize(ProviderData[] memory _providersData) internal {
