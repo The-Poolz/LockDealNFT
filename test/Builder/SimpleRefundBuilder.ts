@@ -67,8 +67,7 @@ describe('Simple Refund Builder tests', function () {
   }
 
   async function _checkRefundProviderData(poolId: number, collateralId: number, user: string, token: string, vaultId: number) {
-    const rate = ethers.utils.parseUnits('0.1', 21);
-    const params = [amount, collateralId, rate];
+    const params = [amount, collateralId];
     const poolData = await lockDealNFT.getData(poolId);
     expect(poolData).to.deep.equal([refundProvider.address, poolId, vaultId, user, token, params]);
   }

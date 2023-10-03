@@ -251,7 +251,7 @@ describe('Collateral Provider', function () {
         packedData,
       );
     const tokenCollectorId = poolId + 2;
-    const newTokenCoolectorId = tokenCollectorId + 4;
+    const newTokenCoolectorId = tokenCollectorId + 5;
     const poolData = await lockDealNFT.getData(tokenCollectorId);
     const newPoolData = await lockDealNFT.getData(newTokenCoolectorId);
     expect(poolData.params[0]).to.equal(amount / 2);
