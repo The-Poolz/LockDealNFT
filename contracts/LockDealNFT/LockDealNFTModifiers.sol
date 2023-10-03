@@ -4,10 +4,10 @@ pragma solidity ^0.8.0;
 import "./LockDealNFTState.sol";
 
 abstract contract LockDealNFTModifiers is LockDealNFTState {
-    modifier onlyApprovedProvider(address provider) {
-        _onlyApprovedProvider(provider);
-        if (address(provider) != msg.sender) {
-            _onlyApprovedProvider(msg.sender);
+    modifier onlyApprovedContract(address contractAddress) {
+        _onlyApprovedContract(contractAddress);
+        if (contractAddress != msg.sender) {
+            _onlyApprovedContract(msg.sender);
         }
         _;
     }
@@ -40,8 +40,8 @@ abstract contract LockDealNFTModifiers is LockDealNFTState {
         require(Address.isContract(contractAddress), "Invalid contract address");
     }
 
-    function _onlyApprovedProvider(address provider) internal view {
-        require(approvedProviders[provider], "Provider not approved");
+    function _onlyApprovedContract(address contractAddress) internal view {
+        require(approvedContracts[contractAddress], "Contract not approved");
     }
 
     function _notZeroAmount(uint256 amount) private pure {

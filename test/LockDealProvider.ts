@@ -30,8 +30,8 @@ describe('Lock Deal Provider', function () {
     lockDealNFT = await deployed('LockDealNFT', mockVaultManager.address, '');
     dealProvider = await deployed('DealProvider', lockDealNFT.address);
     lockProvider = await deployed('LockDealProvider', lockDealNFT.address, dealProvider.address);
-    await lockDealNFT.setApprovedProvider(lockProvider.address, true);
-    await lockDealNFT.setApprovedProvider(dealProvider.address, true);
+    await lockDealNFT.setApprovedContract(lockProvider.address, true);
+    await lockDealNFT.setApprovedContract(dealProvider.address, true);
   });
 
   beforeEach(async () => {

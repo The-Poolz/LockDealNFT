@@ -15,7 +15,7 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers {
             IBeforeTransfer(address(poolIdToProvider[poolId])).beforeTransfer(from, to, poolId);
         }
         // check for split and withdraw transfers
-        if (!(approvedProviders[to] || approvedProviders[from])) {
+        if (!(approvedContracts[to] || approvedContracts[from])) {
             require(approvedPoolUserTransfers[from], "Pool transfer not approved by user");
             require(
                 vaultManager.vaultIdToTradeStartTime(poolIdToVaultId[poolId]) < block.timestamp,

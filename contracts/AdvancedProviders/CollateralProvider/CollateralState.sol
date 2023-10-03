@@ -7,11 +7,14 @@ import "../../SimpleProviders/Provider/ProviderModifiers.sol";
 import "../../interfaces/IInnerWithdraw.sol";
 
 abstract contract CollateralState is LockDealState, IInnerWithdraw, IERC165, ProviderModifiers {
+    mapping(uint256 => uint256) public poolIdToRateToWei;
+
     function getParams(uint256 poolId) public view override returns (uint256[] memory params) {
         (, , uint256 mainCoinHolderId) = getInnerIds(poolId);
-        params = new uint256[](2);
+        params = new uint256[](3);
         params[0] = provider.getParams(mainCoinHolderId)[0];
         params[1] = poolIdToTime[poolId];
+        params[2] = poolIdToRateToWei[poolId];
     }
 
     function getInnerIdsArray(uint256 poolId) public view override returns (uint256[] memory ids) {
@@ -25,7 +28,7 @@ abstract contract CollateralState is LockDealState, IInnerWithdraw, IERC165, Pro
     }
 
     function currentParamsTargetLenght() public pure override returns (uint256) {
-        return 2;
+        return 3;
     }
 
     function getInnerIds(

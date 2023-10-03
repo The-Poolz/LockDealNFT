@@ -47,11 +47,12 @@ describe('Simple Refund Builder tests', function () {
     vaultId += 1;
     await _checkRefundProviderData(poolId, collateralId, userData.userPools[0].user, constants.AddressZero, 0);
     await _checkSimpleProviderData(provider, poolId + 1, params[1], tokenVaultId);
-    await _checkCollateralData(collateralId, params[0]);
+    await _checkCollateralData(collateralId);
     let k = 1;
-    for(let i = poolId + 6; i < lastPoolId; i += 2) {
-      await _checkRefundProviderData(i, collateralId, userData.userPools[k++].user, constants.AddressZero, 0);
+    for (let i = poolId + 6; i < lastPoolId; i += 6) {
+      await _checkRefundProviderData(i, collateralId, userData.userPools[k].user, constants.AddressZero, 0);
       await _checkSimpleProviderData(provider, i + 1, params[1], tokenVaultId);
+      k += 3;
     }
   }
 
@@ -67,14 +68,15 @@ describe('Simple Refund Builder tests', function () {
   }
 
   async function _checkRefundProviderData(poolId: number, collateralId: number, user: string, token: string, vaultId: number) {
-    const rate = ethers.utils.parseUnits('0.1', 21);
-    const params = [amount, collateralId, rate];
+    const params = [amount, collateralId];
     const poolData = await lockDealNFT.getData(poolId);
     expect(poolData).to.deep.equal([refundProvider.address, poolId, vaultId, user, token, params]);
   }
 
-  async function _checkCollateralData(collateralId: number, params: string[]) {
+  async function _checkCollateralData(collateralId: number) {
     vaultId += 1;
+    const rate = ethers.utils.parseUnits('0.1', 21).toString();
+    const params = [mainCoinAmount.toString(), finishTime.toString(), rate];
     const poolData = await lockDealNFT.getData(collateralId);
     expect(poolData).to.deep.equal([collateralProvider.address, collateralId, vaultId, projectOwner.address, BUSD, params]);
   }
@@ -110,15 +112,15 @@ describe('Simple Refund Builder tests', function () {
       'SimpleRefundBuilder',
       lockDealNFT.address,
       refundProvider.address,
-      collateralProvider.address
+      collateralProvider.address,
     );
-    await lockDealNFT.setApprovedProvider(refundProvider.address, true);
-    await lockDealNFT.setApprovedProvider(lockProvider.address, true);
-    await lockDealNFT.setApprovedProvider(dealProvider.address, true);
-    await lockDealNFT.setApprovedProvider(timedProvider.address, true);
-    await lockDealNFT.setApprovedProvider(collateralProvider.address, true);
-    await lockDealNFT.setApprovedProvider(lockDealNFT.address, true);
-    await lockDealNFT.setApprovedProvider(simpleRefundBuilder.address, true);
+    await lockDealNFT.setApprovedContract(refundProvider.address, true);
+    await lockDealNFT.setApprovedContract(lockProvider.address, true);
+    await lockDealNFT.setApprovedContract(dealProvider.address, true);
+    await lockDealNFT.setApprovedContract(timedProvider.address, true);
+    await lockDealNFT.setApprovedContract(collateralProvider.address, true);
+    await lockDealNFT.setApprovedContract(lockDealNFT.address, true);
+    await lockDealNFT.setApprovedContract(simpleRefundBuilder.address, true);
   });
 
   beforeEach(async () => {

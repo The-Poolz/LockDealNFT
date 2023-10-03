@@ -35,13 +35,14 @@ describe('Simple Builder tests', function () {
     if (provider == timedProvider.address) {
       params.push(ethers.BigNumber.from(amount));
     }
-    for (let i = lastPoolId; i < userData.userPools.length + lastPoolId; i++) {
+    for (let i = lastPoolId; i < userData.userPools.length + lastPoolId; i+=2) {
       const data = await lockDealNFT.getData(i);
       expect(data.provider).to.equal(provider);
       expect(data.poolId).to.equal(i);
-      expect(data.owner).to.equal(userData.userPools[k++].user);
+      expect(data.owner).to.equal(userData.userPools[k].user);
       expect(data.token).to.equal(token);
       expect(data.params).to.deep.equal(params);
+      k+=2;
     }
   }
 
@@ -72,11 +73,11 @@ describe('Simple Builder tests', function () {
     lockProvider = await deployed('LockDealProvider', lockDealNFT.address, dealProvider.address);
     timedProvider = await deployed('TimedDealProvider', lockDealNFT.address, lockProvider.address);
     simpleBuilder = await deployed('SimpleBuilder', lockDealNFT.address);
-    await lockDealNFT.setApprovedProvider(lockProvider.address, true);
-    await lockDealNFT.setApprovedProvider(dealProvider.address, true);
-    await lockDealNFT.setApprovedProvider(timedProvider.address, true);
-    await lockDealNFT.setApprovedProvider(lockDealNFT.address, true);
-    await lockDealNFT.setApprovedProvider(simpleBuilder.address, true);
+    await lockDealNFT.setApprovedContract(lockProvider.address, true);
+    await lockDealNFT.setApprovedContract(dealProvider.address, true);
+    await lockDealNFT.setApprovedContract(timedProvider.address, true);
+    await lockDealNFT.setApprovedContract(lockDealNFT.address, true);
+    await lockDealNFT.setApprovedContract(simpleBuilder.address, true);
   });
 
   beforeEach(async () => {

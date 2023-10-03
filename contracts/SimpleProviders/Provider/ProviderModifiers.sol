@@ -52,7 +52,7 @@ abstract contract ProviderModifiers is ProviderState {
     }
 
     function _onlyProvider() private view {
-        require(lockDealNFT.approvedProviders(msg.sender), "invalid provider address");
+        require(lockDealNFT.approvedContracts(msg.sender), "invalid provider address");
     }
 
     function _validProviderInterface(IProvider provider, bytes4 interfaceId) internal view {
