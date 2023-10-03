@@ -31,12 +31,12 @@ contract MockProvider is IFundsManager {
         return _provider.getParams(poolId);
     }
 
-    function handleWithdraw(uint256 poolId, uint256 mainCoinAmount) external {
-        IFundsManager(address(_provider)).handleWithdraw(poolId, mainCoinAmount);
+    function handleWithdraw(uint256 poolId, uint256 tokenAmount) external {
+        IFundsManager(address(_provider)).handleWithdraw(poolId, tokenAmount);
     }
 
-    function handleRefund(uint256 poolId, uint256 tokenAmount, uint256 mainCoinAmount) external {
-        IFundsManager(address(_provider)).handleRefund(poolId, tokenAmount, mainCoinAmount);
+    function handleRefund(uint256 poolId, address user, uint256 tokenAmount) external {
+        IFundsManager(address(_provider)).handleRefund(poolId, user, tokenAmount);
     }
 
     function registerNewRefundPool(address owner, IProvider provider) external returns (uint256 poolId) {
