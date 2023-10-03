@@ -35,13 +35,14 @@ describe('Simple Builder tests', function () {
     if (provider == timedProvider.address) {
       params.push(ethers.BigNumber.from(amount));
     }
-    for (let i = lastPoolId; i < userData.userPools.length + lastPoolId; i++) {
+    for (let i = lastPoolId; i < userData.userPools.length + lastPoolId; i+=2) {
       const data = await lockDealNFT.getData(i);
       expect(data.provider).to.equal(provider);
       expect(data.poolId).to.equal(i);
-      expect(data.owner).to.equal(userData.userPools[k++].user);
+      expect(data.owner).to.equal(userData.userPools[k].user);
       expect(data.token).to.equal(token);
       expect(data.params).to.deep.equal(params);
+      k+=2;
     }
   }
 

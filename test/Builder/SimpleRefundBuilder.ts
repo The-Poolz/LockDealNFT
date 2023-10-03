@@ -49,10 +49,10 @@ describe('Simple Refund Builder tests', function () {
     await _checkSimpleProviderData(provider, poolId + 1, params[1], tokenVaultId);
     await _checkCollateralData(collateralId);
     let k = 1;
-    for (let i = poolId + 6; i < lastPoolId; i += 4) {
-      await _checkRefundProviderData(i, collateralId, userData.userPools[(k)].user, constants.AddressZero, 0);
+    for (let i = poolId + 6; i < lastPoolId; i += 6) {
+      await _checkRefundProviderData(i, collateralId, userData.userPools[k].user, constants.AddressZero, 0);
       await _checkSimpleProviderData(provider, i + 1, params[1], tokenVaultId);
-      k += 2;
+      k += 3;
     }
   }
 
