@@ -58,12 +58,12 @@ contract DelayVaultProvider is DelayVaultState {
         _addHoldersSum(msg.sender, newType, amount);
     }
 
-    function createNewDelayVault(uint256[] calldata params) external returns (uint256 PoolId) {
+    function createNewDelayVault(address owner, uint256[] calldata params) external returns (uint256 PoolId) {
         uint256 amount = params[0];
         uint8 theType = uint8(params[1]);
         require(theType <= typesCount, "invalid type");
         require(amount > 0, "amount must be bigger than 0");
-        PoolId = nftContract.mintAndTransfer(msg.sender, Token, msg.sender, amount, this);
+        PoolId = nftContract.mintAndTransfer(owner, Token, msg.sender, amount, this);
         registerPool(PoolId, params);
     }
 }
