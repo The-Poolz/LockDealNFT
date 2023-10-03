@@ -47,12 +47,12 @@ contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
         poolIdToVaultId[toId] = poolIdToVaultId[fromId];
     }
 
-    /// @dev Sets the approved status of a provider
-    /// @param provider The address of the provider
+    /// @dev Sets the approved status of a contract
+    /// @param contractAddress The address of the contract
     /// @param status The new approved status (true or false)
-    function setApprovedProvider(address provider, bool status) external onlyOwner onlyContract(provider) {
-        approvedContracts[provider] = status;
-        emit ProviderApproved(provider, status);
+    function setApprovedProvider(address contractAddress, bool status) external onlyOwner onlyContract(contractAddress) {
+        approvedContracts[contractAddress] = status;
+        emit ContractApproved(contractAddress, status);
     }
 
     function approvePoolTransfers(bool status) external {

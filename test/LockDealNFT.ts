@@ -62,9 +62,9 @@ describe('LockDealNFT', function () {
   it('should return ContractApproved event', async () => {
     const tx = await lockDealNFT.setApprovedProvider(dealProvider.address, true);
     await tx.wait();
-    const events = await lockDealNFT.queryFilter(lockDealNFT.filters.ProviderApproved());
+    const events = await lockDealNFT.queryFilter(lockDealNFT.filters.ContractApproved());
     expect(events[events.length - 1].args.status).to.equal(true);
-    expect(events[events.length - 1].args.provider).to.equal(dealProvider.address);
+    expect(events[events.length - 1].args.contractAddress).to.equal(dealProvider.address);
   });
 
   it('should mint new token', async () => {
