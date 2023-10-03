@@ -15,7 +15,7 @@ abstract contract DelayVaultState is DealProviderState, LastPoolOwnerState, Hold
         if (to == address(lockDealNFT))
             // this means it will be withdraw or split
             LastPoolOwner[poolId] = from; //this is the only way to know the owner of the pool
-        else {
+        else if (from != address(0) && !nftContract.approvedContracts(from)) {
             _handleTransfer(from, to, poolId);
         }
     }

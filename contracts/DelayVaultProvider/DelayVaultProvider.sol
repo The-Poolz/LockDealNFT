@@ -58,6 +58,6 @@ contract DelayVaultProvider is DelayVaultState {
     }
 
     function _isAllowedChanheType(address owner) internal view returns (bool) {
-        return owner == msg.sender || lockDealNFT.approvedProviders(msg.sender);
+        return owner == msg.sender || lockDealNFT.approvedContracts(msg.sender);
     }
 }
