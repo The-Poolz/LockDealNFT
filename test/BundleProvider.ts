@@ -38,11 +38,11 @@ describe('Lock Deal Bundle Provider', function () {
     timedDealProvider = await deployed('TimedDealProvider', lockDealNFT.address, lockProvider.address);
     bundleProvider = await deployed('BundleProvider', lockDealNFT.address);
     mockProvider = await deployed('MockProvider', lockDealNFT.address, bundleProvider.address);
-    await lockDealNFT.setApprovedProvider(dealProvider.address, true);
-    await lockDealNFT.setApprovedProvider(lockProvider.address, true);
-    await lockDealNFT.setApprovedProvider(timedDealProvider.address, true);
-    await lockDealNFT.setApprovedProvider(bundleProvider.address, true);
-    await lockDealNFT.setApprovedProvider(mockProvider.address, true);
+    await lockDealNFT.setApprovedContract(dealProvider.address, true);
+    await lockDealNFT.setApprovedContract(lockProvider.address, true);
+    await lockDealNFT.setApprovedContract(timedDealProvider.address, true);
+    await lockDealNFT.setApprovedContract(bundleProvider.address, true);
+    await lockDealNFT.setApprovedContract(mockProvider.address, true);
   });
 
   beforeEach(async () => {
@@ -106,7 +106,7 @@ describe('Lock Deal Bundle Provider', function () {
     const _dealProvider: DealProvider = await deployed('DealProvider', lockDealNFT.address);
     addresses[2] = _dealProvider.address;
     await expect(bundleProvider.createNewPool(addresses, bundleProviderParams)).to.be.revertedWith(
-      'Provider not approved',
+      'Contract not approved',
     );
 
     // lockDealNFT address

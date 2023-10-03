@@ -46,15 +46,15 @@ describe('test-driven development', function () {
     bundleProvider = await deployed('BundleProvider', lockDealNFT.address);
     bundleMockProvider = await deployed('MockProvider', lockDealNFT.address, bundleProvider.address);
     refundMockProvider = await deployed('MockProvider', lockDealNFT.address, refundProvider.address);
-    await lockDealNFT.setApprovedProvider(refundProvider.address, true);
-    await lockDealNFT.setApprovedProvider(lockProvider.address, true);
-    await lockDealNFT.setApprovedProvider(dealProvider.address, true);
-    await lockDealNFT.setApprovedProvider(timedProvider.address, true);
-    await lockDealNFT.setApprovedProvider(collateralProvider.address, true);
-    await lockDealNFT.setApprovedProvider(bundleProvider.address, true);
-    await lockDealNFT.setApprovedProvider(lockDealNFT.address, true);
-    await lockDealNFT.setApprovedProvider(bundleMockProvider.address, true);
-    await lockDealNFT.setApprovedProvider(refundMockProvider.address, true);
+    await lockDealNFT.setApprovedContract(refundProvider.address, true);
+    await lockDealNFT.setApprovedContract(lockProvider.address, true);
+    await lockDealNFT.setApprovedContract(dealProvider.address, true);
+    await lockDealNFT.setApprovedContract(timedProvider.address, true);
+    await lockDealNFT.setApprovedContract(collateralProvider.address, true);
+    await lockDealNFT.setApprovedContract(bundleProvider.address, true);
+    await lockDealNFT.setApprovedContract(lockDealNFT.address, true);
+    await lockDealNFT.setApprovedContract(bundleMockProvider.address, true);
+    await lockDealNFT.setApprovedContract(refundMockProvider.address, true);
   });
 
   beforeEach(async () => {

@@ -10,14 +10,14 @@ contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
     constructor(address _vaultManager, string memory _baseURI) ERC721("LockDealNFT", "LDNFT") {
         _notZeroAddress(_vaultManager);
         vaultManager = IVaultManager(_vaultManager);
-        approvedProviders[IProvider(address(this))] = true;
+        approvedContracts[address(this)] = true;
         baseURI = _baseURI;
     }
 
     function mintForProvider(
         address owner,
         IProvider provider
-    ) external onlyApprovedProvider(provider) notZeroAddress(owner) returns (uint256 poolId) {
+    ) external onlyApprovedContract(address(provider)) notZeroAddress(owner) returns (uint256 poolId) {
         poolId = _mint(owner, provider);
     }
 
@@ -29,7 +29,7 @@ contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
         IProvider provider
     )
         public
-        onlyApprovedProvider(provider)
+        onlyApprovedContract(address(provider))
         notZeroAddress(owner)
         notZeroAddress(token)
         notZeroAmount(amount)
@@ -43,16 +43,16 @@ contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
     function copyVaultId(
         uint256 fromId,
         uint256 toId
-    ) external onlyApprovedProvider(IProvider(msg.sender)) validPoolId(fromId) validPoolId(toId) {
+    ) external onlyApprovedContract(msg.sender) validPoolId(fromId) validPoolId(toId) {
         poolIdToVaultId[toId] = poolIdToVaultId[fromId];
     }
 
-    /// @dev Sets the approved status of a provider
-    /// @param provider The address of the provider
+    /// @dev Sets the approved status of a contract
+    /// @param contractAddress The address of the contract
     /// @param status The new approved status (true or false)
-    function setApprovedProvider(IProvider provider, bool status) external onlyOwner onlyContract(address(provider)) {
-        approvedProviders[provider] = status;
-        emit ProviderApproved(provider, status);
+    function setApprovedContract(address contractAddress, bool status) external onlyOwner onlyContract(contractAddress) {
+        approvedContracts[contractAddress] = status;
+        emit ContractApproved(contractAddress, status);
     }
 
     function approvePoolTransfers(bool status) external {

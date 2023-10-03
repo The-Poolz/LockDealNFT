@@ -32,9 +32,9 @@ describe('Collateral Provider', function () {
     dealProvider = await deployed('DealProvider', lockDealNFT.address);
     collateralProvider = await deployed('CollateralProvider', lockDealNFT.address, dealProvider.address);
     mockProvider = await deployed('MockProvider', lockDealNFT.address, collateralProvider.address);
-    await lockDealNFT.setApprovedProvider(dealProvider.address, true);
-    await lockDealNFT.setApprovedProvider(collateralProvider.address, true);
-    await lockDealNFT.setApprovedProvider(mockProvider.address, true);
+    await lockDealNFT.setApprovedContract(dealProvider.address, true);
+    await lockDealNFT.setApprovedContract(collateralProvider.address, true);
+    await lockDealNFT.setApprovedContract(mockProvider.address, true);
   });
 
   beforeEach(async () => {
