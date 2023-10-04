@@ -10,21 +10,22 @@ abstract contract HoldersSum is ProviderModifiers, IDelayVaultData {
     //the amount is the amount of the pool
     // params[0] = startTimeDelta (empty for DealProvider)
     // params[1] = endTimeDelta (only for TimedLockDealProvider)
-    event VaultValueChanged(address indexed Token, address indexed Owner, uint256 Amount);
-    mapping(address => uint256) public UserToAmount; //Each user got total amount
-    mapping(address => uint8) public UserToType; //Each user got type, can go up. wjem withdraw to 0, its reset
-    mapping(uint8 => ProviderData) public TypeToProviderData; //will be {typesCount} lentgh
+    mapping(address => uint256) public userToAmount; //Each user got total amount
+    mapping(address => uint8) public userToType; //Each user got type, can go up. wjem withdraw to 0, its reset
+    mapping(uint8 => ProviderData) public typeToProviderData; //will be {typesCount} length
     uint8 public typesCount; //max type + 1
-    address public Token;
-    IMigrator public Migrator;
+    address public token;
+    IMigrator public migrator;
+
+    event VaultValueChanged(address indexed token, address indexed owner, uint256 amount);
 
     function getTotalAmount(address user) public view returns (uint256) {
-        return UserToAmount[user] + Migrator.getUserV1Amount(user);
+        return userToAmount[user] + migrator.getUserV1Amount(user);
     }
 
     function theTypeOf(uint256 amount) public view returns (uint8 theType) {
         for (uint8 i = 0; i < typesCount; i++) {
-            if (amount <= TypeToProviderData[i].limit) {
+            if (amount <= typeToProviderData[i].limit) {
                 theType = i;
                 break;
             }
@@ -32,12 +33,12 @@ abstract contract HoldersSum is ProviderModifiers, IDelayVaultData {
     }
 
     function _addHoldersSum(address user, uint256 amount, bool allowTypeUpgrade) internal {
-        uint256 newAmount = UserToAmount[user] + amount;
+        uint256 newAmount = userToAmount[user] + amount;
         _setHoldersSum(user, newAmount, allowTypeUpgrade);
     }
 
     function _subHoldersSum(address user, uint256 amount) internal {
-        uint256 oldAmount = UserToAmount[user];
+        uint256 oldAmount = userToAmount[user];
         require(oldAmount >= amount, "amount exceeded");
         uint256 newAmount = oldAmount - amount;
         _setHoldersSum(user, newAmount, false);
@@ -47,15 +48,15 @@ abstract contract HoldersSum is ProviderModifiers, IDelayVaultData {
         uint8 newType = theTypeOf(getTotalAmount(user) + amount);
         if (allowTypeUpgrade) {
             // Upgrade the user type if the newType is greater
-            if (newType > UserToType[user]) {
-                UserToType[user] = newType;
+            if (newType > userToType[user]) {
+                userToType[user] = newType;
             }
         } else {
             // Ensure the type doesn't change if upgrades are not allowed
-            require(newType <= UserToType[user], "type must be the same or lower");
+            require(newType <= userToType[user], "type must be the same or lower");
         }
-        UserToAmount[user] = amount;
-        emit VaultValueChanged(Token, user, amount);
+        userToAmount[user] = amount;
+        emit VaultValueChanged(token, user, amount);
     }
 
     function _finilize(ProviderData[] memory _providersData) internal {
@@ -75,9 +76,9 @@ abstract contract HoldersSum is ProviderModifiers, IDelayVaultData {
         require(item.provider.currentParamsTargetLenght() == item.params.length + 1, "invalid params length");
         limit = item.limit;
         require(limit >= lastLimit, "limit must be bigger or equal than the previous on");
-        TypeToProviderData[theType] = item;
+        typeToProviderData[theType] = item;
         if (theType == typesCount - 1) {
-            TypeToProviderData[theType].limit = type(uint256).max; //the last one is the max, token supply is out of the scope
+            typeToProviderData[theType].limit = type(uint256).max; //the last one is the max, token supply is out of the scope
         }
     }
 }
