@@ -8,13 +8,12 @@ import "./HoldersSum.sol";
 
 abstract contract DelayVaultState is DealProviderState, LastPoolOwnerState, HoldersSum {
     using CalcUtils for uint256;
-    ILockDealNFT public nftContract;
 
     function beforeTransfer(address from, address to, uint256 poolId) external override onlyNFT {
         if (to == address(lockDealNFT))
             // this means it will be withdraw or split
             lastPoolOwner[poolId] = from; //this is the only way to know the owner of the pool
-        else if (from != address(0) && !nftContract.approvedContracts(from)) {
+        else if (from != address(0) && !lockDealNFT.approvedContracts(from)) {
             _handleTransfer(from, to, poolId);
         }
     }
@@ -58,15 +57,15 @@ abstract contract DelayVaultState is DealProviderState, LastPoolOwnerState, Hold
 
     function _createLockNFT(address owner, uint256 amount, uint8 theType, uint tokenId) internal {
         ProviderData memory providerData = typeToProviderData[theType];
-        uint256 newPoolId = nftContract.mintForProvider(owner, providerData.provider);
-        nftContract.copyVaultId(tokenId, newPoolId);
+        uint256 newPoolId = lockDealNFT.mintForProvider(owner, providerData.provider);
+        lockDealNFT.copyVaultId(tokenId, newPoolId);
         uint256[] memory params = getWithdrawPoolParams(amount, theType);
         providerData.provider.registerPool(newPoolId, params);
     }
 
     function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) external override onlyNFT {
         address oldOwner = lastPoolOwner[oldPoolId];
-        address newOwner = nftContract.ownerOf(newPoolId);
+        address newOwner = lockDealNFT.ownerOf(newPoolId);
         uint256 amount = poolIdToAmount[oldPoolId].calcAmount(ratio);
         poolIdToAmount[oldPoolId] -= amount;
         poolIdToAmount[newPoolId] = amount;
@@ -77,5 +76,9 @@ abstract contract DelayVaultState is DealProviderState, LastPoolOwnerState, Hold
 
     function currentParamsTargetLenght() public view virtual override returns (uint256) {
         return 2;
+    }
+
+    function getTypeToProviderData(uint8 theType) public view virtual returns (ProviderData memory providerData) {
+        providerData = typeToProviderData[theType];
     }
 }

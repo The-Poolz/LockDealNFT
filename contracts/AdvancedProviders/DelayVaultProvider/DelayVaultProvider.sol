@@ -21,9 +21,13 @@ contract DelayVaultProvider is DelayVaultState {
         uint256[] calldata params
     ) public override onlyProvider validProviderId(poolId) {
         require(params.length == currentParamsTargetLenght(), "invalid params length");
+        _registerPool(poolId, params);
+    }
+
+    function _registerPool(uint256 poolId, uint256[] calldata params) internal {
         uint256 amount = params[0];
         bool allowTypeChange = params[1] > 0;
-        address owner = nftContract.ownerOf(poolId);
+        address owner = lockDealNFT.ownerOf(poolId);
         _addHoldersSum(owner, amount, allowTypeChange);
         poolIdToAmount[poolId] = amount;
     }
@@ -31,6 +35,7 @@ contract DelayVaultProvider is DelayVaultState {
     function getParams(uint256 poolId) external view override returns (uint256[] memory params) {
         params = new uint256[](2);
         params[0] = poolIdToAmount[poolId];
+        params[1] = uint256(theTypeOf(poolIdToAmount[poolId]));
     }
 
     function getWithdrawableAmount(uint256 poolId) external view override returns (uint256 withdrawalAmount) {
@@ -53,8 +58,8 @@ contract DelayVaultProvider is DelayVaultState {
         bool allowTypeChange = params[1] > 0;
         require(!allowTypeChange || _isAllowedChangeType(owner), "only owner can upgrade type");
         require(amount > 0, "amount must be bigger than 0");
-        poolId = nftContract.mintAndTransfer(owner, token, msg.sender, amount, this);
-        registerPool(poolId, params);
+        poolId = lockDealNFT.mintAndTransfer(owner, token, msg.sender, amount, this);
+        _registerPool(poolId, params);
     }
 
     function _isAllowedChangeType(address owner) internal view returns (bool) {

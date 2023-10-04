@@ -20,11 +20,12 @@ abstract contract HoldersSum is ProviderModifiers, IDelayVaultData {
     event VaultValueChanged(address indexed token, address indexed owner, uint256 amount);
 
     function getTotalAmount(address user) public view returns (uint256) {
-        return userToAmount[user] + migrator.getUserV1Amount(user);
+        //return userToAmount[user] + migrator.getUserV1Amount(user);
+        return userToAmount[user];
     }
 
     function theTypeOf(uint256 amount) public view returns (uint8 theType) {
-        for (uint8 i = 0; i < typesCount; i++) {
+        for (uint8 i = 0; i < typesCount; ++i) {
             if (amount <= typeToProviderData[i].limit) {
                 theType = i;
                 break;
@@ -62,7 +63,7 @@ abstract contract HoldersSum is ProviderModifiers, IDelayVaultData {
     function _finilize(ProviderData[] memory _providersData) internal {
         typesCount = uint8(_providersData.length);
         uint256 limit = 0;
-        for (uint8 i = 0; i < typesCount; i++) {
+        for (uint8 i = 0; i < typesCount; ++i) {
             limit = _setTypeToProviderData(i, limit, _providersData[i]);
         }
     }
@@ -73,7 +74,7 @@ abstract contract HoldersSum is ProviderModifiers, IDelayVaultData {
         ProviderData memory item
     ) internal returns (uint256 limit) {
         require(address(item.provider) != address(0x0), "invalid address");
-        require(item.provider.currentParamsTargetLenght() == item.params.length + 1, "invalid params length");
+        require(item.provider.currentParamsTargetLenght() == item.params.length, "invalid params length");
         limit = item.limit;
         require(limit >= lastLimit, "limit must be bigger or equal than the previous on");
         typeToProviderData[theType] = item;
