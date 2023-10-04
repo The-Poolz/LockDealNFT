@@ -9,7 +9,7 @@ contract DelayVaultMigrator is IDelayVaultData {
     IDelayVaultV1 public oldVault;
     IDelayVaultProvider public newVault;
     address public token;
-    address public vaultManager;
+    IVaultManager public vaultManager;
     ILockDealNFT public nftContract;
     bool public isInitialized;
     address public owner = msg.sender; // Initialize owner at declaration
@@ -24,7 +24,7 @@ contract DelayVaultMigrator is IDelayVaultData {
         newVault = _newVault;
         token = newVault.Token();
         nftContract = newVault.nftContract();
-        vaultManager = nftContract.vaultManagerAddress();
+        vaultManager = nftContract.vaultManager();
         owner = address(0); // Set owner to zero address
     }
 
@@ -36,7 +36,7 @@ contract DelayVaultMigrator is IDelayVaultData {
         uint256[] memory params = new uint256[](2);
         params[0] = amount;
         params[1] = 1; //allow type change
-        IERC20(token).approve(vaultManager, amount);
+        IERC20(token).approve(address(vaultManager), amount);
         newVault.createNewDelayVault(msg.sender, params);
     }
 
@@ -47,7 +47,7 @@ contract DelayVaultMigrator is IDelayVaultData {
         oldVault.redeemTokensFromVault(token, msg.sender, amount);
         uint8 theType = newVault.theTypeOf(newVault.getTotalAmount(msg.sender));
         ProviderData memory providerData = newVault.TypeToProviderData(theType);
-        IERC20(token).approve(vaultManager, amount);
+        IERC20(token).approve(address(vaultManager), amount);
         uint256 newPoolId = nftContract.mintAndTransfer(
             msg.sender,
             token,

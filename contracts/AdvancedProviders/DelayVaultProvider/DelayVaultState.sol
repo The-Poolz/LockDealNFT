@@ -74,4 +74,8 @@ abstract contract DelayVaultState is DealProviderState, LastPoolOwnerState, Hold
             _handleTransfer(oldOwner, newOwner, oldPoolId);
         }
     }
+
+    function currentParamsTargetLenght() public view virtual override returns (uint256) {
+        return 2;
+    }
 }
