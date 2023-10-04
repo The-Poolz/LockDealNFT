@@ -48,6 +48,7 @@ contract DelayVaultProvider is DelayVaultState {
 
     function createNewDelayVault(address owner, uint256[] calldata params) external returns (uint256 PoolId) {
         require(params.length == 2, "invalid params length");
+        require(owner != address(0), "invalid owner address");
         uint256 amount = params[0];
         bool allowTypeChange = params[1] > 0;
         require(!allowTypeChange || _isAllowedChanheType(owner), "only owner can upgrade type");
