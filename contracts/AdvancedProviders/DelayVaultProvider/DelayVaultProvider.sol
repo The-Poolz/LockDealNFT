@@ -20,7 +20,7 @@ contract DelayVaultProvider is DelayVaultState {
         uint256 poolId,
         uint256[] calldata params
     ) public override onlyProvider validProviderId(poolId) {
-        require(params.length == 2, "invalid params length");
+        require(params.length == currentParamsTargetLenght(), "invalid params length");
         uint256 amount = params[0];
         bool allowTypeChange = params[1] > 0;
         address owner = nftContract.ownerOf(poolId);
@@ -47,7 +47,7 @@ contract DelayVaultProvider is DelayVaultState {
     }
 
     function createNewDelayVault(address owner, uint256[] calldata params) external returns (uint256 PoolId) {
-        require(params.length == 2, "invalid params length");
+        require(params.length == currentParamsTargetLenght(), "invalid params length");
         require(owner != address(0), "invalid owner address");
         uint256 amount = params[0];
         bool allowTypeChange = params[1] > 0;
