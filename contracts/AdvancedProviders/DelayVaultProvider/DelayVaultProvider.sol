@@ -9,7 +9,7 @@ contract DelayVaultProvider is DelayVaultState {
         require(address(_nftContract) != address(0x0), "invalid address");
         require(_providersData.length <= 255, "too many providers");
         name = "DelayVaultProvider";
-        Token = _token;
+        token = _token;
         lockDealNFT = _nftContract;
         _finilize(_providersData);
     }
@@ -35,25 +35,25 @@ contract DelayVaultProvider is DelayVaultState {
     }
 
     function upgradeType(uint8 newType) public {
-        uint8 oldType = UserToType[msg.sender];
+        uint8 oldType = userToType[msg.sender];
         uint256 amount = getTotalAmount(msg.sender);
         require(amount > 0, "amount must be bigger than 0");
         require(newType > oldType, "new type must be bigger than the old one");
         require(newType < typesCount, "new type must be smaller than the types count");
-        UserToType[msg.sender] = newType;
+        userToType[msg.sender] = newType;
     }
 
-    function createNewDelayVault(address owner, uint256[] calldata params) external returns (uint256 PoolId) {
+    function createNewDelayVault(address owner, uint256[] calldata params) external returns (uint256 poolId) {
         uint256 amount = params[0];
         bool allowTypeChange = params[1] > 0;
         require(params.length == 2, "invalid params length");
-        require(!allowTypeChange || _isAllowedChanheType(owner), "only owner can upgrade type");
+        require(!allowTypeChange || _isAllowedChangeType(owner), "only owner can upgrade type");
         require(amount > 0, "amount must be bigger than 0");
-        PoolId = nftContract.mintAndTransfer(owner, Token, msg.sender, amount, this);
-        registerPool(PoolId, params);
+        poolId = nftContract.mintAndTransfer(owner, token, msg.sender, amount, this);
+        registerPool(poolId, params);
     }
 
-    function _isAllowedChanheType(address owner) internal view returns (bool) {
+    function _isAllowedChangeType(address owner) internal view returns (bool) {
         return owner == msg.sender || lockDealNFT.approvedContracts(msg.sender);
     }
 }

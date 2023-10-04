@@ -13,7 +13,7 @@ abstract contract DelayVaultState is DealProviderState, LastPoolOwnerState, Hold
     function beforeTransfer(address from, address to, uint256 poolId) external override onlyNFT {
         if (to == address(lockDealNFT))
             // this means it will be withdraw or split
-            LastPoolOwner[poolId] = from; //this is the only way to know the owner of the pool
+            lastPoolOwner[poolId] = from; //this is the only way to know the owner of the pool
         else if (from != address(0) && !nftContract.approvedContracts(from)) {
             _handleTransfer(from, to, poolId);
         }
@@ -26,7 +26,7 @@ abstract contract DelayVaultState is DealProviderState, LastPoolOwnerState, Hold
     }
 
     function getWithdrawPoolParams(uint256 amount, uint8 theType) public view returns (uint256[] memory params) {
-        uint256[] memory settings = TypeToProviderData[theType].params;
+        uint256[] memory settings = typeToProviderData[theType].params;
         params = _getWithdrawPoolParams(amount, settings);
     }
 
@@ -44,20 +44,20 @@ abstract contract DelayVaultState is DealProviderState, LastPoolOwnerState, Hold
 
     //This need to make a new pool without transfering the token, the pool data is taken from the settings
     function withdraw(uint256 tokenId) external override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
-        address owner = LastPoolOwner[tokenId];
-        uint8 theType = UserToType[owner];
+        address owner = lastPoolOwner[tokenId];
+        uint8 theType = userToType[owner];
         uint256 amount = poolIdToAmount[tokenId];
         _createLockNFT(owner, amount, theType, tokenId);
         isFinal = true;
         withdrawnAmount = poolIdToAmount[tokenId] = 0;
         _subHoldersSum(owner, amount);
         if (getTotalAmount(owner) == 0) {
-            UserToType[owner] = 0; //reset the type
+            userToType[owner] = 0; //reset the type
         }
     }
 
     function _createLockNFT(address owner, uint256 amount, uint8 theType, uint tokenId) internal {
-        ProviderData memory providerData = TypeToProviderData[theType];
+        ProviderData memory providerData = typeToProviderData[theType];
         uint256 newPoolId = nftContract.mintForProvider(owner, providerData.provider);
         nftContract.copyVaultId(tokenId, newPoolId);
         uint256[] memory params = getWithdrawPoolParams(amount, theType);
@@ -65,7 +65,7 @@ abstract contract DelayVaultState is DealProviderState, LastPoolOwnerState, Hold
     }
 
     function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) external override onlyNFT {
-        address oldOwner = LastPoolOwner[oldPoolId];
+        address oldOwner = lastPoolOwner[oldPoolId];
         address newOwner = nftContract.ownerOf(newPoolId);
         uint256 amount = poolIdToAmount[oldPoolId].calcAmount(ratio);
         poolIdToAmount[oldPoolId] -= amount;

@@ -5,7 +5,7 @@ import "../../interfaces/IBeforeTransfer.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 abstract contract LastPoolOwnerState is IBeforeTransfer, IERC165 {
-    mapping(uint256 => address) internal LastPoolOwner;
+    mapping(uint256 => address) internal lastPoolOwner;
 
     function beforeTransfer(address from, address to, uint256 poolId) external virtual override;
 
