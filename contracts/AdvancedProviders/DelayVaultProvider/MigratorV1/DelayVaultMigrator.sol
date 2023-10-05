@@ -4,8 +4,9 @@ pragma solidity ^0.8.0;
 import "./IDelayVaultProvider.sol";
 import "./IDelayVaultV1.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./ILockDealV2.sol";
 
-contract DelayVaultMigrator is IDelayVaultData {
+contract DelayVaultMigrator is IDelayVaultData, ILockDealV2 {
     IDelayVaultV1 public oldVault;
     IDelayVaultProvider public newVault;
     address public token;
@@ -61,5 +62,29 @@ contract DelayVaultMigrator is IDelayVaultData {
 
     function getUserV1Amount(address user) public view returns (uint256 amount) {
         (amount, , , ) = oldVault.VaultMap(token, user);
+    }
+
+    function CreateNewPool(
+        address _Token, //token to lock address
+        uint256 _StartTime, //Until what time the pool will start
+        uint256 _CliffTime, //Before CliffTime can't withdraw tokens
+        uint256 _FinishTime, //Until what time the pool will end
+        uint256 _StartAmount, //Total amount of the tokens to sell in the pool
+        address _Owner // Who the tokens belong to
+    ) external payable override {
+        require(msg.sender == address(oldVault), "DelayVaultMigrator: not DelayVaultV1");
+        uint8 theType = newVault.theTypeOf(newVault.getTotalAmount(msg.sender));
+        ProviderData memory providerData = newVault.TypeToProviderData(theType);
+        IERC20(token).transferFrom(msg.sender, address(this), _StartAmount);
+        IERC20(token).approve(address(vaultManager), _StartAmount);
+        uint256 newPoolId = nftContract.mintAndTransfer(
+            _Owner,
+            _Token,
+            address(this),
+            _StartAmount,
+            providerData.provider
+        );
+        uint256[] memory params = newVault.getWithdrawPoolParams(_StartAmount, theType);
+        providerData.provider.registerPool(newPoolId, params);
     }
 }
