@@ -74,10 +74,6 @@ abstract contract DelayVaultState is DealProviderState, LastPoolOwnerState, Hold
         }
     }
 
-    function currentParamsTargetLenght() public view virtual override returns (uint256) {
-        return 2;
-    }
-
     function getTypeToProviderData(uint8 theType) public view virtual returns (ProviderData memory providerData) {
         providerData = typeToProviderData[theType];
     }

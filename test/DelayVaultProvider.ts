@@ -52,9 +52,9 @@ describe('DelayVault Provider', function () {
     startTime = (await time.latest()) + ONE_DAY; // plus 1 day
     finishTime = startTime + 7 * ONE_DAY; // plus 7 days from `startTime`
     providerData = [
-      { provider: dealProvider.address, params: [tier1], limit: tier1 },
-      { provider: lockProvider.address, params: [tier2, startTime], limit: tier2 },
-      { provider: timedDealProvider.address, params: [tier3, startTime, finishTime], limit: tier3 },
+      { provider: dealProvider.address, params: [], limit: tier1 },
+      { provider: lockProvider.address, params: [startTime], limit: tier2 },
+      { provider: timedDealProvider.address, params: [startTime, finishTime], limit: tier3 },
     ];
     delayVaultProvider = await DelayVaultProvider.deploy(token, lockDealNFT.address, providerData, {
       gasLimit: gasLimit,
@@ -102,14 +102,14 @@ describe('DelayVault Provider', function () {
   });
 
   it('should return new provider poolId', async () => {
-    const params = [tier1, 1];
+    const params = [tier1];
     const lastPoolId = (await lockDealNFT.totalSupply()).sub(1);
     await delayVaultProvider.createNewDelayVault(receiver.address, params);
     expect((await lockDealNFT.totalSupply()).sub(1)).to.equal(lastPoolId.add(1));
   });
 
   it('should check vault data with tier3', async () => {
-    const params = [tier3, 1];
+    const params = [tier3];
     await delayVaultProvider.connect(newOwner).createNewDelayVault(newOwner.address, params);
     const newAmount = await delayVaultProvider.userToAmount(newOwner.address);
     const type = await delayVaultProvider.userToType(newOwner.address);
@@ -121,7 +121,7 @@ describe('DelayVault Provider', function () {
   });
 
   it('should check vault data with tier2', async () => {
-    const params = [tier2, 1];
+    const params = [tier2];
     await delayVaultProvider.connect(user2).createNewDelayVault(user2.address, params);
     const newAmount = await delayVaultProvider.userToAmount(user2.address);
     const type = await delayVaultProvider.userToType(user2.address);
@@ -130,7 +130,7 @@ describe('DelayVault Provider', function () {
   });
 
   it('should check vault data with tier1', async () => {
-    const params = [tier1, 0];
+    const params = [tier1];
     await delayVaultProvider.connect(user2).createNewDelayVault(user1.address, params);
     const newAmount = await delayVaultProvider.userToAmount(user1.address);
     const type = await delayVaultProvider.userToType(user1.address);
@@ -139,7 +139,7 @@ describe('DelayVault Provider', function () {
   });
 
   it('should withdraw from vault with first tier1', async () => {
-    const params = [tier1, 0];
+    const params = [tier1];
     const poolId = await lockDealNFT.totalSupply();
     await delayVaultProvider.connect(user3).createNewDelayVault(user3.address, params);
     await lockDealNFT

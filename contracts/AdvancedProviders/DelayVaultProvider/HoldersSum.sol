@@ -20,7 +20,7 @@ abstract contract HoldersSum is ProviderModifiers, IDelayVaultData {
     event VaultValueChanged(address indexed token, address indexed owner, uint256 amount);
 
     function getTotalAmount(address user) public view returns (uint256) {
-        //return userToAmount[user] + migrator.getUserV1Amount(user);
+        // TODO: return userToAmount[user] + migrator.getUserV1Amount(user); 
         return userToAmount[user];
     }
 
@@ -74,7 +74,7 @@ abstract contract HoldersSum is ProviderModifiers, IDelayVaultData {
         ProviderData memory item
     ) internal returns (uint256 limit) {
         require(address(item.provider) != address(0x0), "invalid address");
-        require(item.provider.currentParamsTargetLenght() == item.params.length, "invalid params length");
+        require(item.provider.currentParamsTargetLenght() == item.params.length + 1, "invalid params length");
         limit = item.limit;
         require(limit >= lastLimit, "limit must be bigger or equal than the previous on");
         typeToProviderData[theType] = item;
