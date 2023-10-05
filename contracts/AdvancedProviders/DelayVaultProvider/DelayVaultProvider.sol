@@ -14,22 +14,24 @@ contract DelayVaultProvider is DelayVaultState {
         _finilize(_providersData);
     }
 
-    //params[0] = amount
-    //params[1] = allowTypeChange, 0 = false, 1(or any) = true
+    ///@param params[0] = amount
     function registerPool(
         uint256 poolId,
         uint256[] calldata params
     ) public override onlyProvider validProviderId(poolId) {
         require(params.length == currentParamsTargetLenght(), "invalid params length");
+        _registerPool(poolId, params);
+    }
+
+    function _registerPool(uint256 poolId, uint256[] calldata params) internal {
         uint256 amount = params[0];
-        bool allowTypeChange = params[1] > 0;
-        address owner = nftContract.ownerOf(poolId);
-        _addHoldersSum(owner, amount, allowTypeChange);
+        address owner = lockDealNFT.ownerOf(poolId);
+        _addHoldersSum(owner, amount, owner == msg.sender);
         poolIdToAmount[poolId] = amount;
     }
 
     function getParams(uint256 poolId) external view override returns (uint256[] memory params) {
-        params = new uint256[](2);
+        params = new uint256[](1);
         params[0] = poolIdToAmount[poolId];
     }
 
@@ -50,14 +52,8 @@ contract DelayVaultProvider is DelayVaultState {
         require(params.length == currentParamsTargetLenght(), "invalid params length");
         require(owner != address(0), "invalid owner address");
         uint256 amount = params[0];
-        bool allowTypeChange = params[1] > 0;
-        require(!allowTypeChange || _isAllowedChangeType(owner), "only owner can upgrade type");
         require(amount > 0, "amount must be bigger than 0");
-        poolId = nftContract.mintAndTransfer(owner, token, msg.sender, amount, this);
-        registerPool(poolId, params);
-    }
-
-    function _isAllowedChangeType(address owner) internal view returns (bool) {
-        return owner == msg.sender || lockDealNFT.approvedContracts(msg.sender);
+        poolId = lockDealNFT.mintAndTransfer(owner, token, msg.sender, amount, this);
+        _registerPool(poolId, params);
     }
 }
