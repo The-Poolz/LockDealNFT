@@ -49,8 +49,9 @@ describe('DelayVault Provider', function () {
     mockProvider = await deployed('MockProvider', lockDealNFT.address, timedDealProvider.address);
     const DelayVaultProvider = await ethers.getContractFactory('DelayVaultProvider');
     const ONE_DAY = 86400;
-    startTime = (await time.latest()) + ONE_DAY; // plus 1 day
-    finishTime = startTime + 7 * ONE_DAY; // plus 7 days from `startTime`
+    const week = ONE_DAY * 7;
+    startTime = week;
+    finishTime = week * 4;
     providerData = [
       { provider: dealProvider.address, params: [], limit: tier1 },
       { provider: lockProvider.address, params: [startTime], limit: tier2 },
@@ -67,15 +68,9 @@ describe('DelayVault Provider', function () {
   });
 
   beforeEach(async () => {
-    const ONE_DAY = 86400;
-    startTime = (await time.latest()) + ONE_DAY; // plus 1 day
-    finishTime = startTime + 7 * ONE_DAY; // plus 7 days from `startTime`
     addresses = [receiver.address, token];
     vaultId = await mockVaultManager.Id();
-    halfTime = (finishTime - startTime) / 2;
     poolId = await lockDealNFT.totalSupply();
-    // const params = [tier1, 1];
-    // await delayVaultProvider.createNewDelayVault(receiver.address, params);
   });
 
   it('should check provider name', async () => {
@@ -108,7 +103,7 @@ describe('DelayVault Provider', function () {
     expect((await lockDealNFT.totalSupply()).sub(1)).to.equal(lastPoolId.add(1));
   });
 
-  it('should check vault data with tier3', async () => {
+  it('should check vault data with tier 3', async () => {
     const params = [tier3];
     await delayVaultProvider.connect(newOwner).createNewDelayVault(newOwner.address, params);
     const newAmount = await delayVaultProvider.userToAmount(newOwner.address);
@@ -120,7 +115,7 @@ describe('DelayVault Provider', function () {
     expect(type).to.equal(2);
   });
 
-  it('should check vault data with tier2', async () => {
+  it('should check vault data with tier 2', async () => {
     const params = [tier2];
     await delayVaultProvider.connect(user2).createNewDelayVault(user2.address, params);
     const newAmount = await delayVaultProvider.userToAmount(user2.address);
@@ -129,7 +124,7 @@ describe('DelayVault Provider', function () {
     expect(type).to.equal(1);
   });
 
-  it('should check vault data with tier1', async () => {
+  it('should check vault data with tier 1', async () => {
     const params = [tier1];
     await delayVaultProvider.connect(user2).createNewDelayVault(user1.address, params);
     const newAmount = await delayVaultProvider.userToAmount(user1.address);
@@ -138,8 +133,84 @@ describe('DelayVault Provider', function () {
     expect(type).to.equal(0);
   });
 
-  it('should withdraw from vault with first tier1', async () => {
+  it('should withdraw from vault with tier 2', async () => {
     const params = [tier1];
+    const poolId = await lockDealNFT.totalSupply();
+    await delayVaultProvider.connect(user3).createNewDelayVault(user3.address, params);
+    await lockDealNFT
+      .connect(user3)
+      ['safeTransferFrom(address,address,uint256)'](user3.address, lockDealNFT.address, poolId);
+    const newAmount = await delayVaultProvider.userToAmount(user3.address);
+    const type = await delayVaultProvider.userToType(user3.address);
+    expect(newAmount).to.equal(0);
+    expect(type).to.equal(0);
+  });
+
+  it('should create new deal provider after withdraw with first tier', async () => {
+    const params = [tier1];
+    const poolId = await lockDealNFT.totalSupply();
+    await delayVaultProvider.connect(user3).createNewDelayVault(user3.address, params);
+    await lockDealNFT
+      .connect(user3)
+      ['safeTransferFrom(address,address,uint256)'](user3.address, lockDealNFT.address, poolId);
+    vaultId = await mockVaultManager.Id();
+    const simpleNFTdata = await lockDealNFT.getData(poolId.add(1));
+    expect(simpleNFTdata.provider).to.equal(dealProvider.address);
+    expect(simpleNFTdata.owner).to.equal(user3.address);
+    expect(simpleNFTdata.token).to.equal(token);
+    expect(simpleNFTdata.vaultId).to.equal(vaultId);
+    expect(simpleNFTdata.params).to.deep.equal([tier1]);
+  });
+
+  it('should create new lock provider after withdraw with second tier', async () => {
+    const params = [tier2];
+    const poolId = await lockDealNFT.totalSupply();
+    await delayVaultProvider.connect(user3).createNewDelayVault(user3.address, params);
+    await lockDealNFT
+      .connect(user3)
+      ['safeTransferFrom(address,address,uint256)'](user3.address, lockDealNFT.address, poolId);
+    const time = await ethers.provider.getBlock('latest').then(block => block.timestamp);
+    vaultId = await mockVaultManager.Id();
+    const simpleNFTdata = await lockDealNFT.getData(poolId.add(1));
+    expect(simpleNFTdata.provider).to.equal(lockProvider.address);
+    expect(simpleNFTdata.owner).to.equal(user3.address);
+    expect(simpleNFTdata.token).to.equal(token);
+    expect(simpleNFTdata.vaultId).to.equal(vaultId);
+    expect(simpleNFTdata.params).to.deep.equal([tier2, time + startTime]);
+  });
+
+  it('should create new timed provider after withdraw with third tier', async () => {
+    const params = [tier3];
+    const poolId = await lockDealNFT.totalSupply();
+    await delayVaultProvider.connect(user3).createNewDelayVault(user3.address, params);
+    await lockDealNFT
+      .connect(user3)
+      ['safeTransferFrom(address,address,uint256)'](user3.address, lockDealNFT.address, poolId);
+    const time = await ethers.provider.getBlock('latest').then(block => block.timestamp);
+    vaultId = await mockVaultManager.Id();
+    const simpleNFTdata = await lockDealNFT.getData(poolId.add(1));
+    expect(simpleNFTdata.provider).to.equal(timedDealProvider.address);
+    expect(simpleNFTdata.owner).to.equal(user3.address);
+    expect(simpleNFTdata.token).to.equal(token);
+    expect(simpleNFTdata.vaultId).to.equal(vaultId);
+    expect(simpleNFTdata.params).to.deep.equal([tier3, time + startTime, time + finishTime, tier3]);
+  });
+
+  it('should withdraw from vault with tier 3', async () => {
+    const params = [tier3];
+    const poolId = await lockDealNFT.totalSupply();
+    await delayVaultProvider.connect(user3).createNewDelayVault(user3.address, params);
+    await lockDealNFT
+      .connect(user3)
+      ['safeTransferFrom(address,address,uint256)'](user3.address, lockDealNFT.address, poolId);
+    const newAmount = await delayVaultProvider.userToAmount(user3.address);
+    const type = await delayVaultProvider.userToType(user3.address);
+    expect(newAmount).to.equal(0);
+    expect(type).to.equal(0);
+  });
+
+  it('should withdraw from vault with second tier 3', async () => {
+    const params = [tier2];
     const poolId = await lockDealNFT.totalSupply();
     await delayVaultProvider.connect(user3).createNewDelayVault(user3.address, params);
     await lockDealNFT
