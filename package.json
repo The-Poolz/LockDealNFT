@@ -10,7 +10,8 @@
   "main": "index.js",
   "dependencies": {
     "@openzeppelin/contracts": "^4.8.3",
-    "@poolzfinance/poolz-helper-v2": "^2.1.14"
+    "@poolzfinance/poolz-helper-v2": "^2.1.14",
+    "@poolzfinance/vault-manager": "^1.0.0"
   },
   "devDependencies": {
     "@ethersproject/bignumber": "^5.7.0",
