@@ -85,7 +85,7 @@ describe('delayVault withdraw', async () => {
     ]);
   });
 
-  it("deacrease tier level after user's withdraw", async () => {
+  it("can't deacrease tier level after user's withdraw", async () => {
     const params = [delayVault.tier1];
     const user = delayVault.user3;
     await delayVault.delayVaultProvider.connect(user).createNewDelayVault(user.address, params);
@@ -94,6 +94,6 @@ describe('delayVault withdraw', async () => {
     await delayVault.lockDealNFT
       .connect(user)
       ['safeTransferFrom(address,address,uint256)'](user.address, delayVault.lockDealNFT.address, delayVault.poolId);
-    expect(await delayVault.delayVaultProvider.userToType(user.address)).to.equal(0);
+    expect(await delayVault.delayVaultProvider.userToType(user.address)).to.equal(1);
   });
 });
