@@ -1,6 +1,8 @@
 import { _createUsers, token } from '../helper';
 import { delayVault } from './setupTests';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
+import { BigNumber } from 'ethers';
 import { ethers } from 'hardhat';
 
 describe('delayVault withdraw', async () => {
@@ -12,16 +14,15 @@ describe('delayVault withdraw', async () => {
     delayVault.poolId = await delayVault.lockDealNFT.totalSupply();
   });
 
-  it('should withdraw from delayVault with tier 1', async () => {
-    const params = [delayVault.tier1];
-    await delayVault.delayVaultProvider.connect(delayVault.user3).createNewDelayVault(delayVault.user3.address, params);
+  async function withdraw(user: SignerWithAddress, params: BigNumber[]) {
+    await delayVault.delayVaultProvider.connect(user).createNewDelayVault(user.address, params);
     await delayVault.lockDealNFT
-      .connect(delayVault.user3)
-      ['safeTransferFrom(address,address,uint256)'](
-        delayVault.user3.address,
-        delayVault.lockDealNFT.address,
-        delayVault.poolId,
-      );
+      .connect(user)
+      ['safeTransferFrom(address,address,uint256)'](user.address, delayVault.lockDealNFT.address, delayVault.poolId);
+  }
+
+  it('should withdraw from delayVault with tier 1', async () => {
+    await withdraw(delayVault.user3, [delayVault.tier1]);
     const newAmount = await delayVault.delayVaultProvider.userToAmount(delayVault.user3.address);
     const type = await delayVault.delayVaultProvider.userToType(delayVault.user3.address);
     expect(newAmount).to.equal(0);
@@ -29,15 +30,7 @@ describe('delayVault withdraw', async () => {
   });
 
   it('should withdraw from delayVault with tier 2', async () => {
-    const params = [delayVault.tier2];
-    await delayVault.delayVaultProvider.connect(delayVault.user3).createNewDelayVault(delayVault.user3.address, params);
-    await delayVault.lockDealNFT
-      .connect(delayVault.user3)
-      ['safeTransferFrom(address,address,uint256)'](
-        delayVault.user3.address,
-        delayVault.lockDealNFT.address,
-        delayVault.poolId,
-      );
+    await withdraw(delayVault.user3, [delayVault.tier2]);
     const newAmount = await delayVault.delayVaultProvider.userToAmount(delayVault.user3.address);
     const type = await delayVault.delayVaultProvider.userToType(delayVault.user3.address);
     expect(newAmount).to.equal(0);
@@ -45,12 +38,7 @@ describe('delayVault withdraw', async () => {
   });
 
   it('should withdraw from delayVault with tier 3', async () => {
-    const params = [delayVault.tier3];
-    const poolId = await delayVault.lockDealNFT.totalSupply();
-    await delayVault.delayVaultProvider.connect(delayVault.user3).createNewDelayVault(delayVault.user3.address, params);
-    await delayVault.lockDealNFT
-      .connect(delayVault.user3)
-      ['safeTransferFrom(address,address,uint256)'](delayVault.user3.address, delayVault.lockDealNFT.address, poolId);
+    await withdraw(delayVault.user3, [delayVault.tier3]);
     const newAmount = await delayVault.delayVaultProvider.userToAmount(delayVault.user3.address);
     const type = await delayVault.delayVaultProvider.userToType(delayVault.user3.address);
     expect(newAmount).to.equal(0);
@@ -58,15 +46,7 @@ describe('delayVault withdraw', async () => {
   });
 
   it('should create new deal provider nft after withdraw with first tier', async () => {
-    const params = [delayVault.tier1];
-    await delayVault.delayVaultProvider.connect(delayVault.user3).createNewDelayVault(delayVault.user3.address, params);
-    await delayVault.lockDealNFT
-      .connect(delayVault.user3)
-      ['safeTransferFrom(address,address,uint256)'](
-        delayVault.user3.address,
-        delayVault.lockDealNFT.address,
-        delayVault.poolId,
-      );
+    await withdraw(delayVault.user3, [delayVault.tier1]);
     delayVault.vaultId = await delayVault.mockVaultManager.Id();
     const simpleNFTdata = await delayVault.lockDealNFT.getData(delayVault.poolId.add(1));
     expect(simpleNFTdata.provider).to.equal(delayVault.dealProvider.address);
@@ -77,15 +57,7 @@ describe('delayVault withdraw', async () => {
   });
 
   it('should create new lock provider nft after withdraw with second tier', async () => {
-    const params = [delayVault.tier2];
-    await delayVault.delayVaultProvider.connect(delayVault.user3).createNewDelayVault(delayVault.user3.address, params);
-    await delayVault.lockDealNFT
-      .connect(delayVault.user3)
-      ['safeTransferFrom(address,address,uint256)'](
-        delayVault.user3.address,
-        delayVault.lockDealNFT.address,
-        delayVault.poolId,
-      );
+    await withdraw(delayVault.user3, [delayVault.tier2]);
     const time = await ethers.provider.getBlock('latest').then(block => block.timestamp);
     delayVault.vaultId = await delayVault.mockVaultManager.Id();
     const simpleNFTdata = await delayVault.lockDealNFT.getData(delayVault.poolId.add(1));
@@ -97,15 +69,7 @@ describe('delayVault withdraw', async () => {
   });
 
   it('should create new timed provider nft after withdraw with third tier', async () => {
-    const params = [delayVault.tier3];
-    await delayVault.delayVaultProvider.connect(delayVault.user3).createNewDelayVault(delayVault.user3.address, params);
-    await delayVault.lockDealNFT
-      .connect(delayVault.user3)
-      ['safeTransferFrom(address,address,uint256)'](
-        delayVault.user3.address,
-        delayVault.lockDealNFT.address,
-        delayVault.poolId,
-      );
+    await withdraw(delayVault.user3, [delayVault.tier3]);
     const time = await ethers.provider.getBlock('latest').then(block => block.timestamp);
     delayVault.vaultId = await delayVault.mockVaultManager.Id();
     const simpleNFTdata = await delayVault.lockDealNFT.getData(delayVault.poolId.add(1));

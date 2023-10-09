@@ -44,7 +44,6 @@ export class DelayVault {
     this.lockProvider = await deployed('LockDealProvider', this.lockDealNFT.address, this.dealProvider.address);
     this.timedDealProvider = await deployed('TimedDealProvider', this.lockDealNFT.address, this.lockProvider.address);
     this.mockProvider = await deployed('MockProvider', this.lockDealNFT.address, this.timedDealProvider.address);
-
     const DelayVaultProvider = await ethers.getContractFactory('DelayVaultProvider');
     const ONE_DAY = 86400;
     const week = ONE_DAY * 7;
@@ -55,11 +54,9 @@ export class DelayVault {
       { provider: this.lockProvider.address, params: [this.startTime], limit: this.tier2 },
       { provider: this.timedDealProvider.address, params: [this.startTime, this.finishTime], limit: this.tier3 },
     ];
-
     this.delayVaultProvider = await DelayVaultProvider.deploy(token, this.lockDealNFT.address, this.providerData, {
       gasLimit: this.gasLimit,
     });
-
     await this.lockDealNFT.setApprovedContract(this.dealProvider.address, true);
     await this.lockDealNFT.setApprovedContract(this.lockProvider.address, true);
     await this.lockDealNFT.setApprovedContract(this.timedDealProvider.address, true);
