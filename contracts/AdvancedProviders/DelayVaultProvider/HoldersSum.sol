@@ -46,7 +46,7 @@ abstract contract HoldersSum is ProviderModifiers, IDelayVaultData {
     }
 
     function _setHoldersSum(address user, uint256 amount, bool allowTypeUpgrade) internal {
-        uint8 newType = theTypeOf(getTotalAmount(user) + amount);
+        uint8 newType = theTypeOf(amount);
         if (allowTypeUpgrade) {
             // Upgrade the user type if the newType is greater
             if (newType > userToType[user]) {

@@ -1,4 +1,4 @@
-import { token, _createUsers } from '../helper';
+import { token } from '../helper';
 import { delayVault } from './setupTests';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';

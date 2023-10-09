@@ -1,4 +1,4 @@
-import { _createUsers, token } from '../helper';
+import { token } from '../helper';
 import { delayVault } from './setupTests';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
