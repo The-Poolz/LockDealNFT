@@ -84,4 +84,16 @@ describe('delayVault withdraw', async () => {
       delayVault.tier3,
     ]);
   });
+
+  it("deacrease tier level after user's withdraw", async () => {
+    const params = [delayVault.tier1];
+    const user = delayVault.user3;
+    await delayVault.delayVaultProvider.connect(user).createNewDelayVault(user.address, params);
+    await delayVault.delayVaultProvider.connect(user).createNewDelayVault(user.address, params);
+    expect(await delayVault.delayVaultProvider.userToType(user.address)).to.equal(1);
+    await delayVault.lockDealNFT
+      .connect(user)
+      ['safeTransferFrom(address,address,uint256)'](user.address, delayVault.lockDealNFT.address, delayVault.poolId);
+    expect(await delayVault.delayVaultProvider.userToType(user.address)).to.equal(0);
+  });
 });

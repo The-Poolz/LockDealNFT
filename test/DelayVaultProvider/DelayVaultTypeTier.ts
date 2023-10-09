@@ -42,7 +42,7 @@ describe('DelayVaultProvider type tier tests', async () => {
     );
   });
 
-  it("upgrade type after one user created delayVault for another user's address", async () => {
+  it("upgradeType call after one user created delayVault for another user's address", async () => {
     const params = [delayVault.tier1];
     const newType = 2;
     await delayVault.delayVaultProvider.connect(delayVault.user2).createNewDelayVault(delayVault.user3.address, params);
@@ -57,4 +57,5 @@ describe('DelayVaultProvider type tier tests', async () => {
     await delayVault.delayVaultProvider.connect(delayVault.user4).createNewDelayVault(delayVault.user4.address, params);
     expect(await delayVault.delayVaultProvider.userToType(delayVault.user4.address)).to.equal(1);
   });
+
 });

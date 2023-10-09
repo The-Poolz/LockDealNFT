@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "../../SimpleProviders/Provider/ProviderModifiers.sol";
 import "./MigratorV1/IDelayVaultProvider.sol";
+import "hardhat/console.sol";
 import "./MigratorV1/IMigrator.sol";
 
 abstract contract HoldersSum is ProviderModifiers, IDelayVaultData {
@@ -38,18 +39,17 @@ abstract contract HoldersSum is ProviderModifiers, IDelayVaultData {
         _setHoldersSum(user, newAmount, allowTypeUpgrade);
     }
 
-    function _subHoldersSum(address user, uint256 amount) internal {
+    function _subHoldersSum(address user, uint256 amount, bool allowTypeUpgrade) internal {
         uint256 oldAmount = userToAmount[user];
         require(oldAmount >= amount, "amount exceeded");
         uint256 newAmount = oldAmount - amount;
-        _setHoldersSum(user, newAmount, false);
+        _setHoldersSum(user, newAmount, allowTypeUpgrade);
     }
 
     function _setHoldersSum(address user, uint256 newAmount, bool allowTypeUpgrade) internal {
         uint8 newType = theTypeOf(newAmount);
         if (allowTypeUpgrade) {
-            // Upgrade the user type if the newType is greater
-            if (newType > userToType[user]) {
+            if (newType != userToType[user]) {
                 userToType[user] = newType;
             }
         } else {
