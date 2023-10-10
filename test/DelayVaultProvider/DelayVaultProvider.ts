@@ -73,4 +73,16 @@ describe('DelayVault Provider', function () {
     expect(newAmount).to.equal(delayVault.tier3);
     expect(type).to.equal(2);
   });
+
+  it("can't upgrade type another user tier by using transfer", async () => {
+    expect(await delayVault.delayVaultProvider.userToType(delayVault.user4.address)).to.equal(0);
+    const params = [delayVault.tier2];
+    const owner = delayVault.newOwner;
+    await delayVault.delayVaultProvider.connect(owner).createNewDelayVault(owner.address, params);
+    await expect(
+      delayVault.lockDealNFT
+        .connect(owner)
+        ['safeTransferFrom(address,address,uint256)'](owner.address, delayVault.user4.address, delayVault.poolId),
+    ).to.be.revertedWith('type must be the same or lower');
+  });
 });

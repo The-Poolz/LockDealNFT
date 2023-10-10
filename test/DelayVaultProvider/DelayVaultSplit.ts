@@ -78,4 +78,22 @@ describe('delayVault split', async () => {
     newAmount = await delayVault.delayVaultProvider.userToAmount(owner.address);
     expect(await delayVault.delayVaultProvider.userToType(owner.address)).to.equal(1);
   });
+
+  it("can't upgrade type another user tier by using split", async () => {
+    expect(await delayVault.delayVaultProvider.userToType(delayVault.receiver.address)).to.equal(0);
+    const params = [delayVault.tier2];
+    const owner = delayVault.newOwner;
+    await delayVault.delayVaultProvider.connect(owner).createNewDelayVault(owner.address, params);
+    const bytes = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [MAX_RATIO, delayVault.receiver.address]);
+    await expect(
+      delayVault.lockDealNFT
+        .connect(owner)
+        ['safeTransferFrom(address,address,uint256,bytes)'](
+          owner.address,
+          delayVault.lockDealNFT.address,
+          delayVault.poolId,
+          bytes,
+        ),
+    ).to.be.revertedWith('type must be the same or lower');
+  });
 });
