@@ -85,7 +85,7 @@ describe('delayVault withdraw', async () => {
     ]);
   });
 
-  it("can't deacrease tier level after user's withdraw", async () => {
+  it("can't deacrease tier level after user withdraw half amount", async () => {
     const params = [delayVault.tier1];
     const user = delayVault.user3;
     await delayVault.delayVaultProvider.connect(user).createNewDelayVault(user.address, params);

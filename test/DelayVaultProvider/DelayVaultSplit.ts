@@ -1,3 +1,4 @@
+import { MAX_RATIO } from '../helper';
 import { delayVault } from './setupTests';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
@@ -56,5 +57,25 @@ describe('delayVault split', async () => {
     expect(data.owner).to.equal(delayVault.user3.address);
     expect(data.provider).to.equal(delayVault.delayVaultProvider.address);
     expect(data.params).to.deep.equal([delayVault.tier3.div(2)]);
+  });
+
+  it('the level should not decrease after split', async () => {
+    const params = [delayVault.tier2];
+    const owner = delayVault.newOwner;
+    await delayVault.delayVaultProvider.connect(owner).createNewDelayVault(owner.address, params);
+    expect(await delayVault.delayVaultProvider.userToType(owner.address)).to.equal(1);
+    const rate = MAX_RATIO.sub(MAX_RATIO.div(10)); // 90%
+    const bytes = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [rate, delayVault.user3.address]);
+    let newAmount = await delayVault.delayVaultProvider.userToAmount(owner.address);
+    await delayVault.lockDealNFT
+      .connect(owner)
+      ['safeTransferFrom(address,address,uint256,bytes)'](
+        owner.address,
+        delayVault.lockDealNFT.address,
+        delayVault.poolId,
+        bytes,
+      );
+    newAmount = await delayVault.delayVaultProvider.userToAmount(owner.address);
+    expect(await delayVault.delayVaultProvider.userToType(owner.address)).to.equal(1);
   });
 });

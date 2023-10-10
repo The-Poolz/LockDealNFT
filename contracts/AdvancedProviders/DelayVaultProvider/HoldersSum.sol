@@ -20,7 +20,7 @@ abstract contract HoldersSum is ProviderModifiers, IDelayVaultData {
     event VaultValueChanged(address indexed token, address indexed owner, uint256 amount);
 
     function getTotalAmount(address user) public view returns (uint256) {
-        // TODO: return userToAmount[user] + migrator.getUserV1Amount(user);
+        // TODO: return userToAmount[user] + migrator.getUserV1Amount(user); 
         return userToAmount[user];
     }
 
