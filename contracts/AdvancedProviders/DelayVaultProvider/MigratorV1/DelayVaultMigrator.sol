@@ -66,14 +66,14 @@ contract DelayVaultMigrator is IDelayVaultData, ILockDealV2 {
 
     function CreateNewPool(
         address _Token, //token to lock address
-        uint256 _StartTime, //Until what time the pool will start
-        uint256 _CliffTime, //Before CliffTime can't withdraw tokens
-        uint256 _FinishTime, //Until what time the pool will end
+        uint256, // Until what time the pool will start
+        uint256, //Before CliffTime can't withdraw tokens
+        uint256, //Until what time the pool will end
         uint256 _StartAmount, //Total amount of the tokens to sell in the pool
         address _Owner // Who the tokens belong to
     ) external payable override {
         require(msg.sender == address(oldVault), "DelayVaultMigrator: not DelayVaultV1");
-        uint8 theType = newVault.theTypeOf(newVault.getTotalAmount(msg.sender));
+        uint8 theType = newVault.theTypeOf(newVault.getTotalAmount(_Owner));
         ProviderData memory providerData = newVault.TypeToProviderData(theType);
         IERC20(token).transferFrom(msg.sender, address(this), _StartAmount);
         IERC20(token).approve(address(vaultManager), _StartAmount);

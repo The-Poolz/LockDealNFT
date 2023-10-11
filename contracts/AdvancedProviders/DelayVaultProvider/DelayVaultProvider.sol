@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./DelayVaultState.sol";
+import "../../mock/MockDelayMigrator.sol";
 
 contract DelayVaultProvider is DelayVaultState {
     constructor(address _token, ILockDealNFT _nftContract, ProviderData[] memory _providersData) {
@@ -11,6 +12,7 @@ contract DelayVaultProvider is DelayVaultState {
         name = "DelayVaultProvider";
         token = _token;
         lockDealNFT = _nftContract;
+        migrator = new MockDelayMigrator();
         _finilize(_providersData);
     }
 

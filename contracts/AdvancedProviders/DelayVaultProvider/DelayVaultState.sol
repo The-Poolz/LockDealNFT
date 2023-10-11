@@ -50,9 +50,7 @@ abstract contract DelayVaultState is DealProviderState, LastPoolOwnerState, Hold
         isFinal = true;
         withdrawnAmount = poolIdToAmount[tokenId] = 0;
         _subHoldersSum(owner, amount);
-        if (getTotalAmount(owner) == 0) {
-            userToType[owner] = 0; //reset the type
-        }
+        _resetTypeIfEmpty(owner);
     }
 
     function _createLockNFT(address owner, uint256 amount, uint8 theType, uint tokenId) internal {
@@ -70,7 +68,13 @@ abstract contract DelayVaultState is DealProviderState, LastPoolOwnerState, Hold
         poolIdToAmount[oldPoolId] -= amount;
         poolIdToAmount[newPoolId] = amount;
         if (newOwner != oldOwner) {
-            _handleTransfer(oldOwner, newOwner, oldPoolId);
+            _handleTransfer(oldOwner, newOwner, newPoolId);
+        }
+    }
+
+    function _resetTypeIfEmpty(address user) internal {
+        if (getTotalAmount(user) == 0) {
+            userToType[user] = 0; //reset the type
         }
     }
 
