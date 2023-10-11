@@ -27,6 +27,7 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
             IProvider provider = poolIdToProvider[poolId];
             poolInfo = BasePoolInfo(
                 provider,
+                provider.name(),
                 poolId,
                 poolIdToVaultId[poolId],
                 ownerOf(poolId),

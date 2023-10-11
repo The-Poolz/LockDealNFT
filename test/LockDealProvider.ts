@@ -21,6 +21,7 @@ describe('Lock Deal Provider', function () {
   let newOwner: SignerWithAddress;
   let startTime: number;
   let vaultId: BigNumber;
+  const name: string = "LockDealProvider"
   const amount = 10000;
   const ratio = MAX_RATIO.div(2); // half of the amount
 
@@ -58,7 +59,7 @@ describe('Lock Deal Provider', function () {
   it('should get lock provider data after creation', async () => {
     const poolData = await lockDealNFT.getData(poolId);
     const params = [amount, startTime];
-    expect(poolData).to.deep.equal([lockProvider.address, poolId, vaultId, receiver.address, token, params]);
+    expect(poolData).to.deep.equal([lockProvider.address, name, poolId, vaultId, receiver.address, token, params]);
   });
 
   it('should revert if the start time is invalid', async () => {
@@ -84,7 +85,7 @@ describe('Lock Deal Provider', function () {
         ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData);
       const params = [amount / 2, startTime];
       const poolData = await lockDealNFT.getData(poolId);
-      expect(poolData).to.deep.equal([lockProvider.address, poolId, vaultId, receiver.address, token, params]);
+      expect(poolData).to.deep.equal([lockProvider.address, name, poolId, vaultId, receiver.address, token, params]);
     });
 
     it('should check data in new pool after split', async () => {
@@ -94,7 +95,7 @@ describe('Lock Deal Provider', function () {
         ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData);
       const params = [amount / 2, startTime];
       const poolData = await lockDealNFT.getData(poolId + 1);
-      expect(poolData).to.deep.equal([lockProvider.address, poolId + 1, vaultId, newOwner.address, token, params]);
+      expect(poolData).to.deep.equal([lockProvider.address, name, poolId + 1, vaultId, newOwner.address, token, params]);
     });
   });
 
@@ -106,7 +107,7 @@ describe('Lock Deal Provider', function () {
         ['safeTransferFrom(address,address,uint256)'](receiver.address, lockDealNFT.address, poolId);
       const params = ['0', startTime];
       const poolData = await lockDealNFT.getData(poolId);
-      expect(poolData).to.deep.equal([lockProvider.address, poolId, vaultId, lockDealNFT.address, token, params]);
+      expect(poolData).to.deep.equal([lockProvider.address, name, poolId,  vaultId, lockDealNFT.address, token, params]);
     });
 
     it('getWithdrawableAmount should return zero before startTime', async () => {

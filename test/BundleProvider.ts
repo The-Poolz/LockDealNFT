@@ -26,6 +26,7 @@ describe('Lock Deal Bundle Provider', function () {
   let startTime: number, finishTime: number;
   let addresses: string[];
   let params: [BigNumber[], (number | BigNumber)[], (number | BigNumber)[]];
+  const name: string = 'BundleProvider';
   const amount = BigNumber.from(100000);
   const ONE_DAY = 86400;
 
@@ -71,7 +72,7 @@ describe('Lock Deal Bundle Provider', function () {
     const params = [amount.mul(3), bundlePoolId + 3];
     const vaultId = await mockVaultManager.Id();
     // check the pool data
-    expect(poolData).to.deep.equal([bundleProvider.address, bundlePoolId, vaultId, receiver.address, token, params]);
+    expect(poolData).to.deep.equal([bundleProvider.address, name, bundlePoolId, vaultId, receiver.address, token, params]);
 
     // check the NFT ownership
     expect(await lockDealNFT.ownerOf(bundlePoolId)).to.equal(receiver.address);
@@ -263,6 +264,7 @@ describe('Lock Deal Bundle Provider', function () {
       // check the old bundle pool data
       expect(oldPoolData).to.deep.equal([
         bundleProvider.address,
+        name,
         bundlePoolId,
         vaultId,
         receiver.address,
@@ -282,6 +284,7 @@ describe('Lock Deal Bundle Provider', function () {
       // check the new bundle pool data
       expect(newPoolData).to.deep.equal([
         bundleProvider.address,
+        name,
         newPoolId,
         vaultId,
         newOwner.address,
@@ -368,6 +371,7 @@ describe('Lock Deal Bundle Provider', function () {
       const poolData = await lockDealNFT.getData(bundlePoolId);
       expect(poolData).to.deep.equal([
         bundleProvider.address,
+        name,
         bundlePoolId,
         vaultId,
         receiver.address,

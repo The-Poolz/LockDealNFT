@@ -44,12 +44,13 @@ describe('Simple Refund Builder tests', function () {
     if (provider == timedProvider.address) {
       params[1].push(amount);
     }
+    const name = provider == dealProvider.address ? 'DealProvider' : provider == lockProvider.address ? 'LockDealProvider' : 'TimedDealProvider';
     const collateralId = poolId + 2;
     const tokenVaultId = vaultId + 1;
     vaultId += 1;
     await Promise.all([
       _checkRefundProviderData(poolId, collateralId, await userData.userPools[0].user , constants.AddressZero, 0),
-      _checkSimpleProviderData(provider, poolId + 1, params[1], tokenVaultId),
+      _checkSimpleProviderData(provider, name, poolId + 1, params[1], tokenVaultId),
       _checkCollateralData(collateralId)
     ])
 
@@ -63,7 +64,7 @@ describe('Simple Refund Builder tests', function () {
     const allChecks = poolIdsAndUsers.map( async (i) => {
       return Promise.all([
         _checkRefundProviderData(i.poolId, collateralId, await userData.userPools[i.user].user , constants.AddressZero, 0),
-        _checkSimpleProviderData(provider, i.poolId + 1, params[1], tokenVaultId),
+        _checkSimpleProviderData(provider, name, i.poolId + 1, params[1], tokenVaultId),
       ])
     })
     await Promise.all(allChecks)
@@ -73,7 +74,7 @@ describe('Simple Refund Builder tests', function () {
   async function _checkRefundProviderData(poolId: number, collateralId: number, user: string, token: string, vaultId: number) {
     const params = [amount, collateralId];
     const poolData = await lockDealNFT.getData(poolId);
-    expect(poolData).to.deep.equal([refundProvider.address, poolId, vaultId, user, token, params]);
+    expect(poolData).to.deep.equal([refundProvider.address, 'RefundProvider', poolId, vaultId, user, token, params]);
   }
 
   async function _checkCollateralData(collateralId: number) {
@@ -81,12 +82,12 @@ describe('Simple Refund Builder tests', function () {
     const rate = ethers.utils.parseUnits('0.1', 21).toString();
     const params = [mainCoinAmount.toString(), finishTime.toString(), rate];
     const poolData = await lockDealNFT.getData(collateralId);
-    expect(poolData).to.deep.equal([collateralProvider.address, collateralId, vaultId, projectOwner.address, BUSD, params]);
+    expect(poolData).to.deep.equal([collateralProvider.address, 'CollateralProvider', collateralId, vaultId, projectOwner.address, BUSD, params]);
   }
 
-  async function _checkSimpleProviderData(provider: string, simplePoolId: number, params: string[], vaultId: number) {
+  async function _checkSimpleProviderData(provider: string, name: string, simplePoolId: number, params: string[], vaultId: number) {
     const poolData = await lockDealNFT.getData(simplePoolId);
-    expect(poolData).to.deep.equal([provider, simplePoolId, vaultId, refundProvider.address, token, params]);
+    expect(poolData).to.deep.equal([provider, name, simplePoolId, vaultId, refundProvider.address, token, params]);
   }
 
   function _createProviderParams(provider: string): string[][] {
