@@ -186,7 +186,7 @@ describe('LockDealNFT', function () {
   it('should return data from DealProvider using LockedDealNFT', async () => {
     const poolData = await lockDealNFT.getData(poolId);
     const params = [amount];
-    expect(poolData).to.deep.equal([dealProvider.address, poolId, vaultId, receiver.address, token, params]);
+    expect(poolData).to.deep.equal([dealProvider.address, "DealProvider", poolId, vaultId, receiver.address, token, params]);
   });
 
   it('should return data from LockDealProvider using LockedDealNFT', async () => {
@@ -195,7 +195,7 @@ describe('LockDealNFT', function () {
     await lockDealProvider.createNewPool(addresses, params);
     const vaultId = await mockVaultManager.Id();
     const poolData = await lockDealNFT.getData(poolId);
-    expect(poolData).to.deep.equal([lockDealProvider.address, poolId, vaultId, receiver.address, token, params]);
+    expect(poolData).to.deep.equal([lockDealProvider.address, "LockDealProvider", poolId, vaultId, receiver.address, token, params]);
   });
 
   it('should return data from TimedDealProvider using LockedDealNFT', async () => {
@@ -204,7 +204,7 @@ describe('LockDealNFT', function () {
     await timedDealProvider.createNewPool(addresses, params);
     const vaultId = await mockVaultManager.Id();
     const poolData = await lockDealNFT.getData(poolId);
-    expect(poolData).to.deep.equal([timedDealProvider.address, poolId, vaultId, receiver.address, token, params]);
+    expect(poolData).to.deep.equal([timedDealProvider.address, "TimedDealProvider", poolId, vaultId, receiver.address, token, params]);
   });
 
   it('should set baseURI', async () => {

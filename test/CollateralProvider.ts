@@ -22,6 +22,7 @@ describe('Collateral Provider', function () {
   let projectOwner: SignerWithAddress;
   let finishTime: number;
   let vaultId: BigNumber;
+  const name: string = 'CollateralProvider';
   const halfRatio = MAX_RATIO.div(2);
   const amount = 100000;
 
@@ -59,7 +60,7 @@ describe('Collateral Provider', function () {
   it('should register new collateral pool', async () => {
     const poolData = await lockDealNFT.getData(poolId);
     const params = [amount, finishTime, halfRatio];
-    expect(poolData).to.deep.equal([collateralProvider.address, poolId, vaultId, projectOwner.address, token, params]);
+    expect(poolData).to.deep.equal([collateralProvider.address, name, poolId, vaultId, projectOwner.address, token, params]);
   });
 
   it('should create main coin deal provider pool', async () => {
@@ -67,6 +68,7 @@ describe('Collateral Provider', function () {
     const params = [0];
     expect(poolData).to.deep.equal([
       dealProvider.address,
+      'DealProvider',
       poolId + 1,
       vaultId,
       collateralProvider.address,
@@ -81,6 +83,7 @@ describe('Collateral Provider', function () {
     const vaultId = await mockVaultManager.Id();
     expect(poolData).to.deep.equal([
       dealProvider.address,
+      'DealProvider',
       poolId + 2,
       vaultId,
       collateralProvider.address,
