@@ -116,7 +116,7 @@ describe('Collateral Provider', function () {
   });
 
   it('only NFT can manage withdraw', async () => {
-    await expect(collateralProvider['withdraw(uint256)'](poolId)).to.be.revertedWith(
+    await expect(collateralProvider.withdraw(poolId)).to.be.revertedWith(
       'only NFT contract can call this function',
     );
   });
