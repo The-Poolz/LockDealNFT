@@ -17,6 +17,7 @@ describe('Deal Provider', function () {
   let addresses: string[];
   let params: [number];
   let vaultId: BigNumber;
+  const name: string = 'DealProvider';
   const amount = 10000;
   const ratio = MAX_RATIO.div(2); // half of the amount
 
@@ -43,7 +44,7 @@ describe('Deal Provider', function () {
   it('should get pool data', async () => {
     const poolData = await lockDealNFT.getData(poolId);
     const params = [amount];
-    expect(poolData).to.deep.equal([dealProvider.address, poolId, vaultId, receiver.address, token, params]);
+    expect(poolData).to.deep.equal([dealProvider.address, name, poolId, vaultId, receiver.address, token, params]);
   });
 
   it('should check pool creation events', async () => {
@@ -76,7 +77,7 @@ describe('Deal Provider', function () {
         ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData);
       const params = [amount / 2];
       const poolData = await lockDealNFT.getData(poolId);
-      expect(poolData).to.deep.equal([dealProvider.address, poolId, vaultId, receiver.address, token, params]);
+      expect(poolData).to.deep.equal([dealProvider.address, name, poolId, vaultId, receiver.address, token, params]);
     });
 
     it('should check data in new pool after split', async () => {
@@ -86,7 +87,7 @@ describe('Deal Provider', function () {
         ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData);
       const params = [amount / 2];
       const poolData = await lockDealNFT.getData(poolId + 1);
-      expect(poolData).to.deep.equal([dealProvider.address, poolId + 1, vaultId, newOwner.address, token, params]);
+      expect(poolData).to.deep.equal([dealProvider.address, name, poolId + 1, vaultId, newOwner.address, token, params]);
     });
 
     it('should check data in new pool after selfSplit', async () => {
@@ -96,7 +97,7 @@ describe('Deal Provider', function () {
         ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData);
       const params = [amount / 2];
       const poolData = await lockDealNFT.getData(poolId + 1);
-      expect(poolData).to.deep.equal([dealProvider.address, poolId + 1, vaultId, receiver.address, token, params]);
+      expect(poolData).to.deep.equal([dealProvider.address, name, poolId + 1, vaultId, receiver.address, token, params]);
     });
 
     it('should return split metadata event', async () => {
@@ -117,7 +118,7 @@ describe('Deal Provider', function () {
         ['safeTransferFrom(address,address,uint256)'](receiver.address, lockDealNFT.address, poolId);
       const params = [0];
       const poolData = await lockDealNFT.getData(poolId);
-      expect(poolData).to.deep.equal([dealProvider.address, poolId, vaultId, lockDealNFT.address, token, params]);
+      expect(poolData).to.deep.equal([dealProvider.address, name, poolId, vaultId, lockDealNFT.address, token, params]);
     });
 
     it('should check events after withdraw', async () => {

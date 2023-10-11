@@ -29,6 +29,7 @@ interface ILockDealNFT is IERC721Enumerable {
 
     struct BasePoolInfo {
         IProvider provider;
+        string name;
         uint256 poolId;
         uint256 vaultId;
         address owner;
