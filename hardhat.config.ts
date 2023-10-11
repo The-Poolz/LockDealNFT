@@ -2,6 +2,7 @@ import '@nomicfoundation/hardhat-toolbox';
 import '@truffle/dashboard-hardhat-plugin';
 import 'hardhat-gas-reporter';
 import { HardhatUserConfig } from 'hardhat/config';
+import 'solidity-coverage'
 
 //import 'dotenv/config';
 
