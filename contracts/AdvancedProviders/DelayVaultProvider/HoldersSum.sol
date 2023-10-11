@@ -20,8 +20,7 @@ abstract contract HoldersSum is ProviderModifiers, IDelayVaultData {
     event VaultValueChanged(address indexed token, address indexed owner, uint256 amount);
 
     function getTotalAmount(address user) public view returns (uint256) {
-        // TODO: return userToAmount[user] + migrator.getUserV1Amount(user); 
-        return userToAmount[user];
+        return userToAmount[user] + migrator.getUserV1Amount(user);
     }
 
     function theTypeOf(uint256 amount) public view returns (uint8 theType) {
@@ -46,18 +45,28 @@ abstract contract HoldersSum is ProviderModifiers, IDelayVaultData {
     }
 
     function _setHoldersSum(address user, uint256 newAmount, bool allowTypeUpgrade) internal {
-        uint8 newType = theTypeOf(newAmount);
+        uint8 newType = theTypeOf(migrator.getUserV1Amount(user) + newAmount);
         if (allowTypeUpgrade) {
-            // Upgrade the user type if the newType is greater
-            if (newType > userToType[user]) {
-                userToType[user] = newType;
-            }
+            _upgradeUserTypeIfGreater(user, newType);
         } else {
+            _updateUserTypeIfMatchesV1(user, newType);
             // Ensure the type doesn't change if upgrades are not allowed
             require(newType <= userToType[user], "type must be the same or lower");
         }
         userToAmount[user] = newAmount;
         emit VaultValueChanged(token, user, newAmount);
+    }
+
+    function _upgradeUserTypeIfGreater(address user, uint8 newType) internal {
+        if (newType > userToType[user]) {
+            userToType[user] = newType;
+        }
+    }
+
+    function _updateUserTypeIfMatchesV1(address user, uint8 newType) internal {
+        if (newType == theTypeOf(migrator.getUserV1Amount(user))) {
+            userToType[user] = newType;
+        }
     }
 
     function _finilize(ProviderData[] memory _providersData) internal {
