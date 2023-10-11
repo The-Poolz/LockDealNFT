@@ -64,7 +64,7 @@ abstract contract HoldersSum is ProviderModifiers, IDelayVaultData {
     }
 
     function _upgradeUserTypeIfMatchesV1(address user, uint8 newType) internal {
-        if (newType == theTypeOf(migrator.getUserV1Amount(user))) {
+        if (newType == theTypeOf(migrator.getUserV1Amount(user)) && newType > userToType[user]) {
             userToType[user] = newType;
         }
     }
