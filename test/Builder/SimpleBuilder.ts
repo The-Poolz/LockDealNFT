@@ -4,12 +4,13 @@ import { LockDealNFT } from '../../typechain-types';
 import { LockDealProvider } from '../../typechain-types';
 import { TimedDealProvider } from '../../typechain-types';
 import { SimpleBuilder } from '../../typechain-types';
-import { deployed, token, _createUsers } from '../helper';
+import { deployed, token, _createUsers, _logGasPrice } from '../helper';
 import { time } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
-import { BigNumber } from 'ethers';
+import { BigNumber, ContractReceipt } from 'ethers';
 import { ethers } from 'hardhat';
+import { BuilderState } from '../../typechain-types/contracts/Builders/SimpleBuilder/SimpleBuilder';
 
 describe('Simple Builder tests', function () {
   let lockProvider: LockDealProvider;
@@ -18,7 +19,7 @@ describe('Simple Builder tests', function () {
   let timedProvider: TimedDealProvider;
   let simpleBuilder: SimpleBuilder;
   let lockDealNFT: LockDealNFT;
-  let userData: SimpleBuilder.BuilderStruct;
+  let userData: BuilderState.BuilderStruct;
   let addressParams: [string, string];
   let projectOwner: SignerWithAddress;
   let startTime: BigNumber, finishTime: BigNumber;
@@ -26,33 +27,32 @@ describe('Simple Builder tests', function () {
   const ONE_DAY = 86400;
 
   async function _testMassPoolsData(provider: string, amount: string, userCount: string, params: BigNumber[]) {
-    userData = await _createUsers(amount, userCount);
+    userData = _createUsers(amount, userCount);
     const lastPoolId = (await lockDealNFT.totalSupply()).toNumber();
-    await simpleBuilder.connect(projectOwner).buildMassPools(addressParams, userData, params);
-    await _logGasPrice(params);
-    let k = 0;
+    const tx = await simpleBuilder.connect(projectOwner).buildMassPools(addressParams, userData, params);
+    const txReceipt = await tx.wait();
+    _logGasPrice(txReceipt, userData.userPools.length);
     params.splice(0, 0, ethers.BigNumber.from(amount));
     if (provider == timedProvider.address) {
       params.push(ethers.BigNumber.from(amount));
     }
+    
+    const poolIds : number[] = []
     for (let i = lastPoolId; i < userData.userPools.length + lastPoolId; i+=2) {
-      const data = await lockDealNFT.getData(i);
+      poolIds.push(i)
+    }
+    
+    const allData = poolIds.map( (i) => (lockDealNFT.getData(i)))
+    const allDataResults = await Promise.all(allData)
+    let k = 0;
+    for (const [index, data] of allDataResults.entries()) {
       expect(data.provider).to.equal(provider);
-      expect(data.poolId).to.equal(i);
+      expect(data.poolId).to.equal(poolIds[index]);
       expect(data.owner).to.equal(userData.userPools[k].user);
       expect(data.token).to.equal(token);
       expect(data.params).to.deep.equal(params);
       k+=2;
     }
-  }
-
-  async function _logGasPrice(params: BigNumber[]) {
-    const tx = await simpleBuilder.connect(projectOwner).buildMassPools(addressParams, userData, params);
-    const txReceipt = await tx.wait();
-    const gasUsed = txReceipt.gasUsed;
-    const GREEN_TEXT = '\x1b[32m';
-    console.log(`${GREEN_TEXT}Gas Used: ${gasUsed.toString()}`);
-    console.log(`Price per one pool: ${gasUsed.div(userData.userPools.length)}`);
   }
 
   function _createProviderParams(provider: string) {
