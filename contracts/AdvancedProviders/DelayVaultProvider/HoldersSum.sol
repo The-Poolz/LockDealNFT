@@ -49,7 +49,7 @@ abstract contract HoldersSum is ProviderModifiers, IDelayVaultData {
         if (allowTypeUpgrade) {
             _upgradeUserTypeIfGreater(user, newType);
         } else {
-            _updateUserTypeIfMatchesV1(user, newType);
+            _upgradeUserTypeIfMatchesV1(user, newType);
             // Ensure the type doesn't change if upgrades are not allowed
             require(newType <= userToType[user], "type must be the same or lower");
         }
@@ -63,7 +63,7 @@ abstract contract HoldersSum is ProviderModifiers, IDelayVaultData {
         }
     }
 
-    function _updateUserTypeIfMatchesV1(address user, uint8 newType) internal {
+    function _upgradeUserTypeIfMatchesV1(address user, uint8 newType) internal {
         if (newType == theTypeOf(migrator.getUserV1Amount(user))) {
             userToType[user] = newType;
         }
