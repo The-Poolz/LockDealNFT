@@ -82,7 +82,6 @@ contract RefundProvider is RefundState, IERC721Receiver, RefundModifiers {
     }
 
     ///@param params[0] = collateralId
-    ///@param params[1] = rateToWei
     function registerPool(
         uint256 poolId,
         uint256[] calldata params
