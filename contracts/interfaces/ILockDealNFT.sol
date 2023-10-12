@@ -15,7 +15,7 @@ interface ILockDealNFT is IERC721Enumerable {
         IProvider provider
     ) external returns (uint256 poolId);
 
-    function copyVaultId(uint256 fromPoolId, uint256 toPoolId) external;
+    function cloneVaultId(uint256 destinationPoolId, uint256 sourcePoolId) external;
 
     function mintForProvider(address owner, IProvider provider) external returns (uint256 poolId);
 
