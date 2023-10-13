@@ -40,11 +40,11 @@ contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
         poolIdToVaultId[poolId] = vaultManager.depositByToken(token, from, amount);
     }
 
-    function copyVaultId(
-        uint256 fromId,
-        uint256 toId
-    ) external onlyApprovedContract(msg.sender) validPoolId(fromId) validPoolId(toId) {
-        poolIdToVaultId[toId] = poolIdToVaultId[fromId];
+    function cloneVaultId(
+        uint256 destinationPoolId,
+        uint256 sourcePoolId
+    ) external onlyApprovedContract(msg.sender) validPoolId(destinationPoolId) validPoolId(sourcePoolId) {
+        poolIdToVaultId[destinationPoolId] = poolIdToVaultId[sourcePoolId];
     }
 
     /// @dev Sets the approved status of a contract
