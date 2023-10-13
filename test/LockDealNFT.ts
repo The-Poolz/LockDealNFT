@@ -277,7 +277,7 @@ describe('LockDealNFT', function () {
   });
 
   it('check if the contract supports ILockDealNFT interface', async () => {
-    expect(await lockDealNFT.supportsInterface('0x22fd0654')).to.equal(true);
+    expect(await lockDealNFT.supportsInterface('0xa8b7d970')).to.equal(true);
   });
 
   it('shuld return royalty', async () => {

@@ -56,7 +56,7 @@ abstract contract DelayVaultState is DealProviderState, LastPoolOwnerState, Hold
     function _createLockNFT(address owner, uint256 amount, uint8 theType, uint tokenId) internal {
         ProviderData memory providerData = typeToProviderData[theType];
         uint256 newPoolId = lockDealNFT.mintForProvider(owner, providerData.provider);
-        lockDealNFT.copyVaultId(tokenId, newPoolId);
+        lockDealNFT.cloneVaultId(newPoolId, tokenId);
         uint256[] memory params = getWithdrawPoolParams(amount, theType);
         providerData.provider.registerPool(newPoolId, params);
     }
