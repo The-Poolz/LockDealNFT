@@ -28,7 +28,7 @@ contract BuilderInternal is BuilderModifiers {
         uint256 poolId = lockDealNFT.mintForProvider(userData.user, provider);
         params[0] = userData.amount;
         provider.registerPool(poolId, params);
-        lockDealNFT.copyVaultId(tokenPoolId, poolId);
+        lockDealNFT.cloneVaultId(poolId, tokenPoolId);
     }
 
     function _createFirstNFT(
