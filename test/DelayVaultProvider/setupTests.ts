@@ -5,6 +5,8 @@ import { DealProvider } from '../../typechain-types';
 import { MockProvider } from '../../typechain-types';
 import { MockVaultManager } from '../../typechain-types';
 import { DelayVaultProvider } from '../../typechain-types';
+import { DelayVaultMigrator } from '../../typechain-types';
+import { MockDelayVault } from '../../typechain-types';
 import { IDelayVaultData } from '../../typechain-types/contracts/AdvancedProviders/DelayVaultProvider/DelayVaultProvider';
 import { deployed, token, MAX_RATIO, _createUsers } from '../helper';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -16,6 +18,8 @@ export class DelayVault {
   public lockDealNFT!: LockDealNFT;
   public timedDealProvider!: TimedDealProvider;
   public lockProvider!: LockDealProvider;
+  public delayVaultMigrator!: DelayVaultMigrator;
+  public mockDelayVault!: MockDelayVault;
   public dealProvider!: DealProvider;
   public mockProvider!: MockProvider;
   public mockVaultManager!: MockVaultManager;
@@ -44,6 +48,15 @@ export class DelayVault {
     this.lockProvider = await deployed('LockDealProvider', this.lockDealNFT.address, this.dealProvider.address);
     this.timedDealProvider = await deployed('TimedDealProvider', this.lockDealNFT.address, this.lockProvider.address);
     this.mockProvider = await deployed('MockProvider', this.lockDealNFT.address, this.timedDealProvider.address);
+    const mockVaultProvider = await ethers.getContractFactory('MockDelayVault');
+    this.mockDelayVault = await mockVaultProvider.deploy(token, [], [], {
+      gasLimit: this.gasLimit,
+    });
+    this.delayVaultMigrator = await deployed(
+      'DelayVaultMigrator',
+      this.lockDealNFT.address,
+      this.mockDelayVault.address,
+    );
     const DelayVaultProvider = await ethers.getContractFactory('DelayVaultProvider');
     const ONE_DAY = 86400;
     const week = ONE_DAY * 7;
@@ -54,9 +67,14 @@ export class DelayVault {
       { provider: this.lockProvider.address, params: [this.startTime], limit: this.tier2 },
       { provider: this.timedDealProvider.address, params: [this.startTime, this.finishTime], limit: this.tier3 },
     ];
-    this.delayVaultProvider = await DelayVaultProvider.deploy(token, this.lockDealNFT.address, this.providerData, {
-      gasLimit: this.gasLimit,
-    });
+    this.delayVaultProvider = await DelayVaultProvider.deploy(
+      token,
+      this.delayVaultMigrator.address,
+      this.providerData,
+      {
+        gasLimit: this.gasLimit,
+      },
+    );
     await this.lockDealNFT.setApprovedContract(this.dealProvider.address, true);
     await this.lockDealNFT.setApprovedContract(this.lockProvider.address, true);
     await this.lockDealNFT.setApprovedContract(this.timedDealProvider.address, true);

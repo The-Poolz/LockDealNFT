@@ -3,9 +3,10 @@ pragma solidity ^0.8.0;
 
 import "../../SimpleProviders/Provider/ProviderModifiers.sol";
 import "./MigratorV1/IDelayVaultProvider.sol";
+import "./MigratorV1/IDelayVaultV1.sol";
 import "./MigratorV1/IMigrator.sol";
 
-abstract contract HoldersSum is ProviderModifiers, IDelayVaultData {
+abstract contract HoldersSum is ProviderModifiers, IDelayVaultProvider {
     //this is only the delta
     //the amount is the amount of the pool
     // params[0] = startTimeDelta (empty for DealProvider)
