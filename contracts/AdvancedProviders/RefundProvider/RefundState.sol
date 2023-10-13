@@ -8,44 +8,28 @@ abstract contract RefundState is ProviderModifiers, IInnerWithdraw, IERC165 {
     CollateralProvider public collateralProvider;
     mapping(uint256 => uint256) public poolIdToCollateralId;
 
-    ///@return params - UserData, CollateralData, RefundProviderData
-    ///        params[0] - LeftTokenAmount
+    ///@return params [0] = rateToWei; - collateral data
+    ///        params [1] = collateralId; - refund data
+    ///        params [2] = tokenLeftAmount; - user(poolId + 1) data
+    ///        params [3] = ...; - time if locked or timed provider
     function getParams(uint256 poolId) public view override returns (uint256[] memory params) {
         if (lockDealNFT.poolIdToProvider(poolId) == this) {
             uint256 userDataPoolId = poolId + 1;
             uint256 collateralPoolId = poolIdToCollateralId[poolId];
-            uint256 dataParamsTargetLength = lockDealNFT.poolIdToProvider(userDataPoolId).currentParamsTargetLenght();
-            uint256 collateralLength = collateralProvider.currentParamsTargetLenght();
-            uint256 length = currentParamsTargetLenght() + dataParamsTargetLength + collateralLength;
+            uint256[] memory dataParams = lockDealNFT.poolIdToProvider(userDataPoolId).getParams(userDataPoolId);
+            uint256 dataLength = dataParams.length;
+            uint256 length = currentParamsTargetLenght() + dataLength + 1;
             params = new uint256[](length);
-            // add UserData
-            params = _setDataParams(userDataPoolId, params); // first index LeftTokenAmount
-            // add CollateralData
-            params = _setCollateralParams(collateralPoolId, dataParamsTargetLength, params);
-            // add RefundProviderData
-            params[length - 1] = collateralPoolId; // last index collateralPoolId
+            // set Collateral data
+            params[0] = collateralProvider.poolIdToRateToWei(collateralPoolId);
+            // set RefundProvider data
+            params[1] = collateralPoolId;
+            uint256 k = 0;
+            for (uint256 i = 2; i < length; ++i) {
+                // set User data
+                params[i] = dataParams[k++];
+            }
         }
-    }
-
-    function _setDataParams(uint256 poolId, uint256[] memory params) internal view returns (uint256[] memory) {
-        uint256[] memory dataParams = lockDealNFT.poolIdToProvider(poolId).getParams(poolId);
-        uint256 dataLength = dataParams.length;
-        for (uint256 i = 0; i < dataLength; ++i) {
-            params[i] = dataParams[i];
-        }
-        return params;
-    }
-
-    function _setCollateralParams(
-        uint256 poolId,
-        uint256 fromIndex,
-        uint256[] memory params
-    ) internal view returns (uint256[] memory) {
-        uint256[] memory collateralParams = collateralProvider.getParams(poolId);
-        params[fromIndex] = collateralParams[0];
-        params[fromIndex + 1] = collateralParams[1];
-        params[fromIndex + 2] = collateralParams[2];
-        return params;
     }
 
     function currentParamsTargetLenght() public pure override returns (uint256) {
