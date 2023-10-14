@@ -1,20 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./IDelayVaultProvider.sol";
-import "./IDelayVaultV1.sol";
-import "./ILockDealV2.sol";
+import "./DelayStateMigrator.sol";
+import "../../../interfaces/ILockDealV2.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 
-contract DelayVaultMigrator is ILockDealV2 {
-    IDelayVaultV1 public oldVault;
-    IDelayVaultProvider public newVault;
-    ILockDealNFT public lockDealNFT;
-    IVaultManager public vaultManager;
-    address public token;
-    address public owner = msg.sender; // Initialize owner at declaration
-
+contract DelayVaultMigrator is DelayStateMigrator, ILockDealV2 {
     constructor(ILockDealNFT _nft, IDelayVaultV1 _oldVault) {
         require(
             ERC165Checker.supportsInterface(address(_oldVault), type(IDelayVaultV1).interfaceId),
@@ -28,6 +20,10 @@ contract DelayVaultMigrator is ILockDealV2 {
     function finilize(IDelayVaultProvider _newVault) external {
         require(owner != address(0), "DelayVaultMigrator: already initialized");
         require(msg.sender == owner, "DelayVaultMigrator: not owner");
+        require(
+            ERC165Checker.supportsInterface(address(_newVault), type(IDelayVaultProvider).interfaceId),
+            "DelayVaultMigrator: Invalid new delay vault contract"
+        );
         newVault = _newVault;
         token = newVault.token();
         vaultManager = lockDealNFT.vaultManager();
@@ -35,7 +31,7 @@ contract DelayVaultMigrator is ILockDealV2 {
     }
 
     //this option is to get tokens from the DelayVaultV1 and deposit them to the DelayVaultV2 (LockDealNFT, v3)
-    function fullMigrate() external {
+    function fullMigrate() external afterInit {
         require(oldVault.Allowance(token, msg.sender), "DelayVaultMigrator: not allowed");
         uint256 amount = getUserV1Amount(msg.sender);
         oldVault.redeemTokensFromVault(token, msg.sender, amount);
@@ -47,7 +43,7 @@ contract DelayVaultMigrator is ILockDealV2 {
     }
 
     //this option is to get tokens from the DelayVaultV1 and deposit them to the LockDealNFT (v3)
-    function withdrawTokensFromV1Vault() external {
+    function withdrawTokensFromV1Vault() external afterInit {
         require(oldVault.Allowance(token, msg.sender), "DelayVaultMigrator: not allowed");
         uint256 amount = getUserV1Amount(msg.sender);
         oldVault.redeemTokensFromVault(token, msg.sender, amount);
@@ -76,7 +72,7 @@ contract DelayVaultMigrator is ILockDealV2 {
         uint256, //Until what time the pool will end
         uint256 _StartAmount, //Total amount of the tokens to sell in the pool
         address _Owner // Who the tokens belong to
-    ) external payable override {
+    ) external payable override afterInit {
         require(msg.sender == address(oldVault), "DelayVaultMigrator: not DelayVaultV1");
         uint8 theType = newVault.theTypeOf(newVault.getTotalAmount(_Owner));
         IDelayVaultProvider.ProviderData memory providerData = newVault.getTypeToProviderData(theType);

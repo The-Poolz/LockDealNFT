@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../AdvancedProviders/DelayVaultProvider/MigratorV1/IDelayVaultV1.sol";
+import "../interfaces/IDelayVaultV1.sol";
 
 contract MockDelayVault is IDelayVaultV1 {
     mapping(address => mapping(address => Vault)) public VaultMap;

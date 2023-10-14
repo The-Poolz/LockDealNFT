@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../../../interfaces/IProvider.sol";
-import "../../../interfaces/ILockDealNFT.sol";
+import "./IProvider.sol";
+import "./ILockDealNFT.sol";
 
 interface IDelayVaultProvider {
     struct ProviderData {
