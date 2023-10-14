@@ -7,7 +7,7 @@ import { MockVaultManager } from '../../typechain-types';
 import { DelayVaultProvider } from '../../typechain-types';
 import { DelayVaultMigrator } from '../../typechain-types';
 import { MockDelayVault } from '../../typechain-types';
-import { IDelayVaultData } from '../../typechain-types/contracts/AdvancedProviders/DelayVaultProvider/DelayVaultProvider';
+import { IDelayVaultProvider } from '../../typechain-types/contracts/interfaces/IDelayVaultProvider';
 import { deployed, token, MAX_RATIO, _createUsers, gasLimit } from '../helper';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { BigNumber } from 'ethers';
@@ -33,7 +33,7 @@ export class DelayVault {
   public newOwner!: SignerWithAddress;
   public startTime!: number;
   public finishTime!: number;
-  public providerData!: IDelayVaultData.ProviderDataStruct[];
+  public providerData!: IDelayVaultProvider.ProviderDataStruct[];
   public tier1: BigNumber = ethers.BigNumber.from(250);
   public tier2: BigNumber = ethers.BigNumber.from(3500);
   public tier3: BigNumber = ethers.BigNumber.from(20000);
