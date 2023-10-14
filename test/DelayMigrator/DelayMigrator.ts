@@ -3,13 +3,11 @@ import { DealProvider } from '../../typechain-types';
 import { LockDealNFT } from '../../typechain-types';
 import { LockDealProvider } from '../../typechain-types';
 import { TimedDealProvider } from '../../typechain-types';
-import { MockProvider } from '../../typechain-types';
 import { DelayVaultMigrator } from '../../typechain-types';
 import { DelayVaultProvider } from '../../typechain-types/contracts/AdvancedProviders/DelayVaultProvider';
 import { IDelayVaultProvider } from '../../typechain-types/contracts/interfaces/IDelayVaultProvider';
 import { MockDelayVault } from '../../typechain-types/contracts/mock/MockDelayVault';
-import { deployed, token, BUSD, MAX_RATIO, gasLimit } from '../helper';
-import { time, mine } from '@nomicfoundation/hardhat-network-helpers';
+import { deployed, token } from '../helper';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 import { BigNumber, constants } from 'ethers';
@@ -23,20 +21,11 @@ describe('Delay Migrator tests', function () {
   let mockDelayVault: MockDelayVault;
   let delayVaultMigrator: DelayVaultMigrator;
   let delayVaultProvider: DelayVaultProvider;
-  let halfTime: number;
-  const rate = ethers.utils.parseUnits('0.1', 21);
-  const mainCoinAmount = ethers.utils.parseEther('10');
   let lockDealNFT: LockDealNFT;
-  let poolId: number;
-  let vaultId: BigNumber;
-  let receiver: SignerWithAddress;
   let user1: SignerWithAddress;
   let user2: SignerWithAddress;
   let user3: SignerWithAddress;
-  let projectOwner: SignerWithAddress;
-  let addresses: string[];
   let providerData: IDelayVaultProvider.ProviderDataStruct[];
-  let params: [BigNumber, number, number, BigNumber, BigNumber, number];
   const tier1: BigNumber = ethers.BigNumber.from(250);
   const tier2: BigNumber = ethers.BigNumber.from(3500);
   const tier3: BigNumber = ethers.BigNumber.from(20000);
@@ -65,7 +54,7 @@ describe('Delay Migrator tests', function () {
   ];
 
   before(async () => {
-    [receiver, projectOwner, user1, user2, user3] = await ethers.getSigners();
+    [user1, user2, user3] = await ethers.getSigners();
     mockVaultManager = await deployed('MockVaultManager');
     lockDealNFT = await deployed('LockDealNFT', mockVaultManager.address, '');
     dealProvider = await deployed('DealProvider', lockDealNFT.address);
@@ -98,7 +87,7 @@ describe('Delay Migrator tests', function () {
   });
 
   it('should revert invalid owner call', async () => {
-    await expect(delayVaultMigrator.connect(user1).finilize(delayVaultProvider.address)).to.be.revertedWith(
+    await expect(delayVaultMigrator.connect(user2).finilize(delayVaultProvider.address)).to.be.revertedWith(
       'DelayVaultMigrator: not owner',
     );
   });
