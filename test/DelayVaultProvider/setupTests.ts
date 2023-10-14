@@ -8,7 +8,7 @@ import { DelayVaultProvider } from '../../typechain-types';
 import { DelayVaultMigrator } from '../../typechain-types';
 import { MockDelayVault } from '../../typechain-types';
 import { IDelayVaultData } from '../../typechain-types/contracts/AdvancedProviders/DelayVaultProvider/DelayVaultProvider';
-import { deployed, token, MAX_RATIO, _createUsers } from '../helper';
+import { deployed, token, MAX_RATIO, _createUsers, gasLimit } from '../helper';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { BigNumber } from 'ethers';
 import { ethers } from 'hardhat';
@@ -38,7 +38,6 @@ export class DelayVault {
   public tier2: BigNumber = ethers.BigNumber.from(3500);
   public tier3: BigNumber = ethers.BigNumber.from(20000);
   public ratio: BigNumber = MAX_RATIO.div(2);
-  gasLimit: number = 130_000_000;
 
   async initialize() {
     [this.receiver, this.newOwner, this.user1, this.user2, this.user3, this.user4] = await ethers.getSigners();
@@ -48,15 +47,9 @@ export class DelayVault {
     this.lockProvider = await deployed('LockDealProvider', this.lockDealNFT.address, this.dealProvider.address);
     this.timedDealProvider = await deployed('TimedDealProvider', this.lockDealNFT.address, this.lockProvider.address);
     this.mockProvider = await deployed('MockProvider', this.lockDealNFT.address, this.timedDealProvider.address);
-    const mockVaultProvider = await ethers.getContractFactory('MockDelayVault');
-    this.mockDelayVault = await mockVaultProvider.deploy(token, [], [], {
-      gasLimit: this.gasLimit,
-    });
-    this.delayVaultMigrator = await deployed(
-      'DelayVaultMigrator',
-      this.lockDealNFT.address,
-      this.mockDelayVault.address,
-    );
+    const mockDelay = await ethers.getContractFactory('MockDelayVault');
+    this.mockDelayVault = await mockDelay.deploy(token, [], []);
+    this.delayVaultMigrator = await deployed('DelayVaultMigrator', this.lockDealNFT.address, this.mockDelayVault.address);
     const DelayVaultProvider = await ethers.getContractFactory('DelayVaultProvider');
     const ONE_DAY = 86400;
     const week = ONE_DAY * 7;
@@ -72,7 +65,7 @@ export class DelayVault {
       this.delayVaultMigrator.address,
       this.providerData,
       {
-        gasLimit: this.gasLimit,
+        gasLimit: gasLimit,
       },
     );
     await this.lockDealNFT.setApprovedContract(this.dealProvider.address, true);

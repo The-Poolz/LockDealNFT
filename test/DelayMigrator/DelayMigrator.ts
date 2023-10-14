@@ -6,7 +6,7 @@ import { TimedDealProvider } from '../../typechain-types';
 import { MockProvider } from '../../typechain-types';
 import { DelayVaultMigrator } from '../../typechain-types';
 import { MockDelayVault } from '../../typechain-types/contracts/mock/MockDelayVault';
-import { deployed, token, BUSD, MAX_RATIO } from '../helper';
+import { deployed, token, BUSD, MAX_RATIO, gasLimit } from '../helper';
 import { time, mine } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
@@ -66,7 +66,7 @@ describe('Delay Migrator tests', function () {
     timedProvider = await deployed('TimedDealProvider', lockDealNFT.address, lockProvider.address);
     const mockDelay = await ethers.getContractFactory('MockDelayVault');
     mockDelayVault = await mockDelay.deploy(token, userVaults, [user1.address, user2.address, user3.address]);
-    delayVaultMigrator = await deployed('DelayVaultMigrator', mockDelayVault.address);
+    delayVaultMigrator = await deployed('DelayVaultMigrator', lockDealNFT.address, mockDelayVault.address);
     await lockDealNFT.setApprovedContract(lockProvider.address, true);
     await lockDealNFT.setApprovedContract(dealProvider.address, true);
     await lockDealNFT.setApprovedContract(timedProvider.address, true);
@@ -75,7 +75,5 @@ describe('Delay Migrator tests', function () {
 
   beforeEach(async () => {});
 
-  it('should finilize data', async () => {
-    
-  });
+  it('should finilize data', async () => {});
 });

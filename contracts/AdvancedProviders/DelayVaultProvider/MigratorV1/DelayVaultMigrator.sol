@@ -1,17 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./DelayStateMigrator.sol";
+import "./DelayMigratorState.sol";
+import "../../../interfaces/IMigrator.sol";
 import "../../../interfaces/ILockDealV2.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 
-contract DelayVaultMigrator is DelayStateMigrator, ILockDealV2 {
+contract DelayVaultMigrator is DelayMigratorState, IMigrator, ILockDealV2 {
     constructor(ILockDealNFT _nft, IDelayVaultV1 _oldVault) {
-        require(
-            ERC165Checker.supportsInterface(address(_oldVault), type(IDelayVaultV1).interfaceId),
-            "DelayVaultMigrator: Invalid old delay vault contract"
-        );
+        require(address(_oldVault) != address(0), "DelayVaultMigrator: Invalid old delay vault contract");
         require(address(_nft) != address(0), "DelayVaultMigrator: Invalid lock deal nft contract");
         oldVault = _oldVault;
         lockDealNFT = _nft;
@@ -87,5 +85,9 @@ contract DelayVaultMigrator is DelayStateMigrator, ILockDealV2 {
         );
         uint256[] memory params = newVault.getWithdrawPoolParams(_StartAmount, theType);
         providerData.provider.registerPool(newPoolId, params);
+    }
+
+    function getLockDealNFT() external view override returns (ILockDealNFT) {
+        return lockDealNFT;
     }
 }

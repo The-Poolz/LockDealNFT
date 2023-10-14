@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "../../../interfaces/IDelayVaultProvider.sol";
 import "../../../interfaces/IDelayVaultV1.sol";
 
-contract DelayStateMigrator {
+contract DelayMigratorState {
     IDelayVaultV1 public oldVault;
     IDelayVaultProvider public newVault;
     ILockDealNFT public lockDealNFT;
