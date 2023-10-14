@@ -6,5 +6,5 @@ import "./ILockDealNFT.sol";
 interface IMigrator {
     function getUserV1Amount(address user) external view returns (uint256 amount);
 
-    function getLockDealNFT() external view returns (ILockDealNFT);
+    function lockDealNFT() external view returns (ILockDealNFT);
 }

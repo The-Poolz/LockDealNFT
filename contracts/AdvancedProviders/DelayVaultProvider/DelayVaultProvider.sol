@@ -11,7 +11,7 @@ contract DelayVaultProvider is DelayVaultState {
         name = "DelayVaultProvider";
         token = _token;
         migrator = _migrator;
-        lockDealNFT = _migrator.getLockDealNFT();
+        lockDealNFT = _migrator.lockDealNFT();
         _finilize(_providersData);
     }
 
