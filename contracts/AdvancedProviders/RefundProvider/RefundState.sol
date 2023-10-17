@@ -9,9 +9,9 @@ abstract contract RefundState is ProviderModifiers, IInnerWithdraw, IERC165 {
     mapping(uint256 => uint256) public poolIdToCollateralId;
 
     ///@return params  params [0] = tokenLeftAmount; - user(poolId + 1) data
-    ///                params [1-..] = ...; - time if locked or timed provider
-    ///                params [lastIndex - 1] = rateToWei; - collateral data
-    ///                params [lastIndex] = collateralId; - refund data
+    ///                params [1] = rateToWei
+    ///                params [2] = collateralPoolId
+    ///                params [3 - ...] =  time if locked or timed provider
     function getParams(uint256 poolId) public view override returns (uint256[] memory params) {
         if (lockDealNFT.poolIdToProvider(poolId) == this) {
             uint256 userDataPoolId = poolId + 1;
@@ -20,14 +20,17 @@ abstract contract RefundState is ProviderModifiers, IInnerWithdraw, IERC165 {
             uint256 dataLength = dataParams.length;
             uint256 length = currentParamsTargetLenght() + dataLength + 1;
             params = new uint256[](length);
-            for (uint256 i = 0; i < dataLength; ++i) {
-                // set User data
-                params[i] = dataParams[i];
+            // left token amount
+            params[0] = dataParams[0];
+            // rate to wei
+            params[1] = collateralProvider.poolIdToRateToWei(collateralPoolId);
+            // collateral id
+            params[2] = collateralPoolId;
+            uint256 k = 1;
+            for (uint256 i = 3; i < length; ++i) {
+                // set User data if locked or timed providers
+                params[i] = dataParams[k++];
             }
-            // set Collateral data
-            params[dataLength] = collateralProvider.poolIdToRateToWei(collateralPoolId);
-            // set RefundProvider data
-            params[dataLength + 1] = collateralPoolId;
         }
     }
 
