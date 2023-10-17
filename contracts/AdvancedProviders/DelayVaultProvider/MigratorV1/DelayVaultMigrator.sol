@@ -32,9 +32,8 @@ contract DelayVaultMigrator is DelayMigratorState,  ILockDealV2 {
         require(oldVault.Allowance(token, msg.sender), "DelayVaultMigrator: not allowed");
         uint256 amount = getUserV1Amount(msg.sender);
         oldVault.redeemTokensFromVault(token, msg.sender, amount);
-        uint256[] memory params = new uint256[](2);
+        uint256[] memory params = new uint256[](1);
         params[0] = amount;
-        params[1] = 1; //allow type change
         IERC20(token).approve(address(vaultManager), amount);
         newVault.createNewDelayVault(msg.sender, params);
     }
