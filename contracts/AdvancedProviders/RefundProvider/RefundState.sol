@@ -20,15 +20,11 @@ abstract contract RefundState is ProviderModifiers, IInnerWithdraw, IERC165 {
             uint256 dataLength = dataParams.length;
             uint256 length = currentParamsTargetLenght() + dataLength + 1;
             params = new uint256[](length);
-            // left token amount
             params[0] = dataParams[0];
-            // rate to wei
             params[1] = collateralProvider.poolIdToRateToWei(collateralPoolId);
-            // collateral id
             params[2] = collateralPoolId;
             uint256 k = 1;
             for (uint256 i = 3; i < length; ++i) {
-                // set User data if locked or timed providers
                 params[i] = dataParams[k++];
             }
         }
