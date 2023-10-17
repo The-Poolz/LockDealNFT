@@ -27,7 +27,7 @@ contract DelayVaultProvider is DelayVaultState {
     function _registerPool(uint256 poolId, uint256[] calldata params) internal {
         uint256 amount = params[0];
         address owner = lockDealNFT.ownerOf(poolId);
-        _addHoldersSum(owner, amount, owner == msg.sender);
+        _addHoldersSum(owner, amount, owner == msg.sender || msg.sender == address(migrator));
         poolIdToAmount[poolId] = amount;
     }
 
