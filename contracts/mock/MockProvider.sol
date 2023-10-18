@@ -34,6 +34,11 @@ contract MockProvider is IFundsManager {
         _provider.registerPool(poolId, params);
     }
 
+    function createNewPoolWithTransfer(address[] calldata addresses, uint256[] memory params) public returns (uint256 poolId) {
+        poolId = lockDealNFT.mintAndTransfer(addresses[0], addresses[1], addresses[0], params[0], _provider);
+        _provider.registerPool(poolId, params);
+    }
+
     function registerPool(uint256 poolId, uint256[] memory params) external {
         _provider.registerPool(poolId, params);
     }

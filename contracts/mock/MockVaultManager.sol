@@ -11,17 +11,16 @@ contract MockVaultManager {
         transfers = status;
     }
 
-    function safeDeposit(
-        address _tokenAddress,
-        uint _amount,
-        address _from,
-        bytes memory signature
-    ) external returns (uint vaultId) {
+    function safeDeposit(address _tokenAddress, uint, address, bytes memory signature) external returns (uint vaultId) {
         require(keccak256(abi.encodePacked(signature)) == keccak256(abi.encodePacked("signature")), "wrong signature");
-        vaultId = depositByToken(_tokenAddress, _from, _amount);
+        vaultId = _depositByToken(_tokenAddress);
     }
 
-    function depositByToken(address _tokenAddress, address, uint) public returns (uint vaultId) {
+    function depositByToken(address _tokenAddress, uint256) public returns (uint vaultId) {
+        vaultId = _depositByToken(_tokenAddress);
+    }
+
+    function _depositByToken(address _tokenAddress) internal returns (uint vaultId) {
         vaultId = ++Id;
         vaultIdtoToken[vaultId] = _tokenAddress;
         tokenToVaultId[_tokenAddress] = vaultId;
