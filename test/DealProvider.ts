@@ -39,8 +39,6 @@ describe('Deal Provider', function () {
   });
 
   it('should return provider name', async () => {
-    const data = await lockDealNFT.yo()
-    console.log(data)
     expect(await dealProvider.name()).to.equal('DealProvider');
   });
 
