@@ -30,8 +30,8 @@ describe('Simple Refund Builder tests', function () {
   const ONE_DAY = 86400;
   const gasLimit = 130_000_000;
   const rate = ethers.utils.parseUnits('0.1', 21);
-  const tokenSignature: Bytes = [1];
-  const mainCoinsignature: Bytes = [2];
+  const tokenSignature: Bytes = ethers.utils.toUtf8Bytes('signature');
+  const mainCoinsignature: Bytes = ethers.utils.toUtf8Bytes('signature');
   let refundProvider: RefundProvider;
   let collateralProvider: CollateralProvider;
   let vaultId: number;

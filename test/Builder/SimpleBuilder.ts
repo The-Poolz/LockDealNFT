@@ -23,7 +23,7 @@ describe('Simple Builder tests', function () {
   let addressParams: [string, string];
   let projectOwner: SignerWithAddress;
   let startTime: BigNumber, finishTime: BigNumber;
-  const signature: Bytes = [1];
+  const signature: Bytes = ethers.utils.toUtf8Bytes('signature');
   const amount = ethers.utils.parseEther('100').toString();
   const ONE_DAY = 86400;
 

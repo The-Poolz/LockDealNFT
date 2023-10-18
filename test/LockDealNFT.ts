@@ -22,7 +22,7 @@ describe('LockDealNFT', function () {
   let notOwner: SignerWithAddress;
   let vaultId: BigNumber;
   let startTime: number, finishTime: number;
-  const signature: Bytes = [1];
+  const signature: Bytes = ethers.utils.toUtf8Bytes('signature');
   const amount: string = '1000';
 
   before(async () => {

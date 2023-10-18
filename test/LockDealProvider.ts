@@ -21,7 +21,7 @@ describe('Lock Deal Provider', function () {
   let newOwner: SignerWithAddress;
   let startTime: number;
   let vaultId: BigNumber;
-  const signature: Bytes = [1];
+  const signature: Bytes = ethers.utils.toUtf8Bytes('signature');
   const name: string = "LockDealProvider"
   const amount = 10000;
   const ratio = MAX_RATIO.div(2); // half of the amount

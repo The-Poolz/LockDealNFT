@@ -22,7 +22,7 @@ describe('Collateral Provider', function () {
   let projectOwner: SignerWithAddress;
   let finishTime: number;
   let vaultId: BigNumber;
-  const signature: Bytes = [1];
+  const signature: Bytes = ethers.utils.toUtf8Bytes('signature');
   const name: string = 'CollateralProvider';
   const halfRatio = MAX_RATIO.div(2);
   const amount = 100000;

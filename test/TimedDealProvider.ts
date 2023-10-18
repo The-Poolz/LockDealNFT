@@ -26,7 +26,7 @@ describe('Timed Deal Provider', function () {
   let receiver: SignerWithAddress;
   let newOwner: SignerWithAddress;
   let startTime: number, finishTime: number;
-  const signature: Bytes = [1];
+  const signature: Bytes = ethers.utils.toUtf8Bytes('signature');
   const name: string = 'TimedDealProvider';
   const amount = 100000;
   const ratio = MAX_RATIO.div(2); // half of the amount

@@ -15,8 +15,9 @@ contract MockVaultManager {
         address _tokenAddress,
         uint _amount,
         address _from,
-        bytes memory
+        bytes memory signature
     ) external returns (uint vaultId) {
+        require(keccak256(abi.encodePacked(signature)) == keccak256(abi.encodePacked("signature")), "wrong signature");
         vaultId = depositByToken(_tokenAddress, _from, _amount);
     }
 

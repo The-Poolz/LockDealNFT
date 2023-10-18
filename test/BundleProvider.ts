@@ -26,7 +26,7 @@ describe('Lock Deal Bundle Provider', function () {
   let startTime: number, finishTime: number;
   let addresses: string[];
   let params: [BigNumber[], (number | BigNumber)[], (number | BigNumber)[]];
-  const signature: Bytes = [1];
+  const signature: Bytes = ethers.utils.toUtf8Bytes('signature');
   const name: string = 'BundleProvider';
   const amount = BigNumber.from(100000);
   const ONE_DAY = 86400;

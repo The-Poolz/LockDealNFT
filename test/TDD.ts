@@ -30,8 +30,8 @@ describe('test-driven development', function () {
   let receiver: SignerWithAddress;
   let projectOwner: SignerWithAddress;
   let startTime: number, finishTime: number;
-  const tokenSignature: Bytes = [1];
-  const mainCoinsignature: Bytes = [2];
+  const tokenSignature: Bytes = ethers.utils.toUtf8Bytes('signature');
+  const mainCoinsignature: Bytes = ethers.utils.toUtf8Bytes('signature');
   const amount = ethers.utils.parseEther('100');
   const ONE_DAY = 86400;
   const ratio = MAX_RATIO.div(2);
