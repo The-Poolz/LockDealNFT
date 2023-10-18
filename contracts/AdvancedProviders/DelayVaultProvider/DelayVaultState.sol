@@ -81,4 +81,8 @@ abstract contract DelayVaultState is DealProviderState, LastPoolOwnerState, Hold
     function getTypeToProviderData(uint8 theType) public view virtual returns (ProviderData memory providerData) {
         providerData = typeToProviderData[theType];
     }
+
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+        return interfaceId == type(IDelayVaultProvider).interfaceId || super.supportsInterface(interfaceId);
+    }
 }

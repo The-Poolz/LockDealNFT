@@ -5,7 +5,6 @@ import "./BundleModifiers.sol";
 import "../../util/CalcUtils.sol";
 import "../../interfaces/ISimpleProvider.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
-import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import "../../ERC165/Bundable.sol";
 
 contract BundleProvider is BundleModifiers, ERC721Holder {

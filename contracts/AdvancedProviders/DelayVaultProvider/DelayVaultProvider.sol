@@ -2,17 +2,16 @@
 pragma solidity ^0.8.0;
 
 import "./DelayVaultState.sol";
-import "../../mock/MockDelayMigrator.sol";
 
 contract DelayVaultProvider is DelayVaultState {
-    constructor(address _token, ILockDealNFT _nftContract, ProviderData[] memory _providersData) {
+    constructor(address _token, IMigrator _migrator, ProviderData[] memory _providersData) {
         require(address(_token) != address(0x0), "invalid address");
-        require(address(_nftContract) != address(0x0), "invalid address");
+        require(address(_migrator) != address(0x0), "invalid address");
         require(_providersData.length <= 255, "too many providers");
         name = "DelayVaultProvider";
         token = _token;
-        lockDealNFT = _nftContract;
-        migrator = new MockDelayMigrator();
+        migrator = _migrator;
+        lockDealNFT = _migrator.lockDealNFT();
         _finilize(_providersData);
     }
 
@@ -28,7 +27,7 @@ contract DelayVaultProvider is DelayVaultState {
     function _registerPool(uint256 poolId, uint256[] calldata params) internal {
         uint256 amount = params[0];
         address owner = lockDealNFT.ownerOf(poolId);
-        _addHoldersSum(owner, amount, owner == msg.sender);
+        _addHoldersSum(owner, amount, owner == msg.sender || msg.sender == address(migrator));
         poolIdToAmount[poolId] = amount;
     }
 

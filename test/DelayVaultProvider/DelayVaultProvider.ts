@@ -1,3 +1,4 @@
+import { lockDealNft } from '../../typechain-types/contracts';
 import { token } from '../helper';
 import { delayVault } from './setupTests';
 import { expect } from 'chai';
@@ -78,6 +79,7 @@ describe('DelayVault Provider', function () {
     expect(await delayVault.delayVaultProvider.userToType(delayVault.user4.address)).to.equal(0);
     const params = [delayVault.tier2];
     const owner = delayVault.newOwner;
+    await delayVault.lockDealNFT.connect(owner).approvePoolTransfers(true);
     await delayVault.delayVaultProvider.connect(owner).createNewDelayVault(owner.address, params);
     await expect(
       delayVault.lockDealNFT

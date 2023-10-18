@@ -8,7 +8,7 @@ import { deployed, token, _createUsers, _logGasPrice } from '../helper';
 import { time } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
-import { BigNumber, ContractReceipt } from 'ethers';
+import { BigNumber } from 'ethers';
 import { ethers } from 'hardhat';
 import { BuilderState } from '../../typechain-types/contracts/Builders/SimpleBuilder/SimpleBuilder';
 
