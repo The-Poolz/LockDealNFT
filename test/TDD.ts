@@ -11,7 +11,7 @@ import { deployed, token, BUSD, MAX_RATIO } from './helper';
 import { time } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
-import { BigNumber } from 'ethers';
+import { BigNumber, Bytes } from 'ethers';
 import { ethers } from 'hardhat';
 
 describe('test-driven development', function () {
@@ -30,6 +30,8 @@ describe('test-driven development', function () {
   let receiver: SignerWithAddress;
   let projectOwner: SignerWithAddress;
   let startTime: number, finishTime: number;
+  const tokenSignature: Bytes = [1];
+  const mainCoinsignature: Bytes = [2];
   const amount = ethers.utils.parseEther('100');
   const ONE_DAY = 86400;
   const ratio = MAX_RATIO.div(2);
@@ -86,7 +88,7 @@ describe('test-driven development', function () {
       ];
       const refundProviderParams = [amount, amount.div(2), ratio, finishTime];
       params = [dealProviderParams, lockProviderParams, timedDealProviderParams, refundProviderParams];
-      await expect(bundleProvider.createNewPool(addresses, params)).to.be.reverted;
+      await expect(bundleProvider.createNewPool(addresses, params, tokenSignature)).to.be.reverted;
     });
 
     it('should revert register refund provider in bundle', async () => {
@@ -106,7 +108,7 @@ describe('test-driven development', function () {
         collateralProvider.address,
       ];
       params = [dealProviderParams, lockProviderParams, timedDealProviderParams, lockProviderParams];
-      await expect(bundleProvider.createNewPool(addresses, params)).to.be.reverted;
+      await expect(bundleProvider.createNewPool(addresses, params, tokenSignature)).to.be.reverted;
     });
 
     it('should revert register collateral provider in bundle', async () => {
@@ -127,7 +129,7 @@ describe('test-driven development', function () {
       await expect(
         refundProvider
           .connect(projectOwner)
-          .createNewRefundPool([token, receiver.address, BUSD, refundProvider.address], params),
+          .createNewRefundPool([token, receiver.address, BUSD, refundProvider.address], params, tokenSignature, mainCoinsignature),
       ).to.be.reverted;
     });
 
@@ -143,7 +145,7 @@ describe('test-driven development', function () {
       const poolId = (await lockDealNFT.totalSupply()).toNumber() + 2; // collateral pool id
       const params = [amount, ratio, ratio, finishTime];
       const addresses = [receiver.address, token, BUSD, dealProvider.address];
-      await refundProvider.createNewRefundPool(addresses, params);
+      await refundProvider.createNewRefundPool(addresses, params, tokenSignature, mainCoinsignature);
       const newParams = [poolId, ratio];
       const nonValidPoolId = 999999;
       await expect(refundMockProvider.registerPool(nonValidPoolId, newParams)).to.be.revertedWith(

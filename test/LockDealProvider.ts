@@ -6,7 +6,7 @@ import { deployed, token, MAX_RATIO } from './helper';
 import { time } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
-import { BigNumber, constants } from 'ethers';
+import { BigNumber, Bytes, constants } from 'ethers';
 import { ethers } from 'hardhat';
 
 describe('Lock Deal Provider', function () {
@@ -21,6 +21,7 @@ describe('Lock Deal Provider', function () {
   let newOwner: SignerWithAddress;
   let startTime: number;
   let vaultId: BigNumber;
+  const signature: Bytes = [1];
   const name: string = "LockDealProvider"
   const amount = 10000;
   const ratio = MAX_RATIO.div(2); // half of the amount
@@ -40,7 +41,7 @@ describe('Lock Deal Provider', function () {
     params = [amount, startTime];
     addresses = [receiver.address, token];
     poolId = (await lockDealNFT.totalSupply()).toNumber();
-    await lockProvider.createNewPool(addresses, params);
+    await lockProvider.createNewPool(addresses, params, signature);
     vaultId = await mockVaultManager.Id();
   });
 
@@ -49,7 +50,7 @@ describe('Lock Deal Provider', function () {
   });
 
   it('should check cascade pool creation events', async () => {
-    const tx = await lockProvider.createNewPool(addresses, params);
+    const tx = await lockProvider.createNewPool(addresses, params, signature);
     await tx.wait();
     const event = await dealProvider.queryFilter(dealProvider.filters.UpdateParams());
     expect(event[event.length - 1].args.poolId).to.equal(poolId + 1);
@@ -64,17 +65,17 @@ describe('Lock Deal Provider', function () {
 
   it('should revert if the start time is invalid', async () => {
     const invalidParams = [amount, startTime - 100];
-    await expect(lockProvider.createNewPool(addresses, invalidParams)).to.be.revertedWith('Invalid start time');
+    await expect(lockProvider.createNewPool(addresses, invalidParams, signature)).to.be.revertedWith('Invalid start time');
   });
 
   it('should revert zero owner address', async () => {
     addresses[1] = constants.AddressZero;
-    await expect(lockProvider.createNewPool(addresses, params)).to.be.revertedWith('Zero Address is not allowed');
+    await expect(lockProvider.createNewPool(addresses, params, signature)).to.be.revertedWith('Zero Address is not allowed');
   });
 
   it('should revert zero token address', async () => {
     addresses[0] = constants.AddressZero;
-    await expect(lockProvider.createNewPool(addresses, params)).to.be.revertedWith('Zero Address is not allowed');
+    await expect(lockProvider.createNewPool(addresses, params, signature)).to.be.revertedWith('Zero Address is not allowed');
   });
 
   describe('Lock Split Amount', () => {

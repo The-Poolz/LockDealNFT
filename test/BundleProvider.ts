@@ -9,7 +9,7 @@ import { deployed, token, MAX_RATIO } from './helper';
 import { time, mine } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
-import { BigNumber, constants } from 'ethers';
+import { BigNumber, Bytes, constants } from 'ethers';
 import { ethers } from 'hardhat';
 
 describe('Lock Deal Bundle Provider', function () {
@@ -26,6 +26,7 @@ describe('Lock Deal Bundle Provider', function () {
   let startTime: number, finishTime: number;
   let addresses: string[];
   let params: [BigNumber[], (number | BigNumber)[], (number | BigNumber)[]];
+  const signature: Bytes = [1];
   const name: string = 'BundleProvider';
   const amount = BigNumber.from(100000);
   const ONE_DAY = 86400;
@@ -55,7 +56,7 @@ describe('Lock Deal Bundle Provider', function () {
     addresses = [receiver.address, token, dealProvider.address, lockProvider.address, timedDealProvider.address];
     params = [dealProviderParams, lockProviderParams, timedDealProviderParams];
     bundlePoolId = (await lockDealNFT.totalSupply()).toNumber();
-    await bundleProvider.createNewPool(addresses, params);
+    await bundleProvider.createNewPool(addresses, params, signature);
   });
 
   it('should return provider name', async () => {
@@ -87,7 +88,7 @@ describe('Lock Deal Bundle Provider', function () {
     const timedDealProviderParams = [amount, startTime, finishTime, amount];
     const bundleProviderParams = [dealProviderParams, lockProviderParams, timedDealProviderParams];
 
-    const tx = await bundleProvider.createNewPool(addresses, bundleProviderParams);
+    const tx = await bundleProvider.createNewPool(addresses, bundleProviderParams, signature);
     await tx.wait();
     const event = await dealProvider.queryFilter(dealProvider.filters.UpdateParams());
     const data = event[event.length - 1].args;
@@ -106,19 +107,19 @@ describe('Lock Deal Bundle Provider', function () {
     // not approved contract
     const _dealProvider: DealProvider = await deployed('DealProvider', lockDealNFT.address);
     addresses[2] = _dealProvider.address;
-    await expect(bundleProvider.createNewPool(addresses, bundleProviderParams)).to.be.revertedWith(
+    await expect(bundleProvider.createNewPool(addresses, bundleProviderParams, signature)).to.be.revertedWith(
       'Contract not approved',
     );
 
     // lockDealNFT address
     addresses[2] = lockDealNFT.address;
-    await expect(bundleProvider.createNewPool(addresses, bundleProviderParams)).to.be.revertedWith(
+    await expect(bundleProvider.createNewPool(addresses, bundleProviderParams, signature)).to.be.revertedWith(
       'invalid provider type',
     );
 
     // bundleProvider address
     addresses[2] = bundleProvider.address;
-    await expect(bundleProvider.createNewPool(addresses, bundleProviderParams)).to.be.revertedWith(
+    await expect(bundleProvider.createNewPool(addresses, bundleProviderParams, signature)).to.be.revertedWith(
       'invalid provider type',
     );
   });
@@ -136,7 +137,7 @@ describe('Lock Deal Bundle Provider', function () {
     const lockProviderParams = [amount, startTime];
     const bundleProviderParams = [dealProviderParams, lockProviderParams];
 
-    await expect(bundleProvider.createNewPool(addresses, bundleProviderParams)).to.be.revertedWith(
+    await expect(bundleProvider.createNewPool(addresses, bundleProviderParams, signature)).to.be.revertedWith(
       'providers and params length mismatch',
     );
   });
@@ -145,7 +146,7 @@ describe('Lock Deal Bundle Provider', function () {
     const dealProviderParams = [amount];
     const bundleProviderParams = [dealProviderParams];
     addresses = [receiver.address, token, dealProvider.address];
-    await expect(bundleProvider.createNewPool(addresses, bundleProviderParams)).to.be.revertedWith(
+    await expect(bundleProvider.createNewPool(addresses, bundleProviderParams, signature)).to.be.revertedWith(
       'invalid addresses length',
     );
   });
@@ -162,7 +163,7 @@ describe('Lock Deal Bundle Provider', function () {
       lockProvider.address,
       timedDealProvider.address,
     ];
-    await expect(bundleProvider.createNewPool(addresses, bundleProviderParams)).to.be.revertedWith(
+    await expect(bundleProvider.createNewPool(addresses, bundleProviderParams, signature)).to.be.revertedWith(
       'Zero Address is not allowed',
     );
   });
@@ -357,14 +358,14 @@ describe('Lock Deal Bundle Provider', function () {
       const timedDealProviderParams = [amount, startTime, finishTime, amount];
       const params = [dealProviderParams, lockProviderParams, timedDealProviderParams];
       bundlePoolId = (await lockDealNFT.totalSupply()).toNumber();
-      await bundleProvider.createNewPool(addresses, params);
+      await bundleProvider.createNewPool(addresses, params, signature);
     });
 
     it('should rewrite pool data', async () => {
       const vaultId = await mockVaultManager.Id();
       const addresses = [bundleProvider.address, token];
-      await dealProvider.createNewPool(addresses, [amount]);
-      await lockProvider.createNewPool(addresses, [amount, startTime]);
+      await dealProvider.createNewPool(addresses, [amount], signature);
+      await lockProvider.createNewPool(addresses, [amount, startTime], signature);
       const lastSubPoolId = (await lockDealNFT.totalSupply()).toNumber() - 1;
       const bundleParams = [lastSubPoolId];
       await mockProvider.registerPool(bundlePoolId, bundleParams);
@@ -390,7 +391,7 @@ describe('Lock Deal Bundle Provider', function () {
 
     it('should revert invalid pool owner', async () => {
       addresses = [receiver.address, token];
-      await dealProvider.createNewPool(addresses, [amount]);
+      await dealProvider.createNewPool(addresses, [amount], signature);
       const lastSubPoolId = (await lockDealNFT.totalSupply()).toNumber() - 1;
       await expect(mockProvider.registerPool(bundlePoolId, [lastSubPoolId])).to.be.revertedWith(
         'invalid owner of sub pool',

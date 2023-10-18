@@ -11,7 +11,16 @@ contract MockVaultManager {
         transfers = status;
     }
 
-    function depositByToken(address _tokenAddress, address, uint) external returns (uint vaultId) {
+    function safeDeposit(
+        address _tokenAddress,
+        uint _amount,
+        address _from,
+        bytes memory
+    ) external returns (uint vaultId) {
+        vaultId = depositByToken(_tokenAddress, _from, _amount);
+    }
+
+    function depositByToken(address _tokenAddress, address, uint) public returns (uint vaultId) {
         vaultId = ++Id;
         vaultIdtoToken[vaultId] = _tokenAddress;
         tokenToVaultId[_tokenAddress] = vaultId;

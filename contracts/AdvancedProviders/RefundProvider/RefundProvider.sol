@@ -2,10 +2,10 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "./RefundModifiers.sol";
 import "../../ERC165/Refundble.sol";
+import "./RefundState.sol";
 
-contract RefundProvider is RefundState, IERC721Receiver, RefundModifiers {
+contract RefundProvider is RefundState, IERC721Receiver {
     constructor(ILockDealNFT nftContract, address provider) {
         require(address(nftContract) != address(0x0) && provider != address(0x0), "invalid address");
         lockDealNFT = nftContract;
@@ -44,13 +44,12 @@ contract RefundProvider is RefundState, IERC721Receiver, RefundModifiers {
     ///@param params[params.length - 1] = refund finish time
     function createNewRefundPool(
         address[] calldata addresses,
-        uint256[] calldata params
-    )
-        external
-        validAddressesLength(addresses.length, 4)
-        validProviderInterface(IProvider(addresses[3]), Refundble._INTERFACE_ID_REFUNDABLE)
-        returns (uint256 poolId)
-    {
+        uint256[] calldata params,
+        bytes calldata tokenSignature,
+        bytes calldata mainCoinSignature
+    ) external returns (uint256 poolId) {
+        _validAddressLength(addresses.length, 4);
+        _validProviderInterface(IProvider(addresses[3]), Refundble._INTERFACE_ID_REFUNDABLE);
         uint256 paramsLength = params.length;
         require(paramsLength > 3, "invalid params length");
         IProvider provider = IProvider(addresses[3]);
@@ -58,16 +57,24 @@ contract RefundProvider is RefundState, IERC721Receiver, RefundModifiers {
         poolId = lockDealNFT.mintForProvider(addresses[0], this);
 
         // Hold token (data) | Owner Refund Provider
-        uint256 dataPoolID = lockDealNFT.mintAndTransfer(address(this), addresses[1], msg.sender, params[0], provider);
+        uint256 dataPoolID = lockDealNFT.safeMintAndTransfer(
+            address(this),
+            addresses[1],
+            msg.sender,
+            params[0],
+            provider,
+            tokenSignature
+        );
         provider.registerPool(dataPoolID, params);
 
         // Hold main coin | Project Owner
-        uint256 collateralPoolId = lockDealNFT.mintAndTransfer(
+        uint256 collateralPoolId = lockDealNFT.safeMintAndTransfer(
             msg.sender,
             addresses[2],
             msg.sender,
             params[paramsLength - 3],
-            collateralProvider
+            collateralProvider,
+            mainCoinSignature
         );
         uint256[] memory collateralParams = new uint256[](4);
         collateralParams[0] = params[paramsLength - 3];

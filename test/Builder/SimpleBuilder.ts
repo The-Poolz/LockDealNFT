@@ -8,7 +8,7 @@ import { deployed, token, _createUsers, _logGasPrice } from '../helper';
 import { time } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
-import { BigNumber, ContractReceipt } from 'ethers';
+import { BigNumber, Bytes } from 'ethers';
 import { ethers } from 'hardhat';
 import { BuilderState } from '../../typechain-types/contracts/Builders/SimpleBuilder/SimpleBuilder';
 
@@ -23,13 +23,14 @@ describe('Simple Builder tests', function () {
   let addressParams: [string, string];
   let projectOwner: SignerWithAddress;
   let startTime: BigNumber, finishTime: BigNumber;
+  const signature: Bytes = [1];
   const amount = ethers.utils.parseEther('100').toString();
   const ONE_DAY = 86400;
 
   async function _testMassPoolsData(provider: string, amount: string, userCount: string, params: BigNumber[]) {
     userData = _createUsers(amount, userCount);
     const lastPoolId = (await lockDealNFT.totalSupply()).toNumber();
-    const tx = await simpleBuilder.connect(projectOwner).buildMassPools(addressParams, userData, params);
+    const tx = await simpleBuilder.connect(projectOwner).buildMassPools(addressParams, userData, params, signature);
     const txReceipt = await tx.wait();
     _logGasPrice(txReceipt, userData.userPools.length);
     params.splice(0, 0, ethers.BigNumber.from(amount));

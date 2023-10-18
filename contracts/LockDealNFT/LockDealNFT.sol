@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./LockDealNFTInternal.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /// @title LockDealNFT contract
 /// @notice Implements a non-fungible token (NFT) contract for locking deals
@@ -35,9 +36,29 @@ contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
         notZeroAmount(amount)
         returns (uint256 poolId)
     {
-        require(amount != type(uint256).max, "amount is too big");
         poolId = _mint(owner, provider);
-        poolIdToVaultId[poolId] = vaultManager.depositByToken(token, from, amount);
+        IERC20(token).transferFrom(from, address(this), amount);
+        IERC20(token).approve(address(vaultManager), amount);
+        poolIdToVaultId[poolId] = vaultManager.depositByToken(token, amount);
+    }
+
+    function safeMintAndTransfer(
+        address owner,
+        address token,
+        address from,
+        uint256 amount,
+        IProvider provider,
+        bytes calldata data
+    )
+        public
+        onlyApprovedContract(address(provider))
+        notZeroAddress(owner)
+        notZeroAddress(token)
+        notZeroAmount(amount)
+        returns (uint256 poolId)
+    {
+        poolId = _mint(owner, provider);
+        poolIdToVaultId[poolId] = vaultManager.safeDeposit(token, amount, from, data);
     }
 
     function cloneVaultId(

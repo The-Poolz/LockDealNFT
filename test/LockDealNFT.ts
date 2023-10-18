@@ -7,7 +7,7 @@ import { deployed, token, BUSD } from './helper';
 import { time } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
-import { BigNumber, constants } from 'ethers';
+import { BigNumber, Bytes, constants } from 'ethers';
 import { ethers } from 'hardhat';
 
 describe('LockDealNFT', function () {
@@ -22,6 +22,7 @@ describe('LockDealNFT', function () {
   let notOwner: SignerWithAddress;
   let vaultId: BigNumber;
   let startTime: number, finishTime: number;
+  const signature: Bytes = [1];
   const amount: string = '1000';
 
   before(async () => {
@@ -42,7 +43,7 @@ describe('LockDealNFT', function () {
     finishTime = startTime + 100;
     poolId = (await lockDealNFT.totalSupply()).toNumber();
     addresses = [receiver.address, token];
-    await dealProvider.createNewPool(addresses, [amount]);
+    await dealProvider.createNewPool(addresses, [amount], signature);
     vaultId = await mockVaultManager.Id();
   });
 
@@ -192,7 +193,7 @@ describe('LockDealNFT', function () {
   it('should return data from LockDealProvider using LockedDealNFT', async () => {
     poolId = (await lockDealNFT.totalSupply()).toNumber();
     const params = [amount, startTime];
-    await lockDealProvider.createNewPool(addresses, params);
+    await lockDealProvider.createNewPool(addresses, params, signature);
     const vaultId = await mockVaultManager.Id();
     const poolData = await lockDealNFT.getData(poolId);
     expect(poolData).to.deep.equal([lockDealProvider.address, "LockDealProvider", poolId, vaultId, receiver.address, token, params]);
@@ -201,7 +202,7 @@ describe('LockDealNFT', function () {
   it('should return data from TimedDealProvider using LockedDealNFT', async () => {
     poolId = (await lockDealNFT.totalSupply()).toNumber();
     const params = [amount, startTime, finishTime, amount];
-    await timedDealProvider.createNewPool(addresses, params);
+    await timedDealProvider.createNewPool(addresses, params, signature);
     const vaultId = await mockVaultManager.Id();
     const poolData = await lockDealNFT.getData(poolId);
     expect(poolData).to.deep.equal([timedDealProvider.address, "TimedDealProvider", poolId, vaultId, receiver.address, token, params]);
@@ -277,7 +278,7 @@ describe('LockDealNFT', function () {
   });
 
   it('check if the contract supports ILockDealNFT interface', async () => {
-    expect(await lockDealNFT.supportsInterface('0x22fd0654')).to.equal(true);
+    expect(await lockDealNFT.supportsInterface('0x42b33eb9')).to.equal(true);
   });
 
   it('shuld return royalty', async () => {
@@ -289,10 +290,10 @@ describe('LockDealNFT', function () {
     const [, , newOwner, notOwner] = await ethers.getSigners();
     // create 3 pools
     addresses = [newOwner.address, token];
-    await dealProvider.createNewPool(addresses, [amount]);
-    await dealProvider.createNewPool(addresses, [amount]);
+    await dealProvider.createNewPool(addresses, [amount], signature);
+    await dealProvider.createNewPool(addresses, [amount], signature);
     addresses[1] = BUSD;
-    await dealProvider.createNewPool(addresses, [amount]);
+    await dealProvider.createNewPool(addresses, [amount], signature);
     // check token balance by token association
     expect(await lockDealNFT['balanceOf(address,address[])'](newOwner.address, [token])).to.equal(2);
     expect(await lockDealNFT['balanceOf(address,address[])'](newOwner.address, [BUSD])).to.equal(1);
@@ -318,13 +319,13 @@ describe('LockDealNFT', function () {
     poolId = (await lockDealNFT.totalSupply()).toNumber();
     // create 4 pools
     addresses = [newOwner.address, token];
-    await dealProvider.createNewPool(addresses, [amount]);
-    await dealProvider.createNewPool(addresses, [amount]);
+    await dealProvider.createNewPool(addresses, [amount], signature);
+    await dealProvider.createNewPool(addresses, [amount], signature);
     addresses[1] = BUSD;
-    await dealProvider.createNewPool(addresses, [amount]);
+    await dealProvider.createNewPool(addresses, [amount], signature);
     const USDT = '0x55d398326f99059ff775485246999027b3197955';
     addresses[1] = USDT;
-    await dealProvider.createNewPool(addresses, [amount]);
+    await dealProvider.createNewPool(addresses, [amount], signature);
     // check pool ids by token association
     expect(
       await lockDealNFT['tokenOfOwnerByIndex(address,address[],uint256)'](newOwner.address, [token, BUSD], 0),
