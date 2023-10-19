@@ -10,7 +10,6 @@ interface ILockDealNFT is IERC721Enumerable {
     function mintAndTransfer(
         address owner,
         address token,
-        address from,
         uint256 amount,
         IProvider provider
     ) external returns (uint256 poolId);

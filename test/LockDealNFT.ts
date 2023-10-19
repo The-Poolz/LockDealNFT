@@ -131,7 +131,7 @@ describe('LockDealNFT', function () {
   it('should check double transfer by using mintAndTransfer', async () => {
     const addresses = [receiver.address, mockToken.address];
     const params = [amount];
-    await mockToken.connect(receiver).approve(lockDealNFT.address, amount);
+    await mockToken.connect(receiver).approve(mockProvider.address, amount);
     await mockProvider.connect(receiver).createNewPoolWithTransfer(addresses, params);
     expect(await mockToken.balanceOf(mockVaultManager.address)).to.equal(amount);
   });
@@ -189,7 +189,7 @@ describe('LockDealNFT', function () {
     await expect(
       lockDealNFT
         .connect(notOwner)
-        .mintAndTransfer(receiver.address, notOwner.address, token, 10, dealProvider.address),
+        .mintAndTransfer(receiver.address, token, 10, dealProvider.address),
     ).to.be.revertedWith('Contract not approved');
   });
 
@@ -293,7 +293,7 @@ describe('LockDealNFT', function () {
   });
 
   it('check if the contract supports ILockDealNFT interface', async () => {
-    expect(await lockDealNFT.supportsInterface('0x42b33eb9')).to.equal(true);
+    expect(await lockDealNFT.supportsInterface('0x2907ad54')).to.equal(true);
   });
 
   it('shuld return royalty', async () => {
