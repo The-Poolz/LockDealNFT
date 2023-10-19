@@ -14,11 +14,13 @@ abstract contract BasicProvider is ProviderModifiers, ISimpleProvider, ERC165 {
      * @param addresses[0] The address of the pool owner.
      * @param addresses[1] The address of the token associated with the pool.
      * @param params An array of pool parameters.
+     * @param signature The signature of the pool owner.
      * @return poolId The ID of the newly created pool.
      */
     function createNewPool(
         address[] calldata addresses,
-        uint256[] calldata params
+        uint256[] calldata params,
+        bytes calldata signature
     )
         public
         virtual
@@ -26,7 +28,7 @@ abstract contract BasicProvider is ProviderModifiers, ISimpleProvider, ERC165 {
         validParamsLength(params.length, currentParamsTargetLenght())
         returns (uint256 poolId)
     {
-        poolId = lockDealNFT.mintAndTransfer(addresses[0], addresses[1], msg.sender, params[0], this);
+        poolId = lockDealNFT.safeMintAndTransfer(addresses[0], addresses[1], msg.sender, params[0], this, signature);
         _registerPool(poolId, params);
     }
 

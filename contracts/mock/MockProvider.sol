@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "../SimpleProviders/TimedDealProvider/TimedDealProvider.sol";
 import "../interfaces/IFundsManager.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /// @dev MockProvider is a contract for testing purposes.
 contract MockProvider is IFundsManager {
@@ -18,8 +19,28 @@ contract MockProvider is IFundsManager {
         TimedDealProvider(address(_provider)).withdraw(poolId, amount);
     }
 
-    function createNewPool(address[] calldata addresses, uint256[] memory params) public returns (uint256 poolId) {
-        poolId = lockDealNFT.mintAndTransfer(addresses[0], addresses[1], addresses[0], params[0], _provider);
+    function createNewPool(
+        address[] calldata addresses,
+        uint256[] memory params,
+        bytes calldata signature
+    ) public returns (uint256 poolId) {
+        poolId = lockDealNFT.safeMintAndTransfer(
+            addresses[0],
+            addresses[1],
+            addresses[0],
+            params[0],
+            _provider,
+            signature
+        );
+        _provider.registerPool(poolId, params);
+    }
+
+    function createNewPoolWithTransfer(
+        address[] calldata addresses,
+        uint256[] memory params
+    ) public returns (uint256 poolId) {
+        IERC20(addresses[1]).transferFrom(addresses[0], address(lockDealNFT), params[0]);
+        poolId = lockDealNFT.mintAndTransfer(addresses[0], addresses[1], params[0], _provider);
         _provider.registerPool(poolId, params);
     }
 

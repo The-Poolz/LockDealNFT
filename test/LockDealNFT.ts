@@ -1,19 +1,22 @@
 import { LockDealNFT } from '../typechain-types';
 import { DealProvider } from '../typechain-types';
 import { LockDealProvider } from '../typechain-types';
+import { MockProvider } from '../typechain-types';
 import { TimedDealProvider } from '../typechain-types';
 import { MockVaultManager } from '../typechain-types';
+import { ERC20Token } from "../typechain-types";
 import { deployed, token, BUSD } from './helper';
 import { time } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
-import { BigNumber, constants } from 'ethers';
+import { BigNumber, Bytes, constants } from 'ethers';
 import { ethers } from 'hardhat';
 
 describe('LockDealNFT', function () {
   let lockDealNFT: LockDealNFT;
   let poolId: number;
   let mockVaultManager: MockVaultManager;
+  let mockProvider: MockProvider;
   let dealProvider: DealProvider;
   let lockDealProvider: LockDealProvider;
   let addresses: string[];
@@ -22,19 +25,24 @@ describe('LockDealNFT', function () {
   let notOwner: SignerWithAddress;
   let vaultId: BigNumber;
   let startTime: number, finishTime: number;
+  let mockToken: ERC20Token;
+  const signature: Bytes = ethers.utils.toUtf8Bytes('signature');
   const amount: string = '1000';
 
   before(async () => {
     [receiver, notOwner] = await ethers.getSigners();
+    mockToken = await deployed('ERC20Token', "TestToken","TEST");
     mockVaultManager = await deployed('MockVaultManager');
     lockDealNFT = await deployed('LockDealNFT', mockVaultManager.address, '');
     dealProvider = await deployed('DealProvider', lockDealNFT.address);
+    mockProvider = await deployed('MockProvider', lockDealNFT.address, dealProvider.address);
     lockDealProvider = await deployed('LockDealProvider', lockDealNFT.address, dealProvider.address);
     timedDealProvider = await deployed('TimedDealProvider', lockDealNFT.address, lockDealProvider.address);
     await lockDealNFT.setApprovedContract(dealProvider.address, true);
     await lockDealNFT.setApprovedContract(lockDealProvider.address, true);
     await lockDealNFT.setApprovedContract(timedDealProvider.address, true);
     await lockDealNFT.setApprovedContract(mockVaultManager.address, true);
+    await lockDealNFT.setApprovedContract(mockProvider.address, true);
   });
 
   beforeEach(async () => {
@@ -42,7 +50,7 @@ describe('LockDealNFT', function () {
     finishTime = startTime + 100;
     poolId = (await lockDealNFT.totalSupply()).toNumber();
     addresses = [receiver.address, token];
-    await dealProvider.createNewPool(addresses, [amount]);
+    await dealProvider.createNewPool(addresses, [amount], signature);
     vaultId = await mockVaultManager.Id();
   });
 
@@ -120,6 +128,14 @@ describe('LockDealNFT', function () {
     ).to.be.revertedWith('Pool transfer not approved by user');
   });
 
+  it('should check double transfer by using mintAndTransfer', async () => {
+    const addresses = [receiver.address, mockToken.address];
+    const params = [amount];
+    await mockToken.connect(receiver).approve(mockProvider.address, amount);
+    await mockProvider.connect(receiver).createNewPoolWithTransfer(addresses, params);
+    expect(await mockToken.balanceOf(mockVaultManager.address)).to.equal(amount);
+  });
+
   it("should revert transfer before the pool's start time", async () => {
     await mockVaultManager.setTransferStatus(false);
     await lockDealNFT.connect(receiver).approvePoolTransfers(true);
@@ -173,7 +189,7 @@ describe('LockDealNFT', function () {
     await expect(
       lockDealNFT
         .connect(notOwner)
-        .mintAndTransfer(receiver.address, notOwner.address, token, 10, dealProvider.address),
+        .mintAndTransfer(receiver.address, token, 10, dealProvider.address),
     ).to.be.revertedWith('Contract not approved');
   });
 
@@ -192,7 +208,7 @@ describe('LockDealNFT', function () {
   it('should return data from LockDealProvider using LockedDealNFT', async () => {
     poolId = (await lockDealNFT.totalSupply()).toNumber();
     const params = [amount, startTime];
-    await lockDealProvider.createNewPool(addresses, params);
+    await lockDealProvider.createNewPool(addresses, params, signature);
     const vaultId = await mockVaultManager.Id();
     const poolData = await lockDealNFT.getData(poolId);
     expect(poolData).to.deep.equal([lockDealProvider.address, "LockDealProvider", poolId, vaultId, receiver.address, token, params]);
@@ -201,7 +217,7 @@ describe('LockDealNFT', function () {
   it('should return data from TimedDealProvider using LockedDealNFT', async () => {
     poolId = (await lockDealNFT.totalSupply()).toNumber();
     const params = [amount, startTime, finishTime, amount];
-    await timedDealProvider.createNewPool(addresses, params);
+    await timedDealProvider.createNewPool(addresses, params, signature);
     const vaultId = await mockVaultManager.Id();
     const poolData = await lockDealNFT.getData(poolId);
     expect(poolData).to.deep.equal([timedDealProvider.address, "TimedDealProvider", poolId, vaultId, receiver.address, token, params]);
@@ -277,7 +293,7 @@ describe('LockDealNFT', function () {
   });
 
   it('check if the contract supports ILockDealNFT interface', async () => {
-    expect(await lockDealNFT.supportsInterface('0x22fd0654')).to.equal(true);
+    expect(await lockDealNFT.supportsInterface('0x2907ad54')).to.equal(true);
   });
 
   it('shuld return royalty', async () => {
@@ -289,10 +305,10 @@ describe('LockDealNFT', function () {
     const [, , newOwner, notOwner] = await ethers.getSigners();
     // create 3 pools
     addresses = [newOwner.address, token];
-    await dealProvider.createNewPool(addresses, [amount]);
-    await dealProvider.createNewPool(addresses, [amount]);
+    await dealProvider.createNewPool(addresses, [amount], signature);
+    await dealProvider.createNewPool(addresses, [amount], signature);
     addresses[1] = BUSD;
-    await dealProvider.createNewPool(addresses, [amount]);
+    await dealProvider.createNewPool(addresses, [amount], signature);
     // check token balance by token association
     expect(await lockDealNFT['balanceOf(address,address[])'](newOwner.address, [token])).to.equal(2);
     expect(await lockDealNFT['balanceOf(address,address[])'](newOwner.address, [BUSD])).to.equal(1);
@@ -318,13 +334,13 @@ describe('LockDealNFT', function () {
     poolId = (await lockDealNFT.totalSupply()).toNumber();
     // create 4 pools
     addresses = [newOwner.address, token];
-    await dealProvider.createNewPool(addresses, [amount]);
-    await dealProvider.createNewPool(addresses, [amount]);
+    await dealProvider.createNewPool(addresses, [amount], signature);
+    await dealProvider.createNewPool(addresses, [amount], signature);
     addresses[1] = BUSD;
-    await dealProvider.createNewPool(addresses, [amount]);
+    await dealProvider.createNewPool(addresses, [amount], signature);
     const USDT = '0x55d398326f99059ff775485246999027b3197955';
     addresses[1] = USDT;
-    await dealProvider.createNewPool(addresses, [amount]);
+    await dealProvider.createNewPool(addresses, [amount], signature);
     // check pool ids by token association
     expect(
       await lockDealNFT['tokenOfOwnerByIndex(address,address[],uint256)'](newOwner.address, [token, BUSD], 0),

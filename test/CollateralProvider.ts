@@ -7,7 +7,7 @@ import { deployed, token, MAX_RATIO } from './helper';
 import { time, mine } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
-import { BigNumber, constants } from 'ethers';
+import { BigNumber, Bytes, constants } from 'ethers';
 import { ethers } from 'hardhat';
 
 describe('Collateral Provider', function () {
@@ -22,6 +22,7 @@ describe('Collateral Provider', function () {
   let projectOwner: SignerWithAddress;
   let finishTime: number;
   let vaultId: BigNumber;
+  const signature: Bytes = ethers.utils.toUtf8Bytes('signature');
   const name: string = 'CollateralProvider';
   const halfRatio = MAX_RATIO.div(2);
   const amount = 100000;
@@ -43,7 +44,7 @@ describe('Collateral Provider', function () {
     finishTime = (await time.latest()) + 14 * ONE_DAY; // plus 14 days
     poolId = (await lockDealNFT.totalSupply()).toNumber();
     params = [amount, finishTime, halfRatio, poolId];
-    await mockProvider.createNewPool([projectOwner.address, token], params);
+    await mockProvider.createNewPool([projectOwner.address, token], params, signature);
     vaultId = await mockVaultManager.Id();
   });
 
@@ -94,7 +95,7 @@ describe('Collateral Provider', function () {
 
   it('should revert invalid finish time', async () => {
     await expect(
-      mockProvider.createNewPool([receiver.address, token], [amount, (await time.latest()) - 1, 0, 0]),
+      mockProvider.createNewPool([receiver.address, token], [amount, (await time.latest()) - 1, 0, 0], signature),
     ).to.be.revertedWith('start time must be in the future');
   });
 
@@ -119,9 +120,7 @@ describe('Collateral Provider', function () {
   });
 
   it('only NFT can manage withdraw', async () => {
-    await expect(collateralProvider.withdraw(poolId)).to.be.revertedWith(
-      'only NFT contract can call this function',
-    );
+    await expect(collateralProvider.withdraw(poolId)).to.be.revertedWith('only NFT contract can call this function');
   });
 
   it('should withdraw before time main coins', async () => {
@@ -179,7 +178,7 @@ describe('Collateral Provider', function () {
 
   it('should get half main coin amount', async () => {
     params = [amount, finishTime, halfRatio, poolId];
-    await mockProvider.createNewPool([projectOwner.address, token], params);
+    await mockProvider.createNewPool([projectOwner.address, token], params, signature);
     await mockProvider.handleWithdraw(poolId, amount);
     const withdrawAmount = await lockDealNFT.getWithdrawableAmount(poolId);
     expect(withdrawAmount).to.equal(amount / 2);

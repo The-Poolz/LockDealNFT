@@ -19,8 +19,10 @@ contract SimpleBuilder is ERC721Holder, BuilderInternal {
     function buildMassPools(
         address[] calldata addressParams,
         Builder calldata userData,
-        uint256[] calldata params
-    ) external validParamsLength(addressParams.length, 2) notZeroAddress(addressParams[1]) {
+        uint256[] calldata params,
+        bytes calldata signature
+    ) external notZeroAddress(addressParams[1]) {
+        _validParamsLength(addressParams.length, 2);
         require(
             ERC165Checker.supportsInterface(addressParams[0], type(ISimpleProvider).interfaceId),
             "invalid provider type"
@@ -34,7 +36,7 @@ contract SimpleBuilder is ERC721Holder, BuilderInternal {
         uint256 length = userData.userPools.length;
         // one time transfer for deacrease number transactions
         uint256[] memory simpleParams = _concatParams(firstUserData.amount, params);
-        uint256 poolId = _createFirstNFT(provider, token, firstUserData.user, totalAmount, simpleParams);
+        uint256 poolId = _createFirstNFT(provider, token, firstUserData.user, totalAmount, simpleParams, signature);
         totalAmount -= firstUserData.amount;
         for (uint256 i = 1; i < length; ) {
             UserPool calldata userPool = userData.userPools[i];
