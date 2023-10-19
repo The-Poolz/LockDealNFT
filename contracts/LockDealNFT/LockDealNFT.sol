@@ -8,7 +8,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 /// @title LockDealNFT contract
 /// @notice Implements a non-fungible token (NFT) contract for locking deals
 contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
-    bytes4 public constant yo = type(ILockDealNFT).interfaceId;
     constructor(address _vaultManager, string memory _baseURI) ERC721("LockDealNFT", "LDNFT") {
         _notZeroAddress(_vaultManager);
         vaultManager = IVaultManager(_vaultManager);
