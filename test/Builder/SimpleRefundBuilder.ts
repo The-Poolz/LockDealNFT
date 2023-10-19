@@ -10,7 +10,7 @@ import { deployed, token, BUSD, _createUsers, _logGasPrice } from '.././helper';
 import { time } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
-import { BigNumber, constants } from 'ethers';
+import { BigNumber, Bytes, constants } from 'ethers';
 import { ethers } from 'hardhat';
 import { BuilderState } from '../../typechain-types/contracts/Builders/SimpleBuilder/SimpleBuilder';
 
@@ -30,6 +30,8 @@ describe('Simple Refund Builder tests', function () {
   const ONE_DAY = 86400;
   const gasLimit = 130_000_000;
   const rate = ethers.utils.parseUnits('0.1', 21);
+  const tokenSignature: Bytes = ethers.utils.toUtf8Bytes('signature');
+  const mainCoinsignature: Bytes = ethers.utils.toUtf8Bytes('signature');
   let refundProvider: RefundProvider;
   let collateralProvider: CollateralProvider;
   let vaultId: number;
@@ -37,7 +39,7 @@ describe('Simple Refund Builder tests', function () {
 
   async function _testMassPoolsData(provider: string, amount: string, userCount: string, params: string[][]) {
     userData = _createUsers(amount, userCount);
-    const tx = await simpleRefundBuilder.connect(projectOwner).buildMassPools(addressParams, userData, params, { gasLimit });
+    const tx = await simpleRefundBuilder.connect(projectOwner).buildMassPools(addressParams, userData, params, tokenSignature, mainCoinsignature, { gasLimit });
     const txReceipt = await tx.wait();
     const lastPoolId = (await lockDealNFT.totalSupply()).toNumber();
     _logGasPrice(txReceipt, userData.userPools.length);

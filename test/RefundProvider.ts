@@ -10,7 +10,7 @@ import { deployed, token, BUSD, MAX_RATIO } from './helper';
 import { time, mine } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
-import { BigNumber, constants } from 'ethers';
+import { BigNumber, Bytes, constants } from 'ethers';
 import { ethers } from 'hardhat';
 
 describe('Refund Provider', function () {
@@ -34,6 +34,8 @@ describe('Refund Provider', function () {
   let startTime: number, finishTime: number;
   let collateralPoolId: number;
   const name: string = 'RefundProvider';
+  const tokenSignature: Bytes = ethers.utils.toUtf8Bytes('signature');
+  const mainCoinsignature: Bytes = ethers.utils.toUtf8Bytes('signature');
   const amount = ethers.utils.parseEther('100');
   const ONE_DAY = 86400;
   const ratio = MAX_RATIO.div(2);
@@ -63,7 +65,9 @@ describe('Refund Provider', function () {
     params = [amount, startTime, finishTime, mainCoinAmount, rate, finishTime];
     addresses = [receiver.address, token, BUSD, timedProvider.address];
     poolId = (await lockDealNFT.totalSupply()).toNumber();
-    await refundProvider.connect(projectOwner).createNewRefundPool(addresses, params);
+    await refundProvider
+      .connect(projectOwner)
+      .createNewRefundPool(addresses, params, tokenSignature, mainCoinsignature);
     vaultId = await mockVaultManager.Id();
     halfTime = (finishTime - startTime) / 2;
     collateralPoolId = poolId + 2;
@@ -75,8 +79,7 @@ describe('Refund Provider', function () {
 
   it('should return empty array if pool id is not refund provider', async () => {
     poolId = (await lockDealNFT.totalSupply()).toNumber();
-    await dealProvider.createNewPool(addresses, params);
-
+    await dealProvider.createNewPool(addresses, params, tokenSignature);
     expect(await refundProvider.getParams(poolId)).to.deep.equal([]);
   });
 
@@ -168,7 +171,9 @@ describe('Refund Provider', function () {
 
     it('should revert invalid provider', async () => {
       addresses[3] = refundProvider.address;
-      await expect(refundProvider.createNewRefundPool(addresses, params)).to.be.revertedWith('invalid provider type');
+      await expect(
+        refundProvider.createNewRefundPool(addresses, params, tokenSignature, mainCoinsignature),
+      ).to.be.revertedWith('invalid provider type');
     });
 
     it('should register new refund by other approved contract', async () => {
@@ -320,7 +325,9 @@ describe('Refund Provider', function () {
       poolId = (await lockDealNFT.totalSupply()).toNumber();
       const params = [amount, ratio, ratio, finishTime];
       addresses = [receiver.address, token, BUSD, dealProvider.address];
-      await refundProvider.connect(projectOwner).createNewRefundPool(addresses, params);
+      await refundProvider
+        .connect(projectOwner)
+        .createNewRefundPool(addresses, params, tokenSignature, mainCoinsignature);
       vaultId = await mockVaultManager.Id();
       await lockDealNFT
         .connect(receiver)
@@ -378,7 +385,9 @@ describe('Refund Provider', function () {
   describe('Refund Pool', async () => {
     it('the user receives the main coins', async () => {
       addresses[3] = lockProvider.address;
-      await refundProvider.connect(projectOwner).createNewRefundPool(addresses, params);
+      await refundProvider
+        .connect(projectOwner)
+        .createNewRefundPool(addresses, params, tokenSignature, mainCoinsignature);
       await lockDealNFT
         .connect(receiver)
         ['safeTransferFrom(address,address,uint256)'](receiver.address, refundProvider.address, poolId);
@@ -397,7 +406,9 @@ describe('Refund Provider', function () {
 
     it('the project owner receives the tokens', async () => {
       addresses[3] = lockProvider.address;
-      await refundProvider.connect(projectOwner).createNewRefundPool(addresses, params);
+      await refundProvider
+        .connect(projectOwner)
+        .createNewRefundPool(addresses, params, tokenSignature, mainCoinsignature);
       await lockDealNFT
         .connect(receiver)
         ['safeTransferFrom(address,address,uint256)'](receiver.address, refundProvider.address, poolId);

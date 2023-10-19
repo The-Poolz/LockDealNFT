@@ -16,11 +16,6 @@ contract BuilderModifiers is BuilderState {
         _;
     }
 
-    modifier validParamsLength(uint256 paramsLength, uint256 minLength) {
-        _validParamsLength(paramsLength, minLength);
-        _;
-    }
-
     function _notZeroAmount(uint256 amount) internal pure {
         require(amount > 0, "amount must be greater than 0");
     }

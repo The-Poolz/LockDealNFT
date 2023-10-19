@@ -1,7 +1,6 @@
-import { SimpleBuilder } from '../typechain-types';
+import { BuilderState } from '../typechain-types/contracts/Builders/SimpleBuilder/SimpleBuilder';
 import { ContractReceipt, utils } from 'ethers';
 import { ethers } from 'hardhat';
-import { BuilderState } from '../typechain-types/contracts/Builders/SimpleBuilder/SimpleBuilder';
 
 export const deployed = async <T>(contractName: string, ...args: string[]): Promise<T> => {
   const Contract = await ethers.getContractFactory(contractName);
