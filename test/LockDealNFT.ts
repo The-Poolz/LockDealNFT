@@ -133,7 +133,7 @@ describe('LockDealNFT', function () {
     const params = [amount];
     await mockToken.connect(receiver).approve(lockDealNFT.address, amount);
     await mockProvider.connect(receiver).createNewPoolWithTransfer(addresses, params);
-    expect(await mockToken.balanceOf(lockDealNFT.address)).to.equal(amount);
+    expect(await mockToken.balanceOf(mockVaultManager.address)).to.equal(amount);
   });
 
   it("should revert transfer before the pool's start time", async () => {

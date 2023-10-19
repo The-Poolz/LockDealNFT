@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 contract MockVaultManager {
     mapping(address => uint) public tokenToVaultId;
     mapping(uint256 => address) vaultIdtoToken;
@@ -16,7 +18,8 @@ contract MockVaultManager {
         vaultId = _depositByToken(_tokenAddress);
     }
 
-    function depositByToken(address _tokenAddress, uint256) public returns (uint vaultId) {
+    function depositByToken(address _tokenAddress, uint256 amount) public returns (uint vaultId) {
+        IERC20(_tokenAddress).transferFrom(msg.sender, address(this), amount);
         vaultId = _depositByToken(_tokenAddress);
     }
 
