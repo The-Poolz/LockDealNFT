@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./IProvider.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
+import "@poolzfinance/poolz-helper-v2/contracts/interfaces/IVaultManager.sol";
 
 interface ILockDealNFT is IERC721Enumerable {
     function approvedContracts(address contractAddress) external view returns (bool);
@@ -30,6 +31,8 @@ interface ILockDealNFT is IERC721Enumerable {
     function getData(uint256 poolId) external view returns (BasePoolInfo memory poolInfo);
 
     function tokenOf(uint256 poolId) external view returns (address token);
+
+    function vaultManager() external view returns (IVaultManager);
 
     function poolIdToProvider(uint256 poolId) external view returns (IProvider provider);
 
