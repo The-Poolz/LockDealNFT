@@ -4,9 +4,16 @@ pragma solidity ^0.8.0;
 import "./LockDealNFTModifiers.sol";
 import "../interfaces/IInnerWithdraw.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
+import "../interfaces/IBeforeTransfer.sol";
 
 abstract contract LockDealNFTInternal is LockDealNFTModifiers {
     function _transfer(address from, address to, uint256 poolId) internal override {
+        if (
+            from != address(0) &&
+            ERC165Checker.supportsInterface(address(poolIdToProvider[poolId]), type(IBeforeTransfer).interfaceId)
+        ) {
+            IBeforeTransfer(address(poolIdToProvider[poolId])).beforeTransfer(from, to, poolId);
+        }
         // check for split and withdraw transfers
         if (!(approvedContracts[to] || approvedContracts[from])) {
             require(approvedPoolUserTransfers[from], "Pool transfer not approved by user");

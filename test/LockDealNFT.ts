@@ -1,10 +1,11 @@
 import { LockDealNFT } from '../typechain-types';
 import { DealProvider } from '../typechain-types';
 import { LockDealProvider } from '../typechain-types';
+import { MockTransfer } from '../typechain-types';
 import { MockProvider } from '../typechain-types';
 import { TimedDealProvider } from '../typechain-types';
 import { MockVaultManager } from '../typechain-types';
-import { ERC20Token } from "../typechain-types";
+import { ERC20Token } from '../typechain-types';
 import { deployed, token, BUSD } from './helper';
 import { time } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -26,23 +27,26 @@ describe('LockDealNFT', function () {
   let vaultId: BigNumber;
   let startTime: number, finishTime: number;
   let mockToken: ERC20Token;
+  let mockTransfer: MockTransfer;
   const signature: Bytes = ethers.utils.toUtf8Bytes('signature');
   const amount: string = '1000';
 
   before(async () => {
     [receiver, notOwner] = await ethers.getSigners();
-    mockToken = await deployed('ERC20Token', "TestToken","TEST");
+    mockToken = await deployed('ERC20Token', 'TestToken', 'TEST');
     mockVaultManager = await deployed('MockVaultManager');
     lockDealNFT = await deployed('LockDealNFT', mockVaultManager.address, '');
     dealProvider = await deployed('DealProvider', lockDealNFT.address);
     mockProvider = await deployed('MockProvider', lockDealNFT.address, dealProvider.address);
     lockDealProvider = await deployed('LockDealProvider', lockDealNFT.address, dealProvider.address);
     timedDealProvider = await deployed('TimedDealProvider', lockDealNFT.address, lockDealProvider.address);
+    mockTransfer = await deployed('MockTransfer', lockDealNFT.address);
     await lockDealNFT.setApprovedContract(dealProvider.address, true);
     await lockDealNFT.setApprovedContract(lockDealProvider.address, true);
     await lockDealNFT.setApprovedContract(timedDealProvider.address, true);
     await lockDealNFT.setApprovedContract(mockVaultManager.address, true);
     await lockDealNFT.setApprovedContract(mockProvider.address, true);
+    await lockDealNFT.setApprovedContract(mockTransfer.address, true);
   });
 
   beforeEach(async () => {
@@ -136,6 +140,15 @@ describe('LockDealNFT', function () {
     expect(await mockToken.balanceOf(mockVaultManager.address)).to.equal(amount);
   });
 
+  it('test IBeforeTransfer call', async () => {
+    poolId = (await lockDealNFT.totalSupply()).toNumber();
+    await mockTransfer.connect(receiver).createNewPool(addresses, [amount], signature);
+    await lockDealNFT.connect(receiver).approvePoolTransfers(true);
+    await lockDealNFT.connect(receiver).transferFrom(receiver.address, notOwner.address, poolId);
+    await lockDealNFT.connect(receiver).approvePoolTransfers(false);
+    expect(await mockTransfer.isBeforeTransferCalled()).to.equal(true);
+  });
+
   it("should revert transfer before the pool's start time", async () => {
     await mockVaultManager.setTransferStatus(false);
     await lockDealNFT.connect(receiver).approvePoolTransfers(true);
@@ -187,9 +200,7 @@ describe('LockDealNFT', function () {
 
   it('only provider can mintAndTransfer', async () => {
     await expect(
-      lockDealNFT
-        .connect(notOwner)
-        .mintAndTransfer(receiver.address, token, 10, dealProvider.address),
+      lockDealNFT.connect(notOwner).mintAndTransfer(receiver.address, token, 10, dealProvider.address),
     ).to.be.revertedWith('Contract not approved');
   });
 
