@@ -73,7 +73,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
             msg.sender,
             addresses[2],
             msg.sender,
-            params[paramsLength - 3],
+            params[paramsLength - 2],
             collateralProvider,
             mainCoinSignature
         );
