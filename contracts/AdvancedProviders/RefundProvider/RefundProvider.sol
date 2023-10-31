@@ -6,6 +6,8 @@ import "../../ERC165/Refundble.sol";
 import "./RefundState.sol";
 
 contract RefundProvider is RefundState, IERC721Receiver {
+    using CalcUtils for uint256;
+
     constructor(ILockDealNFT nftContract, address provider) {
         require(address(nftContract) != address(0x0) && provider != address(0x0), "invalid address");
         lockDealNFT = nftContract;
@@ -39,8 +41,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
     ///@param addresses[2] = main coin
     ///@param addresses[3] = provider
     ///@param params[0] = tokenLeftAmount
-    ///@param params[params.length - 3] = refundMainCoinAmount
-    ///@param params[params.length - 2] = rateToWei
+    ///@param params[params.length - 2] = refundMainCoinAmount
     ///@param params[params.length - 1] = refund finish time
     function createNewRefundPool(
         address[] calldata addresses,
@@ -51,7 +52,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
         _validAddressLength(addresses.length, 4);
         _validProviderInterface(IProvider(addresses[3]), Refundble._INTERFACE_ID_REFUNDABLE);
         uint256 paramsLength = params.length;
-        require(paramsLength > 3, "invalid params length");
+        require(paramsLength > 2, "invalid params length");
         IProvider provider = IProvider(addresses[3]);
         // create new refund pool | Owner User
         poolId = lockDealNFT.mintForProvider(addresses[0], this);
@@ -77,9 +78,9 @@ contract RefundProvider is RefundState, IERC721Receiver {
             mainCoinSignature
         );
         uint256[] memory collateralParams = new uint256[](4);
-        collateralParams[0] = params[paramsLength - 3];
+        collateralParams[0] = params[paramsLength - 2];
         collateralParams[1] = params[paramsLength - 1];
-        collateralParams[2] = params[paramsLength - 2];
+        collateralParams[2] = params[paramsLength - 2].calcRate(params[0]);
         collateralParams[3] = dataPoolID;
         collateralProvider.registerPool(collateralPoolId, collateralParams);
         // save refund data
