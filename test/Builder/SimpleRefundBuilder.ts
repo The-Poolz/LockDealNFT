@@ -6,7 +6,7 @@ import { TimedDealProvider } from '../../typechain-types';
 import { CollateralProvider } from '../../typechain-types';
 import { RefundProvider } from '../../typechain-types';
 import { SimpleRefundBuilder } from '../../typechain-types';
-import { deployed, token, BUSD, _createUsers, _logGasPrice } from '.././helper';
+import { deployed, token, BUSD, _createUsers, _logGasPrice, MAX_RATIO } from '.././helper';
 import { time } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
@@ -77,8 +77,7 @@ describe('Simple Refund Builder tests', function () {
   async function _checkRefundProviderData(poolId: number, collateralId: number,  simplePoolId: number, user: string, token: string, vaultId: number) {
     const simpleData = await lockDealNFT.getData(simplePoolId);
     const tokenAmount = simpleData.params[0];
-    const maxRate = ethers.utils.parseUnits('1', 21);
-    const params = [tokenAmount, tokenAmount.mul(rate).div(maxRate), ethers.BigNumber.from(collateralId), ...simpleData.params.slice(1)];
+    const params = [tokenAmount, tokenAmount.mul(rate).div(MAX_RATIO), ethers.BigNumber.from(collateralId), ...simpleData.params.slice(1)];
     const poolData = await lockDealNFT.getData(poolId);
     expect(poolData).to.deep.equal([refundProvider.address, 'RefundProvider', poolId, vaultId, user, token, params]);
   }

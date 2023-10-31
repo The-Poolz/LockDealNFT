@@ -23,7 +23,6 @@ describe('Refund Provider', function () {
   let collateralProvider: CollateralProvider;
   let halfTime: number;
   const rate = ethers.utils.parseUnits('0.1', 21);
-  const maxRate = ethers.utils.parseUnits('1', 21);
   const mainCoinAmount = ethers.utils.parseEther('10');
   let lockDealNFT: LockDealNFT;
   let poolId: number;
@@ -88,7 +87,7 @@ describe('Refund Provider', function () {
   describe('Pool Creation', async () => {
     it('should return refund pool data after creation', async () => {
       const poolData = await lockDealNFT.getData(poolId);
-      const params = [amount, amount.mul(rate).div(maxRate), collateralPoolId, startTime, finishTime, amount];
+      const params = [amount, amount.mul(rate).div(MAX_RATIO), collateralPoolId, startTime, finishTime, amount];
       expect(poolData).to.deep.equal([
         refundProvider.address,
         name,
@@ -201,7 +200,7 @@ describe('Refund Provider', function () {
       await lockDealNFT
         .connect(receiver)
         ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData);
-      const params = [halfAmount, halfAmount.mul(rate).div(maxRate), collateralPoolId, startTime, finishTime, halfAmount];
+      const params = [halfAmount, halfAmount.mul(rate).div(MAX_RATIO), collateralPoolId, startTime, finishTime, halfAmount];
       const poolData = await lockDealNFT.getData(poolId);
       expect(poolData).to.deep.equal([
         refundProvider.address,
@@ -236,7 +235,7 @@ describe('Refund Provider', function () {
       await lockDealNFT
         .connect(receiver)
         ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData);
-      const params = [halfAmount, halfAmount.mul(rate).div(maxRate), collateralPoolId, startTime, finishTime, halfAmount];
+      const params = [halfAmount, halfAmount.mul(rate).div(MAX_RATIO), collateralPoolId, startTime, finishTime, halfAmount];
       const poolData = await lockDealNFT.getData(poolId + 6);
       expect(poolData).to.deep.equal([
         refundProvider.address,
