@@ -5,11 +5,13 @@ import "../CollateralProvider/CollateralProvider.sol";
 import "../../interfaces/IInnerWithdraw.sol";
 
 abstract contract RefundState is ProviderModifiers, IInnerWithdraw, IERC165 {
+    using CalcUtils for uint256;
+
     CollateralProvider public collateralProvider;
     mapping(uint256 => uint256) public poolIdToCollateralId;
 
     ///@return params  params [0] = tokenLeftAmount; - user(poolId + 1) data
-    ///                params [1] = rateToWei
+    ///                params [1] = user main coin amount;
     ///                params [2] = collateralPoolId
     ///                params [3 - ...] =  time if locked or timed provider or bundle last poolId
     function getParams(uint256 poolId) public view override returns (uint256[] memory params) {
@@ -18,8 +20,10 @@ abstract contract RefundState is ProviderModifiers, IInnerWithdraw, IERC165 {
             uint256[] memory dataParams = lockDealNFT.poolIdToProvider(poolId + 1).getParams(poolId + 1);
             uint256 length = currentParamsTargetLenght() + dataParams.length + 1;
             params = new uint256[](length);
-            params[0] = dataParams[0];
-            params[1] = collateralProvider.poolIdToRateToWei(collateralPoolId);
+            uint256 tokenAmount = dataParams[0];
+            uint256 rateToWei = collateralProvider.poolIdToRateToWei(collateralPoolId);
+            params[0] = tokenAmount;
+            params[1] = tokenAmount.calcAmount(rateToWei);
             params[2] = collateralPoolId;
             for (uint256 i = 3; i < length; ++i) {
                 params[i] = dataParams[i - 2]; // start from index 1
