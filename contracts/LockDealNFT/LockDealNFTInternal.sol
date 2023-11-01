@@ -6,6 +6,7 @@ import "../interfaces/IInnerWithdraw.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import "../interfaces/IBeforeTransfer.sol"; 
 import {SphereXProtected} from "@spherex-xyz/contracts/src/SphereXProtected.sol";
+import {ModifierLocals} from "@spherex-xyz/contracts/src/ISphereXEngine.sol";
  
 
 abstract contract LockDealNFTInternal is SphereXProtected, LockDealNFTModifiers {
@@ -27,10 +28,16 @@ abstract contract LockDealNFTInternal is SphereXProtected, LockDealNFTModifiers 
         super._transfer(from, to, poolId);
     }
 
+    modifier sphereXGuardInternal_mint() {
+        ModifierLocals memory locals = _sphereXValidateInternalPre(0x1ea2d3dc);
+        _;
+        _sphereXValidateInternalPost(-0x1ea2d3dc, locals);
+    }
+
     /// @param owner The address to assign the token to
     /// @param provider The address of the provider assigning the token
     /// @return newPoolId The ID of the pool
-    function _mint(address owner, IProvider provider) internal sphereXGuardInternal(0x1ea2d3dc) returns (uint256 newPoolId) {
+    function _mint(address owner, IProvider provider) internal sphereXGuardInternal_mint returns (uint256 newPoolId) {
         newPoolId = totalSupply();
         _safeMint(owner, newPoolId);
         poolIdToProvider[newPoolId] = provider;
@@ -83,6 +90,11 @@ abstract contract LockDealNFTInternal is SphereXProtected, LockDealNFTModifiers 
         isFinal = _split(poolId, from, ratio, newOwner);
     }
 
+    struct SplitLocals {
+        IProvider provider;
+        uint256 newPoolId;
+    }
+
     function _split(
         uint256 poolId,
         address from,
@@ -90,12 +102,13 @@ abstract contract LockDealNFTInternal is SphereXProtected, LockDealNFTModifiers 
         address newOwner
     ) private notZeroAddress(newOwner) notZeroAmount(ratio) sphereXGuardInternal(0xaa31460b) returns (bool isFinal) {
         require(ratio <= 1e21, "split amount exceeded");
-        IProvider provider = poolIdToProvider[poolId];
-        uint256 newPoolId = _mint(newOwner, provider);
-        poolIdToVaultId[newPoolId] = poolIdToVaultId[poolId];
-        provider.split(poolId, newPoolId, ratio);
-        isFinal = provider.getParams(poolId)[0] == 0;
-        emit PoolSplit(poolId, from, newPoolId, newOwner, getData(poolId).params[0], getData(newPoolId).params[0]);
+        SplitLocals memory locals;
+        locals.provider = poolIdToProvider[poolId];
+        locals.newPoolId = _mint(newOwner, locals.provider);
+        poolIdToVaultId[locals.newPoolId] = poolIdToVaultId[poolId];
+        locals.provider.split(poolId, locals.newPoolId, ratio);
+        isFinal = locals.provider.getParams(poolId)[0] == 0;
+        emit PoolSplit(poolId, from, locals.newPoolId, newOwner, getData(poolId).params[0], getData(locals.newPoolId).params[0]);
         emit MetadataUpdate(poolId);
     }
 }

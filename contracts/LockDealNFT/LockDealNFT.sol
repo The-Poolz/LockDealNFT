@@ -5,6 +5,7 @@ import "./LockDealNFTInternal.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol"; 
 import {SphereXProtected} from "@spherex-xyz/contracts/src/SphereXProtected.sol";
+import {ModifierLocals} from "@spherex-xyz/contracts/src/ISphereXEngine.sol";
  
 
 /// @title LockDealNFT contract
@@ -42,6 +43,12 @@ contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
         poolIdToVaultId[poolId] = vaultManager.depositByToken(token, amount);
     }
 
+    modifier sphereXGuardPublic_safeMintAndTransfer() {
+        ModifierLocals memory locals = _sphereXValidatePre(0xd17162eb, msg.sig == 0x604e38ed);
+        _;
+        _sphereXValidatePost(-0xd17162eb, msg.sig == 0x604e38ed, locals);
+    }
+
     function safeMintAndTransfer(
         address owner,
         address token,
@@ -55,7 +62,7 @@ contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
         notZeroAddress(owner)
         notZeroAddress(token)
         notZeroAmount(amount)
-        sphereXGuardPublic(0xd17162eb, 0x604e38ed) returns (uint256 poolId)
+        sphereXGuardPublic_safeMintAndTransfer returns (uint256 poolId)
     {
         poolId = _mint(owner, provider);
         poolIdToVaultId[poolId] = vaultManager.safeDeposit(token, amount, from, data);

@@ -8,9 +8,17 @@ import "../../ERC165/Refundble.sol";
 import "../../ERC165/Bundable.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol"; 
 import {SphereXProtected} from "@spherex-xyz/contracts/src/SphereXProtected.sol";
+import {ModifierLocals} from "@spherex-xyz/contracts/src/ISphereXEngine.sol";
+
  
 
 abstract contract BasicProvider is ProviderModifiers, ISimpleProvider, ERC165 , SphereXProtected {
+    modifier sphereXGuardPublic_createNewPool() {
+        ModifierLocals memory locals = _sphereXValidatePre(0x394c07d0, msg.sig == 0x14877c38);
+        _;
+        _sphereXValidatePost(-0x394c07d0, msg.sig == 0x14877c38, locals);
+    }
+
     /**
      * @dev Creates a new pool with the specified parameters.
      * @param addresses[0] The address of the pool owner.
@@ -28,7 +36,7 @@ abstract contract BasicProvider is ProviderModifiers, ISimpleProvider, ERC165 , 
         virtual
         validAddressesLength(addresses.length, 2)
         validParamsLength(params.length, currentParamsTargetLenght())
-        sphereXGuardPublic(0x394c07d0, 0x14877c38) returns (uint256 poolId)
+        sphereXGuardPublic_createNewPool returns (uint256 poolId)
     {
         poolId = lockDealNFT.safeMintAndTransfer(addresses[0], addresses[1], msg.sender, params[0], this, signature);
         _registerPool(poolId, params);

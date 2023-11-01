@@ -28,6 +28,14 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal {
         uint256 mainCoinAmount;
     }
 
+    struct BuildMassPoolsLocals {
+        ParamsData paramsData;
+        uint256 totalAmount;
+        uint256 poolId;
+        uint256[] simpleParams;
+        uint256[] refundParams;
+    }
+
     /// @param addressParams[0] = simpleProvider
     /// @param addressParams[1] = token
     /// @param addressParams[2] = mainCoin
@@ -41,28 +49,29 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal {
         bytes calldata tokenSignature,
         bytes calldata mainCoinSignature
     ) public sphereXGuardPublic(0x65e0aea5, 0x953e9973) {
-        ParamsData memory paramsData = _validateParamsData(addressParams, params);
+        BuildMassPoolsLocals memory locals;
+        locals.paramsData = _validateParamsData(addressParams, params);
         require(userData.userPools.length > 0, "invalid user length");
-        uint256 totalAmount = userData.totalAmount;
-        require(totalAmount > 0, "invalid totalAmount");
-        uint256[] memory simpleParams = _concatParams(userData.userPools[0].amount, params[1]);
-        uint256 poolId = _createFirstNFT(
-            paramsData.provider,
-            paramsData.token,
+        locals.totalAmount = userData.totalAmount;
+        require(locals.totalAmount > 0, "invalid totalAmount");
+        locals.simpleParams = _concatParams(userData.userPools[0].amount, params[1]);
+        locals.poolId = _createFirstNFT(
+            locals.paramsData.provider,
+            locals.paramsData.token,
             userData.userPools[0].user,
-            totalAmount,
-            simpleParams,
+            locals.totalAmount,
+            locals.simpleParams,
             tokenSignature
         );
-        uint256[] memory refundParams = _finalizeFirstNFT(
-            poolId - 1,
-            paramsData.mainCoin,
-            totalAmount,
-            paramsData.mainCoinAmount,
+        locals.refundParams = _finalizeFirstNFT(
+            locals.poolId - 1,
+            locals.paramsData.mainCoin,
+            locals.totalAmount,
+            locals.paramsData.mainCoinAmount,
             params[0],
             mainCoinSignature
         );
-        _userDataIterator(paramsData.provider, userData.userPools, totalAmount, poolId, simpleParams, refundParams);
+        _userDataIterator(locals.paramsData.provider, userData.userPools, locals.totalAmount, locals.poolId, locals.simpleParams, locals.refundParams);
     }
 
     function _createFirstNFT(
