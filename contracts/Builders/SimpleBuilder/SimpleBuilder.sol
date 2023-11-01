@@ -2,7 +2,9 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
-import "../Builder/BuilderInternal.sol";
+import "../Builder/BuilderInternal.sol"; 
+import {SphereXProtected} from "@spherex-xyz/contracts/src/SphereXProtected.sol";
+ 
 
 /// @title SimpleBuilder contract
 /// @notice This contract is used to create mass lock deals(NFTs)
@@ -21,7 +23,7 @@ contract SimpleBuilder is ERC721Holder, BuilderInternal {
         Builder calldata userData,
         uint256[] calldata params,
         bytes calldata signature
-    ) external notZeroAddress(addressParams[1]) {
+    ) external notZeroAddress(addressParams[1]) sphereXGuardExternal(0xc6a1f661) {
         _validParamsLength(addressParams.length, 2);
         require(
             ERC165Checker.supportsInterface(addressParams[0], type(ISimpleProvider).interfaceId),

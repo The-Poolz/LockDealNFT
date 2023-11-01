@@ -9,6 +9,7 @@
   "license": "MIT",
   "main": "index.js",
   "dependencies": {
+    "@spherex-xyz/contracts": "^1.0.5",
     "@spherex-xyz/openzeppelin-solidity": "^0.0.4",
     "@spherex-xyz/poolz-helper-v2": "^0.0.2"
   },

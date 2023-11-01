@@ -3,9 +3,11 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "../../ERC165/Refundble.sol";
-import "./RefundState.sol";
+import "./RefundState.sol"; 
+import {SphereXProtected} from "@spherex-xyz/contracts/src/SphereXProtected.sol";
+ 
 
-contract RefundProvider is RefundState, IERC721Receiver {
+contract RefundProvider is RefundState, IERC721Receiver , SphereXProtected {
     constructor(ILockDealNFT nftContract, address provider) {
         require(address(nftContract) != address(0x0) && provider != address(0x0), "invalid address");
         lockDealNFT = nftContract;
@@ -19,7 +21,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
         address user,
         uint256 poolId,
         bytes calldata
-    ) external override returns (bytes4) {
+    ) external override sphereXGuardExternal(0xfe8d1ec4) returns (bytes4) {
         require(msg.sender == address(lockDealNFT), "invalid nft contract");
         if (provider == user) {
             uint256 collateralPoolId = poolIdToCollateralId[poolId];
@@ -47,7 +49,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
         uint256[] calldata params,
         bytes calldata tokenSignature,
         bytes calldata mainCoinSignature
-    ) external returns (uint256 poolId) {
+    ) external sphereXGuardExternal(0x1b5a4f7f) returns (uint256 poolId) {
         _validAddressLength(addresses.length, 4);
         _validProviderInterface(IProvider(addresses[3]), Refundble._INTERFACE_ID_REFUNDABLE);
         uint256 paramsLength = params.length;
@@ -92,7 +94,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
     function registerPool(
         uint256 poolId,
         uint256[] calldata params
-    ) public override onlyProvider validProviderId(poolId) validProviderAssociation(params[0], collateralProvider) {
+    ) public override onlyProvider validProviderId(poolId) validProviderAssociation(params[0], collateralProvider) sphereXGuardPublic(0xab228ee1, 0xe9a9fce2) {
         require(lockDealNFT.ownerOf(poolId + 1) == address(this), "Must Own poolId+1");
         _registerPool(poolId, params);
     }
@@ -100,13 +102,13 @@ contract RefundProvider is RefundState, IERC721Receiver {
     function _registerPool(
         uint256 poolId,
         uint256[] memory params
-    ) internal validParamsLength(params.length, currentParamsTargetLenght()) {
+    ) internal validParamsLength(params.length, currentParamsTargetLenght()) sphereXGuardInternal(0x5ea5ccec) {
         poolIdToCollateralId[poolId] = params[0];
         emit UpdateParams(poolId, params);
     }
 
     ///@dev split tokens and main coins into new pools
-    function split(uint256 poolId, uint256 newPoolId, uint256 ratio) external onlyNFT {
+    function split(uint256 poolId, uint256 newPoolId, uint256 ratio) external onlyNFT sphereXGuardExternal(0xf27cfa59) {
         uint256[] memory params = new uint256[](currentParamsTargetLenght());
         params[0] = poolIdToCollateralId[poolId];
         _registerPool(newPoolId, params);
@@ -115,7 +117,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
     }
 
     ///@dev user withdraws his tokens
-    function withdraw(uint256 poolId) public override onlyNFT returns (uint256 amountToBeWithdrawed, bool isFinal) {
+    function withdraw(uint256 poolId) public override onlyNFT sphereXGuardPublic(0xb87a92c4, 0x2e1a7d4d) returns (uint256 amountToBeWithdrawed, bool isFinal) {
         uint256 userDataPoolId = poolId + 1;
         IProvider provider = lockDealNFT.poolIdToProvider(userDataPoolId);
         amountToBeWithdrawed = provider.getWithdrawableAmount(userDataPoolId);

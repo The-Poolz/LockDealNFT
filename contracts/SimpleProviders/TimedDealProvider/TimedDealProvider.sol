@@ -4,7 +4,9 @@ pragma solidity ^0.8.0;
 import "../LockProvider/LockDealState.sol";
 import "../DealProvider/DealProviderState.sol";
 import "../Provider/BasicProvider.sol";
-import "../../util/CalcUtils.sol";
+import "../../util/CalcUtils.sol"; 
+import {SphereXProtected} from "@spherex-xyz/contracts/src/SphereXProtected.sol";
+ 
 
 contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider {
     using CalcUtils for uint256;
@@ -24,7 +26,7 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider {
     function _withdraw(
         uint256 poolId,
         uint256 amount
-    ) internal override returns (uint256 withdrawnAmount, bool isFinal) {
+    ) internal override sphereXGuardInternal(0x4400dac3) returns (uint256 withdrawnAmount, bool isFinal) {
         (withdrawnAmount, isFinal) = provider.withdraw(poolId, amount);
     }
 
@@ -44,7 +46,7 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider {
         return debitableAmount - (startAmount - leftAmount);
     }
 
-    function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) public onlyProvider {
+    function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) public onlyProvider sphereXGuardPublic(0x2b6b4212, 0xcaf0887d) {
         provider.split(oldPoolId, newPoolId, ratio);
         uint256 newPoolStartAmount = poolIdToAmount[oldPoolId].calcAmount(ratio);
         poolIdToAmount[oldPoolId] -= newPoolStartAmount;
@@ -55,7 +57,7 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider {
     ///@param params[0] = leftAmount = startAmount (leftAmount & startAmount must be same while creating pool)
     ///@param params[1] = startTime
     ///@param params[2] = finishTime
-    function _registerPool(uint256 poolId, uint256[] calldata params) internal override {
+    function _registerPool(uint256 poolId, uint256[] calldata params) internal override sphereXGuardInternal(0x96aa4b2f) {
         require(params[2] >= params[1], "Finish time should be greater than start time");
         poolIdToTime[poolId] = params[2];
         poolIdToAmount[poolId] = params[0];

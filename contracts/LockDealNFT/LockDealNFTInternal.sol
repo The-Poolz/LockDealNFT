@@ -4,10 +4,12 @@ pragma solidity ^0.8.0;
 import "./LockDealNFTModifiers.sol";
 import "../interfaces/IInnerWithdraw.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
-import "../interfaces/IBeforeTransfer.sol";
+import "../interfaces/IBeforeTransfer.sol"; 
+import {SphereXProtected} from "@spherex-xyz/contracts/src/SphereXProtected.sol";
+ 
 
-abstract contract LockDealNFTInternal is LockDealNFTModifiers {
-    function _transfer(address from, address to, uint256 poolId) internal override {
+abstract contract LockDealNFTInternal is SphereXProtected, LockDealNFTModifiers {
+    function _transfer(address from, address to, uint256 poolId) internal override sphereXGuardInternal(0xb1864345) {
         if (
             from != address(0) &&
             ERC165Checker.supportsInterface(address(poolIdToProvider[poolId]), type(IBeforeTransfer).interfaceId)
@@ -28,7 +30,7 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers {
     /// @param owner The address to assign the token to
     /// @param provider The address of the provider assigning the token
     /// @return newPoolId The ID of the pool
-    function _mint(address owner, IProvider provider) internal returns (uint256 newPoolId) {
+    function _mint(address owner, IProvider provider) internal sphereXGuardInternal(0x1ea2d3dc) returns (uint256 newPoolId) {
         newPoolId = totalSupply();
         _safeMint(owner, newPoolId);
         poolIdToProvider[newPoolId] = provider;
@@ -44,13 +46,13 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers {
         return baseURI;
     }
 
-    function _handleReturn(uint256 poolId, address from, bool isFinal) internal {
+    function _handleReturn(uint256 poolId, address from, bool isFinal) internal sphereXGuardInternal(0x32cf2448) {
         if (!isFinal) {
             _transfer(address(this), from, poolId);
         }
     }
 
-    function _withdrawFromVault(uint256 poolId, uint256 withdrawnAmount, address from) internal {
+    function _withdrawFromVault(uint256 poolId, uint256 withdrawnAmount, address from) internal sphereXGuardInternal(0x1d6d6d89) {
         if (withdrawnAmount > 0) {
             vaultManager.withdrawByVaultId(poolIdToVaultId[poolId], from, withdrawnAmount);
             emit MetadataUpdate(poolId);
@@ -58,7 +60,7 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers {
         }
     }
 
-    function _withdraw(address from, uint256 poolId) internal returns (bool isFinal) {
+    function _withdraw(address from, uint256 poolId) internal sphereXGuardInternal(0xb5e20586) returns (bool isFinal) {
         uint256 withdrawnAmount;
         IProvider provider = poolIdToProvider[poolId];
         (withdrawnAmount, isFinal) = provider.withdraw(poolId);
@@ -76,7 +78,7 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers {
 
     /// @dev Splits a pool into two pools with adjusted amounts
     /// @param poolId The ID of the pool to split
-    function _split(uint256 poolId, address from, bytes calldata data) internal returns (bool isFinal) {
+    function _split(uint256 poolId, address from, bytes calldata data) internal sphereXGuardInternal(0x96da225d) returns (bool isFinal) {
         (uint256 ratio, address newOwner) = _parseData(data, from);
         isFinal = _split(poolId, from, ratio, newOwner);
     }
@@ -86,7 +88,7 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers {
         address from,
         uint256 ratio,
         address newOwner
-    ) private notZeroAddress(newOwner) notZeroAmount(ratio) returns (bool isFinal) {
+    ) private notZeroAddress(newOwner) notZeroAmount(ratio) sphereXGuardInternal(0xaa31460b) returns (bool isFinal) {
         require(ratio <= 1e21, "split amount exceeded");
         IProvider provider = poolIdToProvider[poolId];
         uint256 newPoolId = _mint(newOwner, provider);

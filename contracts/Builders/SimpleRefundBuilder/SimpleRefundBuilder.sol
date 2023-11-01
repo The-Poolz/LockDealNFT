@@ -4,7 +4,9 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "../../interfaces/ISimpleProvider.sol";
 import "../Builder/BuilderInternal.sol";
-import "../../util/CalcUtils.sol";
+import "../../util/CalcUtils.sol"; 
+import {SphereXProtected} from "@spherex-xyz/contracts/src/SphereXProtected.sol";
+ 
 
 /// @title SimpleRefundBuilder contract
 /// @notice Implements a contract for building refund simple providers
@@ -38,7 +40,7 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal {
         uint256[][] calldata params,
         bytes calldata tokenSignature,
         bytes calldata mainCoinSignature
-    ) public {
+    ) public sphereXGuardPublic(0x65e0aea5, 0x953e9973) {
         ParamsData memory paramsData = _validateParamsData(addressParams, params);
         require(userData.userPools.length > 0, "invalid user length");
         uint256 totalAmount = userData.totalAmount;
@@ -70,7 +72,7 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal {
         uint256 totalAmount,
         uint256[] memory params,
         bytes calldata signature
-    ) internal virtual override returns (uint256 poolId) {
+    ) internal virtual override sphereXGuardInternal(0x86853896) returns (uint256 poolId) {
         // one time token transfer for deacrease number transactions
         lockDealNFT.mintForProvider(owner, refundProvider);
         poolId = super._createFirstNFT(provider, token, address(refundProvider), totalAmount, params, signature);
@@ -83,7 +85,7 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal {
         uint256 mainCoinAmount,
         uint256[] memory params,
         bytes calldata signature
-    ) internal returns (uint256 poolId) {
+    ) internal sphereXGuardInternal(0xacc589dc) returns (uint256 poolId) {
         poolId = lockDealNFT.safeMintAndTransfer(
             msg.sender,
             mainCoin,
@@ -126,7 +128,7 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal {
         uint256 mainCoinAmount,
         uint256[] memory collateralParams,
         bytes calldata signature
-    ) internal returns (uint256[] memory refundParams) {
+    ) internal sphereXGuardInternal(0xc482d18b) returns (uint256[] memory refundParams) {
         refundParams = new uint256[](1);
         refundParams[0] = _createCollateralProvider(
             mainCoin,
@@ -146,7 +148,7 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal {
         uint256 tokenPoolId,
         uint256[] memory simpleParams,
         uint256[] memory refundParams
-    ) internal {
+    ) internal sphereXGuardInternal(0xd72c7a5a) {
         uint256 length = userData.length;
         require(length > 0, "invalid userPools length");
         totalAmount -= userData[0].amount;
