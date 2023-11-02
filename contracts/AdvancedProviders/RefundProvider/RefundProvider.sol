@@ -6,8 +6,6 @@ import "../../ERC165/Refundble.sol";
 import "./RefundState.sol";
 
 contract RefundProvider is RefundState, IERC721Receiver {
-    using CalcUtils for uint256;
-
     constructor(ILockDealNFT nftContract, address provider) {
         require(address(nftContract) != address(0x0) && provider != address(0x0), "invalid address");
         lockDealNFT = nftContract;
@@ -77,12 +75,8 @@ contract RefundProvider is RefundState, IERC721Receiver {
             collateralProvider,
             mainCoinSignature
         );
-        uint256[] memory collateralParams = new uint256[](4);
-        collateralParams[0] = params[paramsLength - 2];
-        collateralParams[1] = params[paramsLength - 1];
-        collateralParams[2] = params[paramsLength - 2].calcRate(params[0]);
-        collateralParams[3] = dataPoolID;
-        collateralProvider.registerPool(collateralPoolId, collateralParams);
+        collateralProvider.registerPool(collateralPoolId, params);
+        lockDealNFT.cloneVaultId(collateralPoolId + 2, dataPoolID); // clone token data to sub-collateral poolId
         // save refund data
         uint256[] memory refundRegisterParams = new uint256[](currentParamsTargetLenght());
         refundRegisterParams[0] = collateralPoolId;
