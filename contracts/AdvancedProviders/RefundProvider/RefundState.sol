@@ -13,18 +13,20 @@ abstract contract RefundState is ProviderModifiers, IInnerWithdraw, IERC165 {
     ///@return params  params [0] = tokenLeftAmount; - user(poolId + 1) data
     ///                params [1] = user main coin amount;
     ///                params [2] = collateralPoolId
-    ///                params [3 - ...] =  time if locked or timed provider or bundle last poolId
+    ///                params [3] = collateral finish time
+    ///                params [4 - ...] =  time if locked or timed provider or bundle last poolId
     function getParams(uint256 poolId) public view override returns (uint256[] memory params) {
         if (lockDealNFT.poolIdToProvider(poolId) == this) {
             uint256 collateralPoolId = poolIdToCollateralId[poolId];
             uint256[] memory dataParams = lockDealNFT.poolIdToProvider(poolId + 1).getParams(poolId + 1);
-            uint256 length = currentParamsTargetLenght() + dataParams.length + 1;
+            uint256 length = currentParamsTargetLenght() + dataParams.length + 2;
             params = new uint256[](length);
             uint256 tokenAmount = dataParams[0];
             uint256 rateToWei = collateralProvider.poolIdToRateToWei(collateralPoolId);
             params[0] = tokenAmount;
             params[1] = tokenAmount.calcAmount(rateToWei);
             params[2] = collateralPoolId;
+            params[3] = collateralProvider.poolIdToTime(collateralPoolId);
             for (uint256 i = 3; i < length; ++i) {
                 params[i] = dataParams[i - 2]; // start from index 1
             }
