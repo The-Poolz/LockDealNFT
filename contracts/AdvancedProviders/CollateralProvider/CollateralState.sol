@@ -54,4 +54,14 @@ abstract contract CollateralState is LockDealState, IInnerWithdraw, IERC165, Pro
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
         return interfaceId == type(IERC165).interfaceId || interfaceId == type(IInnerWithdraw).interfaceId;
     }
+
+    function getSubProvidersPoolIds(
+        uint256 poolId
+    ) public view virtual override validProviderId(poolId) returns (uint256[] memory poolIds) {
+        poolIds = new uint256[](4);
+        poolIds[0] = poolId;
+        poolIds[1] = poolId + 1;
+        poolIds[2] = poolId + 2;
+        poolIds[3] = poolId + 3;
+    }
 }

@@ -12,4 +12,9 @@ abstract contract ProviderState is IProvider {
     function currentParamsTargetLenght() public view virtual returns (uint256) {
         return 1;
     }
+
+    function getSubProvidersPoolIds(uint256 poolId) public view virtual override returns (uint256[] memory poolIds) {
+        poolIds = new uint256[](1);
+        poolIds[0] = poolId;
+    }
 }

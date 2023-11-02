@@ -30,6 +30,8 @@ interface ILockDealNFT is IERC721Enumerable {
 
     function getData(uint256 poolId) external view returns (BasePoolInfo memory poolInfo);
 
+    function getFullData(uint256 poolId) external view returns (BasePoolInfo[] memory poolInfo);
+
     function tokenOf(uint256 poolId) external view returns (address token);
 
     function vaultManager() external view returns (IVaultManager);
@@ -39,8 +41,8 @@ interface ILockDealNFT is IERC721Enumerable {
     function getWithdrawableAmount(uint256 poolId) external view returns (uint256 withdrawalAmount);
 
     struct BasePoolInfo {
-        IProvider[] provider;
-        string[] name;
+        IProvider provider;
+        string name;
         uint256 poolId;
         uint256 vaultId;
         address owner;
