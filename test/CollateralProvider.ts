@@ -17,7 +17,7 @@ describe('Collateral Provider', function () {
   let mockProvider: MockProvider;
   let mockVaultManager: MockVaultManager;
   let poolId: number;
-  let params: [number, number, BigNumber, number];
+  let params: [number, number, number];
   let receiver: SignerWithAddress;
   let projectOwner: SignerWithAddress;
   let finishTime: number;
@@ -43,7 +43,7 @@ describe('Collateral Provider', function () {
     const ONE_DAY = 86400;
     finishTime = (await time.latest()) + 14 * ONE_DAY; // plus 14 days
     poolId = (await lockDealNFT.totalSupply()).toNumber();
-    params = [amount, finishTime, halfRatio, poolId];
+    params = [amount * 2, amount, finishTime];
     await mockProvider.createNewPool([projectOwner.address, token], params, signature);
     vaultId = await mockVaultManager.Id();
   });
@@ -81,14 +81,13 @@ describe('Collateral Provider', function () {
   it('should create token provider pool', async () => {
     const poolData = await lockDealNFT.getData(poolId + 2);
     const params = [0];
-    const vaultId = await mockVaultManager.Id();
     expect(poolData).to.deep.equal([
       dealProvider.address,
       'DealProvider',
       poolId + 2,
-      vaultId,
+      0,
       collateralProvider.address,
-      token,
+      constants.AddressZero,
       params,
     ]);
   });
@@ -177,7 +176,7 @@ describe('Collateral Provider', function () {
   });
 
   it('should get half main coin amount', async () => {
-    params = [amount, finishTime, halfRatio, poolId];
+    params = [amount * 2, amount, finishTime];
     await mockProvider.createNewPool([projectOwner.address, token], params, signature);
     await mockProvider.handleWithdraw(poolId, amount);
     const withdrawAmount = await lockDealNFT.getWithdrawableAmount(poolId);

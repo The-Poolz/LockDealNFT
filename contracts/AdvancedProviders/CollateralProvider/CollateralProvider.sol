@@ -30,29 +30,46 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState {
         _registerPool(poolId, params);
     }
 
-    ///@dev each provider decides how many parameters it needs by overriding this function
-    ///@param params[0] = StartAmount
-    ///@param params[1] = FinishTime
-    ///@param params[2] = rate to wei (1e21) = 100%
-    ///@param params[3] = token pool Id
+    /// @dev Each provider decides how many parameters it needs by overriding this function.
+    /// @param params[0] = token amount
+    /// @param params[params.length - 2] = main coin amount
+    /// @param params[params.length - 1] = FinishTime
     function _registerPool(uint256 poolId, uint256[] calldata params) internal {
-        require(block.timestamp <= params[1], "start time must be in the future");
-        require(poolId == lockDealNFT.totalSupply() - 1, "invalid params");
-        require(params[2] <= 1e21, "invalid rateToWei");
-        poolIdToTime[poolId] = params[1];
-        poolIdToRateToWei[poolId] = params[2];
-        uint256 tokenPoolId = params[3];
-        lockDealNFT.mintForProvider(address(this), provider); //Main Coin Collector poolId + 1
-        lockDealNFT.mintForProvider(address(this), provider); //Token Collector poolId + 2
-        uint256 mainCoinHolderId = lockDealNFT.mintForProvider(address(this), provider); //hold main coin for the project owner poolId + 3
-        provider.registerPool(mainCoinHolderId, params); // just need the 0 index, left amount
-        lockDealNFT.cloneVaultId(poolId + 1, poolId);
-        lockDealNFT.cloneVaultId(poolId + 2, tokenPoolId);
-        lockDealNFT.cloneVaultId(mainCoinHolderId, poolId);
+        uint256 tokenAmount = params[0];
+        uint256 mainCoinAmount = params[params.length - 2];
+        uint256 finishTime = params[params.length - 1];
+
+        require(block.timestamp <= finishTime, "start time must be in the future");
+        require(poolId == lockDealNFT.totalSupply() - 1, "Invalid poolId");
+
+        uint256 rate = mainCoinAmount.calcRate(tokenAmount);
+        require(rate <= 1e21, "invalid rateToWei");
+
+        uint256 mainCoinHolderId = _mintNFTs();
+        _setPoolProperties(poolId, rate, finishTime, mainCoinAmount);
+        _cloneVaultIds(poolId);
+
         assert(mainCoinHolderId == poolId + 3);
-        //need to call this from the refund, then call cloneVaultId to this Id's
-        //poolId + 1 and poolId + 3 is the main coin and poolId + 2 is the token
         emit UpdateParams(poolId, params);
+    }
+
+    function _setPoolProperties(uint256 poolId, uint256 rate, uint256 finishTime, uint256 mainCoinAmount) private {
+        poolIdToRateToWei[poolId] = rate;
+        poolIdToTime[poolId] = finishTime;
+        uint256[] memory mainCoinParams = new uint256[](1);
+        mainCoinParams[0] = mainCoinAmount;
+        provider.registerPool(poolId + 3, mainCoinParams); // Just need the 0 index, token left amount
+    }
+
+    function _mintNFTs() private returns (uint256 poolId) {
+        lockDealNFT.mintForProvider(address(this), provider); // Main Coin Collector
+        lockDealNFT.mintForProvider(address(this), provider); // Token Collector
+        poolId = lockDealNFT.mintForProvider(address(this), provider);
+    }
+
+    function _cloneVaultIds(uint256 mainCoinPoolId) private {
+        lockDealNFT.cloneVaultId(mainCoinPoolId + 1, mainCoinPoolId);
+        lockDealNFT.cloneVaultId(mainCoinPoolId + 3, mainCoinPoolId);
     }
 
     // this need to give the project owner to get the tokens that in the poolId + 2

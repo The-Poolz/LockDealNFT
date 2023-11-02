@@ -30,7 +30,7 @@ describe('Refund Provider', function () {
   let receiver: SignerWithAddress;
   let projectOwner: SignerWithAddress;
   let addresses: string[];
-  let params: [BigNumber, number, number, BigNumber, BigNumber, number];
+  let params: [BigNumber, number, number, BigNumber, number];
   let startTime: number, finishTime: number;
   let collateralPoolId: number;
   const name: string = 'RefundProvider';
@@ -63,7 +63,7 @@ describe('Refund Provider', function () {
   beforeEach(async () => {
     startTime = (await time.latest()) + ONE_DAY; // plus 1 day
     finishTime = startTime + 7 * ONE_DAY; // plus 7 days from `startTime`
-    params = [amount, startTime, finishTime, mainCoinAmount, rate, finishTime];
+    params = [amount, startTime, finishTime, mainCoinAmount, finishTime];
     addresses = [receiver.address, token, BUSD, timedProvider.address];
     poolId = (await lockDealNFT.totalSupply()).toNumber();
     await refundProvider
@@ -324,7 +324,7 @@ describe('Refund Provider', function () {
 
     it('should withdraw with DealProvider', async () => {
       poolId = (await lockDealNFT.totalSupply()).toNumber();
-      const params = [amount, ratio, ratio, finishTime];
+      const params = [amount, halfAmount, finishTime];
       addresses = [receiver.address, token, BUSD, dealProvider.address];
       await refundProvider
         .connect(projectOwner)
