@@ -28,7 +28,6 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
         }
 
         IProvider provider = poolIdToProvider[poolId];
-        IProvider subProvider = poolIdToProvider[poolId + 1];
 
         IProvider[] memory providers = new IProvider[](
             keccak256(abi.encodePacked(provider.name())) != keccak256(abi.encodePacked("RefundProvider")) ? 1 : 2
@@ -39,6 +38,7 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
         names[0] = provider.name();
 
         if (providers.length == 2) {
+            IProvider subProvider = poolIdToProvider[poolId + 1];
             providers[1] = subProvider;
             names[1] = subProvider.name();
         }
