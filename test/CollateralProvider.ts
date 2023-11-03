@@ -3,7 +3,7 @@ import { CollateralProvider } from '../typechain-types';
 import { DealProvider } from '../typechain-types';
 import { LockDealNFT } from '../typechain-types';
 import { MockProvider } from '../typechain-types';
-import { deployed, token, MAX_RATIO } from './helper';
+import { deployed, token, MAX_RATIO, BUSD } from './helper';
 import { time, mine } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
@@ -173,6 +173,19 @@ describe('Collateral Provider', function () {
     await mine(1);
     const withdrawAmount = await lockDealNFT.getWithdrawableAmount(poolId);
     expect(withdrawAmount).to.equal(amount);
+  });
+
+  it('should return full data from collateral provider', async () => {
+    params = [amount * 2, amount, finishTime];
+    await mockProvider.createNewPool([projectOwner.address, token], params, signature);
+    const collateralParams = [amount.toString(), finishTime.toString(), halfRatio];
+    const fullData = await lockDealNFT.getFullData(poolId);
+    expect(fullData).to.deep.equal([
+      [collateralProvider.address, name, poolId, vaultId, projectOwner.address, token, collateralParams],
+      [dealProvider.address, 'DealProvider', poolId + 1, vaultId, collateralProvider.address, token, [0]],
+      [dealProvider.address, 'DealProvider', poolId + 2, 0, collateralProvider.address, constants.AddressZero, [0]],
+      [dealProvider.address, 'DealProvider', poolId + 3, vaultId, collateralProvider.address, token, [amount]],
+    ]);
   });
 
   it('should get half main coin amount', async () => {

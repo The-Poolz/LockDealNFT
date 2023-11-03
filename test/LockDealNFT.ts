@@ -234,6 +234,15 @@ describe('LockDealNFT', function () {
     expect(poolData).to.deep.equal([timedDealProvider.address, "TimedDealProvider", poolId, vaultId, receiver.address, token, params]);
   });
 
+  it('should return full data from simple provider', async () => {
+    poolId = (await lockDealNFT.totalSupply()).toNumber();
+    const params = [amount, startTime, finishTime, amount];
+    await timedDealProvider.createNewPool(addresses, params, signature);
+    const vaultId = await mockVaultManager.Id();
+    const poolData = await lockDealNFT.getFullData(poolId);
+    expect(poolData).to.deep.equal([[timedDealProvider.address, "TimedDealProvider", poolId, vaultId, receiver.address, token, params]]);
+  });
+
   it('should set baseURI', async () => {
     const baseURI = 'https://poolz.finance/';
     await lockDealNFT.setBaseURI(baseURI);
