@@ -59,11 +59,10 @@ abstract contract CollateralState is LockDealState, IInnerWithdraw, IERC165, Pro
         uint256 poolId
     ) public view virtual override returns (uint256[] memory poolIds) {
         if (lockDealNFT.poolIdToProvider(poolId) == this) {
-            poolIds = new uint256[](4);
-            poolIds[0] = poolId;
-            poolIds[1] = poolId + 1;
-            poolIds[2] = poolId + 2;
-            poolIds[3] = poolId + 3;
+            poolIds = new uint256[](3);
+            poolIds[0] = poolId + 1;
+            poolIds[1] = poolId + 2;
+            poolIds[2] = poolId + 3;
         }
     }
 }

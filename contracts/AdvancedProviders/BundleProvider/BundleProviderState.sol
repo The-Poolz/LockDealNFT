@@ -31,10 +31,10 @@ abstract contract BundleProviderState is IProvider, ProviderModifiers, ERC165 {
         uint256 poolId
     ) public view virtual override(IProvider, ProviderState) returns (uint256[] memory poolIds) {
         if (lockDealNFT.poolIdToProvider(poolId) == this) {
-            uint256 length = bundlePoolIdToLastSubPoolId[poolId] - poolId + 1;
+            uint256 length = bundlePoolIdToLastSubPoolId[poolId] - poolId;
             poolIds = new uint256[](length);
             for (uint256 i = 0; i < length; ++i) {
-                poolIds[i] = poolId + i;
+                poolIds[i] = poolId + i + 1;
             }
         }
     }
