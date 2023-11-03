@@ -14,7 +14,9 @@ abstract contract ProviderState is IProvider {
     }
 
     function getSubProvidersPoolIds(uint256 poolId) public view virtual override returns (uint256[] memory poolIds) {
-        poolIds = new uint256[](1);
-        poolIds[0] = poolId;
+        if (lockDealNFT.poolIdToProvider(poolId) == this) {
+            poolIds = new uint256[](1);
+            poolIds[0] = poolId;
+        }
     }
 }

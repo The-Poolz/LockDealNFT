@@ -24,26 +24,31 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
 
     function getData(uint256 poolId) public view returns (BasePoolInfo memory poolInfo) {
         if (_exists(poolId)) {
-            IProvider provider = poolIdToProvider[poolId];
-            poolInfo = BasePoolInfo(
-                provider,
-                provider.name(),
-                poolId,
-                poolIdToVaultId[poolId],
-                ownerOf(poolId),
-                tokenOf(poolId),
-                provider.getParams(poolId)
-            );
+            poolInfo = _getData(poolId);
         }
     }
 
     function getFullData(uint256 poolId) public view returns (BasePoolInfo[] memory poolInfo) {
-        if (_exists(poolId)) {
+        if (!_exists(poolId)) {
             uint256[] memory poolIds = poolIdToProvider[poolId].getSubProvidersPoolIds(poolId);
-            for (uint256 i = 0; i < poolIds.length; ++i) {
-                poolInfo[i] = getData(poolIds[i]);
+            uint256 length = poolIds.length;
+            for (uint256 i = 0; i < length; ++i) {
+                poolInfo[i] = _getData(poolIds[i]);
             }
         }
+    }
+
+    function _getData(uint256 poolId) internal view returns (BasePoolInfo memory poolInfo) {
+        IProvider provider = poolIdToProvider[poolId];
+        poolInfo = BasePoolInfo(
+            provider,
+            provider.name(),
+            poolId,
+            poolIdToVaultId[poolId],
+            ownerOf(poolId),
+            tokenOf(poolId),
+            provider.getParams(poolId)
+        );
     }
 
     /// @dev Retrieves user data by tokens between a specified index range.
