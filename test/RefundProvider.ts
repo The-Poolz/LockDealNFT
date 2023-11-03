@@ -32,8 +32,9 @@ describe('Refund Provider', function () {
   let addresses: string[];
   let params: [BigNumber, number, number, BigNumber, number];
   let startTime: number, finishTime: number;
-  let collateralPoolId: number;
   const name: string = 'RefundProvider';
+  const timedName: string = 'TimedDealProvider';
+  const collateralName: string = 'CollateralProvider';
   const tokenSignature: Bytes = ethers.utils.toUtf8Bytes('signature');
   const mainCoinsignature: Bytes = ethers.utils.toUtf8Bytes('signature');
   const amount = ethers.utils.parseEther('100');
@@ -71,7 +72,6 @@ describe('Refund Provider', function () {
       .createNewRefundPool(addresses, params, tokenSignature, mainCoinsignature);
     vaultId = await mockVaultManager.Id();
     halfTime = (finishTime - startTime) / 2;
-    collateralPoolId = poolId + 2;
   });
 
   it('should return provider name', async () => {
@@ -87,7 +87,7 @@ describe('Refund Provider', function () {
   describe('Pool Creation', async () => {
     it('should return refund pool data after creation', async () => {
       const poolData = await lockDealNFT.getData(poolId);
-      const params = [amount, amount.mul(rate).div(MAX_RATIO), collateralPoolId, startTime, finishTime, amount];
+      const params = [amount, amount.mul(rate).div(MAX_RATIO)];
       expect(poolData).to.deep.equal([
         refundProvider.address,
         name,
@@ -105,7 +105,7 @@ describe('Refund Provider', function () {
 
       expect(poolData).to.deep.equal([
         timedProvider.address,
-        'TimedDealProvider',
+        timedName,
         poolId + 1,
         vaultId.sub(1),
         refundProvider.address,
@@ -119,7 +119,7 @@ describe('Refund Provider', function () {
       const params = [mainCoinAmount, finishTime, MAX_RATIO.div(10)];
       expect(poolData).to.deep.equal([
         collateralProvider.address,
-        'CollateralProvider',
+        collateralName,
         poolId + 2,
         vaultId,
         projectOwner.address,
@@ -181,7 +181,7 @@ describe('Refund Provider', function () {
       await mockProvider.registerNewRefundPool(receiver.address, collateralProvider.address);
       poolId = (await lockDealNFT.totalSupply()).toNumber() - 3;
       const poolData = await lockDealNFT.getData(poolId);
-      const params = [0, 0, poolId + 2, 0, 0]; // mock data, only collateral id check
+      const params = [0, 0];
       expect(poolData).to.deep.equal([
         refundProvider.address,
         name,
@@ -192,6 +192,20 @@ describe('Refund Provider', function () {
         params,
       ]);
     });
+
+    it('should return full data from RefundProvider', async () => {
+      const poolId = (await lockDealNFT.totalSupply()).toNumber();
+      await refundProvider.connect(projectOwner).createNewRefundPool(addresses, params, tokenSignature, mainCoinsignature);
+      const refundParams = [amount, amount.mul(rate).div(MAX_RATIO)];
+      const timedParams = [amount, startTime, finishTime, amount];
+      const collateralParams = [mainCoinAmount, finishTime, MAX_RATIO.div(10)];
+      const fullData = await lockDealNFT.getFullData(poolId);
+      expect(fullData).to.deep.equal([
+        [refundProvider.address, name, poolId, 0, receiver.address, constants.AddressZero, refundParams],
+        [timedProvider.address, timedName, poolId + 1, vaultId.add(1), refundProvider.address, token, timedParams],
+        [collateralProvider.address, collateralName, poolId + 2, vaultId.add(2), projectOwner.address, BUSD, collateralParams]
+      ]);
+    });
   });
 
   describe('Split Pool', async () => {
@@ -200,7 +214,7 @@ describe('Refund Provider', function () {
       await lockDealNFT
         .connect(receiver)
         ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData);
-      const params = [halfAmount, halfAmount.mul(rate).div(MAX_RATIO), collateralPoolId, startTime, finishTime, halfAmount];
+      const params = [halfAmount, halfAmount.mul(rate).div(MAX_RATIO)];
       const poolData = await lockDealNFT.getData(poolId);
       expect(poolData).to.deep.equal([
         refundProvider.address,
@@ -235,7 +249,7 @@ describe('Refund Provider', function () {
       await lockDealNFT
         .connect(receiver)
         ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData);
-      const params = [halfAmount, halfAmount.mul(rate).div(MAX_RATIO), collateralPoolId, startTime, finishTime, halfAmount];
+      const params = [halfAmount, halfAmount.mul(rate).div(MAX_RATIO)];
       const poolData = await lockDealNFT.getData(poolId + 6);
       expect(poolData).to.deep.equal([
         refundProvider.address,
@@ -257,7 +271,7 @@ describe('Refund Provider', function () {
       const poolData = await lockDealNFT.getData(poolId + 1);
       expect(poolData).to.deep.equal([
         timedProvider.address,
-        'TimedDealProvider',
+        timedName,
         poolId + 1,
         vaultId.sub(1),
         refundProvider.address,
@@ -275,7 +289,7 @@ describe('Refund Provider', function () {
       const poolData = await lockDealNFT.getData(poolId + 7);
       expect(poolData).to.deep.equal([
         timedProvider.address,
-        'TimedDealProvider',
+        timedName,
         poolId + 7,
         vaultId.sub(1),
         refundProvider.address,
@@ -295,7 +309,7 @@ describe('Refund Provider', function () {
       const params = [0, startTime, finishTime, amount];
       expect(poolData).to.deep.equal([
         timedProvider.address,
-        'TimedDealProvider',
+        timedName,
         poolId + 1,
         vaultId.sub(1),
         refundProvider.address,
@@ -313,7 +327,7 @@ describe('Refund Provider', function () {
       const poolData = await lockDealNFT.getData(poolId + 1);
       expect(poolData).to.deep.equal([
         timedProvider.address,
-        'TimedDealProvider',
+        timedName,
         poolId + 1,
         vaultId.sub(1),
         refundProvider.address,

@@ -27,6 +27,18 @@ abstract contract BundleProviderState is IProvider, ProviderModifiers, ERC165 {
         }
     }
 
+    function getSubProvidersPoolIds(
+        uint256 poolId
+    ) public view virtual override(IProvider, ProviderState) returns (uint256[] memory poolIds) {
+        if (lockDealNFT.poolIdToProvider(poolId) == this) {
+            uint256 length = bundlePoolIdToLastSubPoolId[poolId] - poolId;
+            poolIds = new uint256[](length);
+            for (uint256 i = 0; i < length; ++i) {
+                poolIds[i] = poolId + i + 1;
+            }
+        }
+    }
+
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
         return interfaceId == Refundble._INTERFACE_ID_REFUNDABLE || super.supportsInterface(interfaceId);
     }
