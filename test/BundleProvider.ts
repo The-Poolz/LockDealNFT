@@ -82,7 +82,7 @@ describe('Lock Deal Bundle Provider', function () {
     expect(await lockDealNFT.ownerOf(bundlePoolId + 3)).to.equal(bundleProvider.address);
   });
 
-  it('should return full data provider data from BundleProvider', async () => {
+  it('should return full BundleProvider data', async () => {
     const poolId = await lockDealNFT.totalSupply();
     const bundleParams = [amount.mul(3), poolId.toNumber() + 3];
     const dealProviderParams = [amount];

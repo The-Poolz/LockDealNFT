@@ -175,7 +175,7 @@ describe('Collateral Provider', function () {
     expect(withdrawAmount).to.equal(amount);
   });
 
-  it('should return full data from collateral provider', async () => {
+  it('should return full collateral data', async () => {
     params = [amount * 2, amount, finishTime];
     await mockProvider.createNewPool([projectOwner.address, token], params, signature);
     const collateralParams = [amount.toString(), finishTime.toString(), halfRatio];
