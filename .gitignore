@@ -35,8 +35,8 @@ gasReporterOutput.json
 gas-report.txt
 md_gas_report.txt
 
-# Spherex
+# SphereX
 code_id_mapping.json
-inheritence_code.md
+inheritance_code.md
 
 # End of https://www.toptal.com/developers/gitignore/api/soliditytruffle
