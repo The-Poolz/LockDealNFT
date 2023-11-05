@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "@spherex-xyz/openzeppelin-solidity/contracts/token/ERC721/IERC721Receiver.sol";
 import "../../ERC165/Refundble.sol";
 import "./RefundState.sol"; 
 import {SphereXProtected} from "@spherex-xyz/contracts/src/SphereXProtected.sol";

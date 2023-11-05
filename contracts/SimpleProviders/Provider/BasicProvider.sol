@@ -6,7 +6,7 @@ import "../../interfaces/IProvider.sol";
 import "../../interfaces/ISimpleProvider.sol";
 import "../../ERC165/Refundble.sol";
 import "../../ERC165/Bundable.sol";
-import "@openzeppelin/contracts/utils/introspection/ERC165.sol"; 
+import "@spherex-xyz/openzeppelin-solidity/contracts/utils/introspection/ERC165.sol"; 
 import {SphereXProtected} from "@spherex-xyz/contracts/src/SphereXProtected.sol";
 import {ModifierLocals} from "@spherex-xyz/contracts/src/ISphereXEngine.sol";
 

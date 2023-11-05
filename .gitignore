@@ -27,12 +27,16 @@ blockchain/geth/**
 blockchain/keystore/**
 blockchain/history
 
-#truffle
+# truffle
 .tern-port
 yarn.lock
 package-lock.json
 gasReporterOutput.json
 gas-report.txt
 md_gas_report.txt
+
+# Spherex
+code_id_mapping.json
+inheritence_code.md
 
 # End of https://www.toptal.com/developers/gitignore/api/soliditytruffle

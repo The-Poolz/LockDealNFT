@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "../SimpleProviders/TimedDealProvider/TimedDealProvider.sol";
 import "../interfaces/IFundsManager.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol"; 
+import "@spherex-xyz/openzeppelin-solidity/contracts/token/ERC20/IERC20.sol"; 
 import {SphereXProtected} from "@spherex-xyz/contracts/src/SphereXProtected.sol";
  
 

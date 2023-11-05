@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "../../SimpleProviders/LockProvider/LockDealState.sol";
-import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+import "@spherex-xyz/openzeppelin-solidity/contracts/utils/introspection/IERC165.sol";
 import "../../SimpleProviders/Provider/ProviderModifiers.sol";
 import "../../interfaces/IInnerWithdraw.sol";
 

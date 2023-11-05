@@ -2,8 +2,8 @@
 pragma solidity ^0.8.0;
 
 import "./LockDealNFTInternal.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol"; 
+import "@spherex-xyz/openzeppelin-solidity/contracts/token/ERC721/IERC721Receiver.sol";
+import "@spherex-xyz/openzeppelin-solidity/contracts/token/ERC20/IERC20.sol"; 
 import {SphereXProtected} from "@spherex-xyz/contracts/src/SphereXProtected.sol";
 import {ModifierLocals} from "@spherex-xyz/contracts/src/ISphereXEngine.sol";
  

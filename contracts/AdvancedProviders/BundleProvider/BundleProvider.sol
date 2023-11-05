@@ -4,8 +4,8 @@ pragma solidity ^0.8.0;
 import "./BundleModifiers.sol";
 import "../../util/CalcUtils.sol";
 import "../../interfaces/ISimpleProvider.sol";
-import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
-import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
+import "@spherex-xyz/openzeppelin-solidity/contracts/token/ERC721/utils/ERC721Holder.sol";
+import "@spherex-xyz/openzeppelin-solidity/contracts/utils/introspection/ERC165Checker.sol";
 import "../../ERC165/Bundable.sol"; 
 import {SphereXProtected} from "@spherex-xyz/contracts/src/SphereXProtected.sol";
  

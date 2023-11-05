@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "../../interfaces/IFundsManager.sol";
-import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
+import "@spherex-xyz/openzeppelin-solidity/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "./CollateralState.sol";
 import "../../util/CalcUtils.sol"; 
 import {SphereXProtected} from "@spherex-xyz/contracts/src/SphereXProtected.sol";

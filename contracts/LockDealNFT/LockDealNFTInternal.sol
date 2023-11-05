@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./LockDealNFTModifiers.sol";
 import "../interfaces/IInnerWithdraw.sol";
-import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
+import "@spherex-xyz/openzeppelin-solidity/contracts/utils/introspection/ERC165Checker.sol";
 import "../interfaces/IBeforeTransfer.sol"; 
 import {SphereXProtected} from "@spherex-xyz/contracts/src/SphereXProtected.sol";
 import {ModifierLocals} from "@spherex-xyz/contracts/src/ISphereXEngine.sol";

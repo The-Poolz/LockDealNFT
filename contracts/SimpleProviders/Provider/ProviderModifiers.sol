@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./ProviderState.sol";
-import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
+import "@spherex-xyz/openzeppelin-solidity/contracts/utils/introspection/ERC165Checker.sol";
 
 abstract contract ProviderModifiers is ProviderState {
     modifier onlyProvider() {
