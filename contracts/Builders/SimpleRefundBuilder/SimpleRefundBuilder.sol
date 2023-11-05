@@ -30,9 +30,9 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal {
 
     struct BuildMassPoolsLocals {
         ParamsData paramsData;
+        uint256[] simpleParams;
         uint256 totalAmount;
         uint256 poolId;
-        uint256[] simpleParams;
         uint256[] refundParams;
     }
 
@@ -63,7 +63,7 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal {
             locals.simpleParams,
             tokenSignature
         );
-        uint256[] memory refundParams = _finalizeFirstNFT(
+        locals.refundParams = _finalizeFirstNFT(
             locals.poolId - 1,
             locals.paramsData.mainCoin,
             locals.totalAmount,

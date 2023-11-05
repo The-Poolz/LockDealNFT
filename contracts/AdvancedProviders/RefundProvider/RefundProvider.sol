@@ -36,7 +36,7 @@ contract RefundProvider is RefundState, IERC721Receiver , SphereXProtected {
         return IERC721Receiver.onERC721Received.selector;
     }
 
-    struct CreateNewRefundPoolLocals {
+    struct createNewRefundPoolLocals {
         uint256 paramsLength;
         IProvider provider;
         uint256 dataPoolID;
@@ -56,8 +56,7 @@ contract RefundProvider is RefundState, IERC721Receiver , SphereXProtected {
         bytes calldata tokenSignature,
         bytes calldata mainCoinSignature
     ) external sphereXGuardExternal(0x1b5a4f7f) returns (uint256 poolId) {
-        CreateNewRefundPoolLocals memory locals;
-
+        createNewRefundPoolLocals memory locals;
         _validAddressLength(addresses.length, 4);
         _validProviderInterface(IProvider(addresses[3]), Refundble._INTERFACE_ID_REFUNDABLE);
         locals.paramsLength = params.length;
