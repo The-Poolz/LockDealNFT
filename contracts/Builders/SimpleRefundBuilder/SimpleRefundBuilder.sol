@@ -57,7 +57,7 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal {
             paramsData.mainCoin,
             totalAmount,
             paramsData.mainCoinAmount,
-            params[0],
+            params[0][1],
             mainCoinSignature
         );
         _userDataIterator(paramsData.provider, userData.userPools, totalAmount, poolId, simpleParams, refundParams);
@@ -81,23 +81,23 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal {
         uint256 tokenPoolId,
         uint256 totalAmount,
         uint256 mainCoinAmount,
-        uint256[] memory params,
+        uint256 collateralFinishTime,
         bytes calldata signature
     ) internal returns (uint256 poolId) {
         poolId = lockDealNFT.safeMintAndTransfer(
             msg.sender,
             mainCoin,
             msg.sender,
-            params[0],
+            mainCoinAmount,
             collateralProvider,
             signature
         );
-        uint256[] memory collateralParams = new uint256[](4);
-        collateralParams[0] = params[0];
-        collateralParams[1] = params[1];
-        collateralParams[2] = mainCoinAmount.calcRate(totalAmount);
-        collateralParams[3] = tokenPoolId;
+        uint256[] memory collateralParams = new uint256[](3);
+        collateralParams[0] = totalAmount;
+        collateralParams[1] = mainCoinAmount;
+        collateralParams[2] = collateralFinishTime;
         collateralProvider.registerPool(poolId, collateralParams);
+        lockDealNFT.cloneVaultId(poolId + 2, tokenPoolId);
     }
 
     function _validateParamsData(
@@ -124,7 +124,7 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal {
         address mainCoin,
         uint256 totalAmount,
         uint256 mainCoinAmount,
-        uint256[] memory collateralParams,
+        uint256 collateralFinishTime,
         bytes calldata signature
     ) internal returns (uint256[] memory refundParams) {
         refundParams = new uint256[](1);
@@ -133,7 +133,7 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal {
             poolId,
             totalAmount,
             mainCoinAmount,
-            collateralParams,
+            collateralFinishTime,
             signature
         );
         refundProvider.registerPool(poolId, refundParams);

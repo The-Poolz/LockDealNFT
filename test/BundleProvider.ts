@@ -82,6 +82,39 @@ describe('Lock Deal Bundle Provider', function () {
     expect(await lockDealNFT.ownerOf(bundlePoolId + 3)).to.equal(bundleProvider.address);
   });
 
+  it('should return full BundleProvider data', async () => {
+    const poolId = await lockDealNFT.totalSupply();
+    const bundleParams = [amount.mul(3), poolId.toNumber() + 3];
+    const dealProviderParams = [amount];
+    const lockProviderParams = [amount, startTime];
+    const timedParams = [amount, startTime, finishTime, amount];
+    await bundleProvider.createNewPool(addresses, params, signature);
+    const vaultId = await mockVaultManager.Id();
+    const fullData = await lockDealNFT.getFullData(poolId);
+    expect(fullData).to.deep.equal([
+      [bundleProvider.address, name, poolId, vaultId, receiver.address, token, bundleParams],
+      [dealProvider.address, 'DealProvider', poolId.add(1), 0, bundleProvider.address, constants.AddressZero, dealProviderParams],
+      [
+        lockProvider.address,
+        'LockDealProvider',
+        poolId.add(2),
+        0,
+        bundleProvider.address,
+        constants.AddressZero,
+        lockProviderParams,
+      ],
+      [
+        timedDealProvider.address,
+        'TimedDealProvider',
+        poolId.add(3),
+        0,
+        bundleProvider.address,
+        constants.AddressZero,
+        timedParams,
+      ],
+    ]);
+  });
+
   it('should check cascade UpdateParams event', async () => {
     const dealProviderParams = [amount];
     const lockProviderParams = [amount, startTime];
