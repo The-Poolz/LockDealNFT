@@ -12,22 +12,15 @@ abstract contract RefundState is ProviderModifiers, IInnerWithdraw, IERC165 {
 
     ///@return params  params [0] = tokenLeftAmount; - user(poolId + 1) data
     ///                params [1] = user main coin amount;
-    ///                params [2] = collateralPoolId
-    ///                params [3 - ...] =  time if locked or timed provider or bundle last poolId
     function getParams(uint256 poolId) public view override returns (uint256[] memory params) {
         if (lockDealNFT.poolIdToProvider(poolId) == this) {
-            uint256 collateralPoolId = poolIdToCollateralId[poolId];
             uint256[] memory dataParams = lockDealNFT.poolIdToProvider(poolId + 1).getParams(poolId + 1);
-            uint256 length = currentParamsTargetLenght() + dataParams.length + 1;
-            params = new uint256[](length);
+            params = new uint256[](2);
             uint256 tokenAmount = dataParams[0];
+            uint256 collateralPoolId = poolIdToCollateralId[poolId];
             uint256 rateToWei = collateralProvider.poolIdToRateToWei(collateralPoolId);
             params[0] = tokenAmount;
             params[1] = tokenAmount.calcAmount(rateToWei);
-            params[2] = collateralPoolId;
-            for (uint256 i = 3; i < length; ++i) {
-                params[i] = dataParams[i - 2]; // start from index 1
-            }
         }
     }
 
@@ -51,5 +44,13 @@ abstract contract RefundState is ProviderModifiers, IInnerWithdraw, IERC165 {
 
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
         return interfaceId == type(IERC165).interfaceId || interfaceId == type(IInnerWithdraw).interfaceId;
+    }
+
+    function getSubProvidersPoolIds(uint256 poolId) public view virtual override returns (uint256[] memory poolIds) {
+        if (lockDealNFT.poolIdToProvider(poolId) == this) {
+            poolIds = new uint256[](2);
+            poolIds[0] = poolId + 1;
+            poolIds[1] = poolIdToCollateralId[poolId];
+        }
     }
 }

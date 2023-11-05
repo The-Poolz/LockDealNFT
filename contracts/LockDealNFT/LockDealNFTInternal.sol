@@ -63,7 +63,7 @@ abstract contract LockDealNFTInternal is SphereXProtected, LockDealNFTModifiers 
         if (withdrawnAmount > 0) {
             vaultManager.withdrawByVaultId(poolIdToVaultId[poolId], from, withdrawnAmount);
             emit MetadataUpdate(poolId);
-            emit TokenWithdrawn(poolId, from, withdrawnAmount, getData(poolId).params[0]);
+            emit TokenWithdrawn(poolId, from, withdrawnAmount, _getData(poolId).params[0]);
         }
     }
 
@@ -108,7 +108,7 @@ abstract contract LockDealNFTInternal is SphereXProtected, LockDealNFTModifiers 
         poolIdToVaultId[locals.newPoolId] = poolIdToVaultId[poolId];
         locals.provider.split(poolId, locals.newPoolId, ratio);
         isFinal = locals.provider.getParams(poolId)[0] == 0;
-        emit PoolSplit(poolId, from, locals.newPoolId, newOwner, getData(poolId).params[0], getData(locals.newPoolId).params[0]);
+        emit PoolSplit(poolId, from, locals.newPoolId, newOwner, _getData(poolId).params[0], _getData(locals.newPoolId).params[0]);
         emit MetadataUpdate(poolId);
     }
 }

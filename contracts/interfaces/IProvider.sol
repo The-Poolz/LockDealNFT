@@ -19,4 +19,6 @@ interface IProvider {
     function currentParamsTargetLenght() external view returns (uint256);
 
     function name() external view returns (string memory);
+
+    function getSubProvidersPoolIds(uint256 poolID) external view returns (uint256[] memory poolIds);
 }

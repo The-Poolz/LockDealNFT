@@ -52,7 +52,7 @@ describe('Simple Refund Builder tests', function () {
     const tokenVaultId = vaultId + 1;
     vaultId += 1;
     await Promise.all([
-      _checkRefundProviderData(poolId, collateralId, poolId + 1, await userData.userPools[0].user , constants.AddressZero, 0),
+      _checkRefundProviderData(poolId, poolId + 1, await userData.userPools[0].user , constants.AddressZero, 0),
       _checkSimpleProviderData(provider, name, poolId + 1, params[1], tokenVaultId),
       _checkCollateralData(collateralId)
     ])
@@ -66,7 +66,7 @@ describe('Simple Refund Builder tests', function () {
 
     const allChecks = poolIdsAndUsers.map( async (i) => {
       return Promise.all([
-        _checkRefundProviderData(i.poolId, collateralId, i.poolId + 1, await userData.userPools[i.user].user , constants.AddressZero, 0),
+        _checkRefundProviderData(i.poolId, i.poolId + 1, await userData.userPools[i.user].user , constants.AddressZero, 0),
         _checkSimpleProviderData(provider, name, i.poolId + 1, params[1], tokenVaultId),
       ])
     })
@@ -74,10 +74,10 @@ describe('Simple Refund Builder tests', function () {
 
   }
 
-  async function _checkRefundProviderData(poolId: number, collateralId: number,  simplePoolId: number, user: string, token: string, vaultId: number) {
+  async function _checkRefundProviderData(poolId: number, simplePoolId: number, user: string, token: string, vaultId: number) {
     const simpleData = await lockDealNFT.getData(simplePoolId);
     const tokenAmount = simpleData.params[0];
-    const params = [tokenAmount, tokenAmount.mul(rate).div(MAX_RATIO), ethers.BigNumber.from(collateralId), ...simpleData.params.slice(1)];
+    const params = [tokenAmount, tokenAmount.mul(rate).div(MAX_RATIO)];
     const poolData = await lockDealNFT.getData(poolId);
     expect(poolData).to.deep.equal([refundProvider.address, 'RefundProvider', poolId, vaultId, user, token, params]);
   }
