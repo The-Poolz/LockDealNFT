@@ -9,9 +9,10 @@
   "license": "MIT",
   "main": "index.js",
   "dependencies": {
+    "@openzeppelin/contracts": "^4.9.3",
     "@spherex-xyz/contracts": "^1.0.6",
     "@spherex-xyz/openzeppelin-solidity": "^0.0.4",
-    "@spherex-xyz/poolz-helper-v2": "^0.0.2"
+    "@spherex-xyz/poolz-helper-v2": "^0.0.3"
   },
   "devDependencies": {
     "@ethersproject/bignumber": "^5.7.0",
