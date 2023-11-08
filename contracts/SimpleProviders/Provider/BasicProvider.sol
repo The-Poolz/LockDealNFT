@@ -6,9 +6,19 @@ import "../../interfaces/IProvider.sol";
 import "../../interfaces/ISimpleProvider.sol";
 import "../../ERC165/Refundble.sol";
 import "../../ERC165/Bundable.sol";
-import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
+import "@spherex-xyz/openzeppelin-solidity/contracts/utils/introspection/ERC165.sol"; 
+import {SphereXProtected} from "@spherex-xyz/contracts/src/SphereXProtected.sol";
+import {ModifierLocals} from "@spherex-xyz/contracts/src/ISphereXEngine.sol";
 
-abstract contract BasicProvider is ProviderModifiers, ISimpleProvider, ERC165 {
+ 
+
+abstract contract BasicProvider is ProviderModifiers, ISimpleProvider, ERC165 , SphereXProtected {
+    modifier sphereXGuardPublic_createNewPool() {
+        ModifierLocals memory locals = _sphereXValidatePre(0x394c07d0, msg.sig == 0x14877c38);
+        _;
+        _sphereXValidatePost(-0x394c07d0, msg.sig == 0x14877c38, locals);
+    }
+
     /**
      * @dev Creates a new pool with the specified parameters.
      * @param addresses[0] The address of the pool owner.
@@ -26,7 +36,7 @@ abstract contract BasicProvider is ProviderModifiers, ISimpleProvider, ERC165 {
         virtual
         validAddressesLength(addresses.length, 2)
         validParamsLength(params.length, currentParamsTargetLenght())
-        returns (uint256 poolId)
+        sphereXGuardPublic_createNewPool returns (uint256 poolId)
     {
         poolId = lockDealNFT.safeMintAndTransfer(addresses[0], addresses[1], msg.sender, params[0], this, signature);
         _registerPool(poolId, params);
@@ -36,7 +46,7 @@ abstract contract BasicProvider is ProviderModifiers, ISimpleProvider, ERC165 {
     function registerPool(
         uint256 poolId,
         uint256[] calldata params
-    ) public virtual onlyProvider validParamsLength(params.length, currentParamsTargetLenght()) {
+    ) public virtual onlyProvider validParamsLength(params.length, currentParamsTargetLenght()) sphereXGuardPublic(0x65019c70, 0xe9a9fce2) {
         _registerPool(poolId, params);
     }
 
@@ -46,7 +56,7 @@ abstract contract BasicProvider is ProviderModifiers, ISimpleProvider, ERC165 {
      * @return withdrawnAmount The amount of tokens withdrawn.
      * @return isFinal Boolean indicating whether the pool is empty after a withdrawal.
      */
-    function withdraw(uint256 poolId) public virtual override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
+    function withdraw(uint256 poolId) public virtual override onlyNFT sphereXGuardPublic(0x3ff12ca0, 0x2e1a7d4d) returns (uint256 withdrawnAmount, bool isFinal) {
         (withdrawnAmount, isFinal) = _withdraw(poolId, getWithdrawableAmount(poolId));
     }
 
@@ -54,7 +64,7 @@ abstract contract BasicProvider is ProviderModifiers, ISimpleProvider, ERC165 {
     function withdraw(
         uint256 poolId,
         uint256 amount
-    ) public virtual onlyProvider returns (uint256 withdrawnAmount, bool isFinal) {
+    ) public virtual onlyProvider sphereXGuardPublic(0x08e30c21, 0x441a3e70) returns (uint256 withdrawnAmount, bool isFinal) {
         (withdrawnAmount, isFinal) = _withdraw(poolId, amount);
     }
 
@@ -63,7 +73,7 @@ abstract contract BasicProvider is ProviderModifiers, ISimpleProvider, ERC165 {
     function _withdraw(
         uint256 poolId,
         uint256 amount
-    ) internal virtual returns (uint256 withdrawnAmount, bool isFinal) {}
+    ) internal virtual sphereXGuardInternal(0x2b279427) returns (uint256 withdrawnAmount, bool isFinal) {}
 
     function getWithdrawableAmount(uint256 poolId) public view virtual override returns (uint256);
 

@@ -2,11 +2,13 @@
 pragma solidity ^0.8.0;
 
 import "../../interfaces/IFundsManager.sol";
-import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
+import "@spherex-xyz/openzeppelin-solidity/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "./CollateralState.sol";
-import "../../util/CalcUtils.sol";
+import "../../util/CalcUtils.sol"; 
+import {SphereXProtected} from "@spherex-xyz/contracts/src/SphereXProtected.sol";
+ 
 
-contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState {
+contract CollateralProvider is SphereXProtected, IFundsManager, ERC721Holder, CollateralState {
     using CalcUtils for uint256;
 
     ///@dev withdraw tokens
@@ -26,7 +28,7 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState {
         onlyProvider
         validProviderId(poolId)
         validParamsLength(params.length, currentParamsTargetLenght())
-    {
+    sphereXGuardPublic(0xaaa30084, 0xe9a9fce2) {
         _registerPool(poolId, params);
     }
 
@@ -34,7 +36,7 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState {
     /// @param params[0] = token amount
     /// @param params[params.length - 2] = main coin amount
     /// @param params[params.length - 1] = FinishTime
-    function _registerPool(uint256 poolId, uint256[] calldata params) internal {
+    function _registerPool(uint256 poolId, uint256[] calldata params) internal sphereXGuardInternal(0xe4d30ce6) {
         uint256 tokenAmount = params[0];
         uint256 mainCoinAmount = params[params.length - 2];
         uint256 finishTime = params[params.length - 1];
@@ -78,7 +80,7 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState {
     }
 
     ///@dev newPoolId is collateral provider
-    function split(uint256 poolId, uint256, uint256 ratio) external override onlyNFT {
+    function split(uint256 poolId, uint256, uint256 ratio) external override onlyNFT sphereXGuardExternal(0xd2c69b5a) {
         (uint256 mainCoinCollectorId, uint256 tokenCollectorId, uint256 mainCoinHolderId) = getInnerIds(poolId);
         uint256 tokenCollectorAmount = provider.getWithdrawableAmount(tokenCollectorId);
         uint256 coinCollectorAmount = provider.getWithdrawableAmount(mainCoinCollectorId);
@@ -91,7 +93,7 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState {
         _splitter(coinHolderAmount, mainCoinHolderId, ratio);
     }
 
-    function _splitter(uint256 amount, uint256 poolId, uint256 ratio) internal {
+    function _splitter(uint256 amount, uint256 poolId, uint256 ratio) internal sphereXGuardInternal(0x7f1af138) {
         if (amount > 0) {
             lockDealNFT.safeTransferFrom(address(this), address(lockDealNFT), poolId, abi.encode(ratio));
         } else {
@@ -103,7 +105,7 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState {
         uint256 poolId,
         address user,
         uint256 tokenAmount
-    ) public override onlyProvider validProviderId(poolId) {
+    ) public override onlyProvider validProviderId(poolId) sphereXGuardPublic(0x44998f32, 0xa2107de6) {
         (, uint256 tokenCollectorId, uint256 mainCoinHolderId) = getInnerIds(poolId);
         uint256 mainCoinAmount = tokenAmount.calcAmount(poolIdToRateToWei[poolId]);
         provider.withdraw(mainCoinHolderId, mainCoinAmount);
@@ -115,7 +117,7 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState {
         lockDealNFT.cloneVaultId(newMainCoinPoolId, mainCoinHolderId);
     }
 
-    function handleWithdraw(uint256 poolId, uint256 tokenAmount) public override onlyProvider validProviderId(poolId) {
+    function handleWithdraw(uint256 poolId, uint256 tokenAmount) public override onlyProvider validProviderId(poolId) sphereXGuardPublic(0x861fafc3, 0x6a9e480d) {
         uint256 mainCoinCollectorId = poolId + 1;
         uint256 mainCoinHolderId = poolId + 3;
         uint256 mainCoinAmount = tokenAmount.calcAmount(poolIdToRateToWei[poolId]);
@@ -123,7 +125,7 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState {
         _deposit(mainCoinCollectorId, mainCoinAmount);
     }
 
-    function _deposit(uint256 poolId, uint256 amount) internal {
+    function _deposit(uint256 poolId, uint256 amount) internal sphereXGuardInternal(0x319ea11c) {
         uint256[] memory params = provider.getParams(poolId);
         params[0] += amount;
         provider.registerPool(poolId, params);

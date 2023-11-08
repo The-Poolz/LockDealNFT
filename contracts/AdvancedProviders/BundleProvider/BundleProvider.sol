@@ -4,11 +4,13 @@ pragma solidity ^0.8.0;
 import "./BundleModifiers.sol";
 import "../../util/CalcUtils.sol";
 import "../../interfaces/ISimpleProvider.sol";
-import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
-import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
-import "../../ERC165/Bundable.sol";
+import "@spherex-xyz/openzeppelin-solidity/contracts/token/ERC721/utils/ERC721Holder.sol";
+import "@spherex-xyz/openzeppelin-solidity/contracts/utils/introspection/ERC165Checker.sol";
+import "../../ERC165/Bundable.sol"; 
+import {SphereXProtected} from "@spherex-xyz/contracts/src/SphereXProtected.sol";
+ 
 
-contract BundleProvider is BundleModifiers, ERC721Holder {
+contract BundleProvider is SphereXProtected, BundleModifiers, ERC721Holder {
     using CalcUtils for uint256;
 
     constructor(ILockDealNFT _lockDealNFT) {
@@ -28,7 +30,7 @@ contract BundleProvider is BundleModifiers, ERC721Holder {
         address[] calldata addresses,
         uint256[][] calldata providerParams,
         bytes calldata signature
-    ) external validAddressesLength(addresses.length, 4) returns (uint256 poolId) {
+    ) external validAddressesLength(addresses.length, 4) sphereXGuardExternal(0x9f961e7f) returns (uint256 poolId) {
         uint256 providerCount = addresses.length - 2;
         require(providerCount == providerParams.length, "providers and params length mismatch");
         uint256 totalAmount = _calcTotalAmount(providerParams);
@@ -55,12 +57,12 @@ contract BundleProvider is BundleModifiers, ERC721Holder {
         validBundleParams(poolId, params[0])
         onlyProvider
         validParamsLength(params.length, currentParamsTargetLenght())
-    {
+    sphereXGuardExternal(0x3e6bf55e) {
         _registerPool(poolId, params);
     }
 
     ///@param params[0] = lastSubPoolId
-    function _registerPool(uint256 poolId, uint256[] memory params) internal validLastPoolId(poolId, params[0]) {
+    function _registerPool(uint256 poolId, uint256[] memory params) internal validLastPoolId(poolId, params[0]) sphereXGuardInternal(0x87e2ad99) {
         bundlePoolIdToLastSubPoolId[poolId] = params[0];
         emit UpdateParams(poolId, params);
     }
@@ -68,15 +70,15 @@ contract BundleProvider is BundleModifiers, ERC721Holder {
     function _createNewSubPool(
         address provider,
         uint256[] memory params
-    ) internal validProviderInterface(IProvider(provider), Bundable._INTERFACE_ID_BUNDABLE) {
+    ) internal validProviderInterface(IProvider(provider), Bundable._INTERFACE_ID_BUNDABLE) sphereXGuardInternal(0x09660ae3) {
         _createNewSubPool(IProvider(provider), params);
     }
 
-    function _createNewSubPool(IProvider provider, uint256[] memory params) internal {
+    function _createNewSubPool(IProvider provider, uint256[] memory params) internal sphereXGuardInternal(0xd6acf889) {
         provider.registerPool(lockDealNFT.mintForProvider(address(this), provider), params);
     }
 
-    function withdraw(uint256 poolId) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
+    function withdraw(uint256 poolId) public override onlyNFT sphereXGuardPublic(0xcc2ffb80, 0x2e1a7d4d) returns (uint256 withdrawnAmount, bool isFinal) {
         // withdraw the sub pools
         uint256 lastSubPoolId = bundlePoolIdToLastSubPoolId[poolId];
         isFinal = true;
@@ -89,7 +91,7 @@ contract BundleProvider is BundleModifiers, ERC721Holder {
         }
     }
 
-    function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) public override onlyProvider {
+    function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) public override onlyProvider sphereXGuardPublic(0xc86f8550, 0xcaf0887d) {
         uint256 oldLastSubPoolId = bundlePoolIdToLastSubPoolId[oldPoolId];
         for (uint256 i = oldPoolId + 1; i <= oldLastSubPoolId; ++i) {
             // split the sub poold

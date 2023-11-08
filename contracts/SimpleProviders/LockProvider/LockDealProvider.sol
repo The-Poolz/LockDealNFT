@@ -2,7 +2,9 @@
 pragma solidity ^0.8.0;
 
 import "../Provider/BasicProvider.sol";
-import "./LockDealState.sol";
+import "./LockDealState.sol"; 
+import {SphereXProtected} from "@spherex-xyz/contracts/src/SphereXProtected.sol";
+ 
 
 contract LockDealProvider is BasicProvider, LockDealState {
     constructor(ILockDealNFT _lockDealNFT, address _provider) {
@@ -13,19 +15,19 @@ contract LockDealProvider is BasicProvider, LockDealState {
     }
 
     /// @dev use revert only for permissions
-    function withdraw(uint256 poolId) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
+    function withdraw(uint256 poolId) public override onlyNFT sphereXGuardPublic(0xb6600ef5, 0x2e1a7d4d) returns (uint256 withdrawnAmount, bool isFinal) {
         (withdrawnAmount, isFinal) = _withdraw(poolId, getParams(poolId)[0]);
     }
 
     function _withdraw(
         uint256 poolId,
         uint256 amount
-    ) internal override returns (uint256 withdrawnAmount, bool isFinal) {
+    ) internal override sphereXGuardInternal(0xa0c6a1d4) returns (uint256 withdrawnAmount, bool isFinal) {
         withdrawnAmount = getWithdrawableAmount(poolId);
         (withdrawnAmount, isFinal) = provider.withdraw(poolId, amount > withdrawnAmount ? withdrawnAmount : amount);
     }
 
-    function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) public override onlyProvider {
+    function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) public override onlyProvider sphereXGuardPublic(0x1b0498ed, 0xcaf0887d) {
         provider.split(oldPoolId, newPoolId, ratio);
         poolIdToTime[newPoolId] = poolIdToTime[oldPoolId];
     }
@@ -36,7 +38,7 @@ contract LockDealProvider is BasicProvider, LockDealState {
 
     ///@param params[0] = amount
     ///@param params[1] = startTime
-    function _registerPool(uint256 poolId, uint256[] calldata params) internal override {
+    function _registerPool(uint256 poolId, uint256[] calldata params) internal override sphereXGuardInternal(0xce5ce0fd) {
         require(block.timestamp <= params[1], "Invalid start time");
 
         poolIdToTime[poolId] = params[1];

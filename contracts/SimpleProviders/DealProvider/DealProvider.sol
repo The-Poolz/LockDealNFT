@@ -3,7 +3,9 @@ pragma solidity ^0.8.0;
 
 import "./DealProviderState.sol";
 import "../Provider/BasicProvider.sol";
-import "../../util/CalcUtils.sol";
+import "../../util/CalcUtils.sol"; 
+import {SphereXProtected} from "@spherex-xyz/contracts/src/SphereXProtected.sol";
+ 
 
 contract DealProvider is DealProviderState, BasicProvider {
     using CalcUtils for uint256;
@@ -17,7 +19,7 @@ contract DealProvider is DealProviderState, BasicProvider {
     function _withdraw(
         uint256 poolId,
         uint256 amount
-    ) internal override returns (uint256 withdrawnAmount, bool isFinal) {
+    ) internal override sphereXGuardInternal(0x2a52ec57) returns (uint256 withdrawnAmount, bool isFinal) {
         if (poolIdToAmount[poolId] >= amount) {
             poolIdToAmount[poolId] -= amount;
             withdrawnAmount = amount;
@@ -26,7 +28,7 @@ contract DealProvider is DealProviderState, BasicProvider {
     }
 
     /// @dev Splits a pool into two pools. Used by the LockedDealNFT contract or Provider
-    function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) public override onlyProvider {
+    function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) public override onlyProvider sphereXGuardPublic(0x51ad9aed, 0xcaf0887d) {
         uint256 splitAmount = poolIdToAmount[oldPoolId].calcAmount(ratio);
         require(poolIdToAmount[oldPoolId] >= splitAmount, "Split amount exceeds the available amount");
         poolIdToAmount[oldPoolId] -= splitAmount;
@@ -37,7 +39,7 @@ contract DealProvider is DealProviderState, BasicProvider {
      * @param poolId The ID of the pool.
      * @param params An array of additional parameters.
      */
-    function _registerPool(uint256 poolId, uint256[] calldata params) internal override {
+    function _registerPool(uint256 poolId, uint256[] calldata params) internal override sphereXGuardInternal(0xd897ab8a) {
         poolIdToAmount[poolId] = params[0];
         emit UpdateParams(poolId, params);
     }
