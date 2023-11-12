@@ -9,14 +9,29 @@ import 'solidity-coverage'
 const config: HardhatUserConfig = {
   defaultNetwork: 'hardhat',
   solidity: {
-    version: '0.8.18',
-    settings: {
-      evmVersion: 'istanbul',
-      optimizer: {
-        enabled: true,
-        runs: 200,
+    compilers: [
+      {
+        version: "0.8.19",
+        settings: {
+          viaIR: true,
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
       },
-    },
+      {
+        version: '0.8.18',
+        settings: {
+          viaIR: true,
+          evmVersion: 'istanbul',
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+    ],
   },
   networks: {
     hardhat: {

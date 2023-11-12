@@ -5,9 +5,14 @@ import "./LockDealNFTModifiers.sol";
 import "../interfaces/IInnerWithdraw.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import "../interfaces/IBeforeTransfer.sol";
+import "@ironblocks/firewall-consumer/contracts/FirewallConsumer.sol";
 
-abstract contract LockDealNFTInternal is LockDealNFTModifiers {
-    function _transfer(address from, address to, uint256 poolId) internal override {
+abstract contract LockDealNFTInternal is LockDealNFTModifiers, FirewallConsumer {
+    function _transfer(address from, address to, uint256 poolId)
+        internal
+        override
+        firewallProtectedCustom(abi.encodePacked(bytes4(0x30e0789e)))
+    {
         if (
             from != address(0) &&
             ERC165Checker.supportsInterface(address(poolIdToProvider[poolId]), type(IBeforeTransfer).interfaceId)
@@ -28,7 +33,11 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers {
     /// @param owner The address to assign the token to
     /// @param provider The address of the provider assigning the token
     /// @return newPoolId The ID of the pool
-    function _mint(address owner, IProvider provider) internal returns (uint256 newPoolId) {
+    function _mint(address owner, IProvider provider)
+        internal
+        firewallProtectedCustom(abi.encodePacked(bytes4(0x3c99ae44)))
+        returns (uint256 newPoolId)
+    {
         newPoolId = totalSupply();
         _safeMint(owner, newPoolId);
         poolIdToProvider[newPoolId] = provider;
@@ -44,13 +53,19 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers {
         return baseURI;
     }
 
-    function _handleReturn(uint256 poolId, address from, bool isFinal) internal {
+    function _handleReturn(uint256 poolId, address from, bool isFinal)
+        internal
+        firewallProtectedCustom(abi.encodePacked(bytes4(0x1d50d0db)))
+    {
         if (!isFinal) {
             _transfer(address(this), from, poolId);
         }
     }
 
-    function _withdrawFromVault(uint256 poolId, uint256 withdrawnAmount, address from) internal {
+    function _withdrawFromVault(uint256 poolId, uint256 withdrawnAmount, address from)
+        internal
+        firewallProtectedCustom(abi.encodePacked(bytes4(0x05d6a92f)))
+    {
         if (withdrawnAmount > 0) {
             vaultManager.withdrawByVaultId(poolIdToVaultId[poolId], from, withdrawnAmount);
             emit MetadataUpdate(poolId);
@@ -58,7 +73,11 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers {
         }
     }
 
-    function _withdraw(address from, uint256 poolId) internal returns (bool isFinal) {
+    function _withdraw(address from, uint256 poolId)
+        internal
+        firewallProtectedCustom(abi.encodePacked(bytes4(0xb790a77b)))
+        returns (bool isFinal)
+    {
         uint256 withdrawnAmount;
         IProvider provider = poolIdToProvider[poolId];
         (withdrawnAmount, isFinal) = provider.withdraw(poolId);
@@ -76,7 +95,11 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers {
 
     /// @dev Splits a pool into two pools with adjusted amounts
     /// @param poolId The ID of the pool to split
-    function _split(uint256 poolId, address from, bytes calldata data) internal returns (bool isFinal) {
+    function _split(uint256 poolId, address from, bytes calldata data)
+        internal
+        firewallProtectedCustom(abi.encodePacked(bytes4(0x1746b892)))
+        returns (bool isFinal)
+    {
         (uint256 ratio, address newOwner) = _parseData(data, from);
         isFinal = _split(poolId, from, ratio, newOwner);
     }
@@ -86,7 +109,13 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers {
         address from,
         uint256 ratio,
         address newOwner
-    ) private notZeroAddress(newOwner) notZeroAmount(ratio) returns (bool isFinal) {
+    )
+        private
+        firewallProtectedCustom(abi.encodePacked(bytes4(0x5936f8f8)))
+        notZeroAddress(newOwner)
+        notZeroAmount(ratio)
+        returns (bool isFinal)
+    {
         require(ratio <= 1e21, "split amount exceeded");
         IProvider provider = poolIdToProvider[poolId];
         uint256 newPoolId = _mint(newOwner, provider);

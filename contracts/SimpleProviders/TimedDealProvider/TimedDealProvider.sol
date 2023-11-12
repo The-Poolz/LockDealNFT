@@ -24,7 +24,7 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider {
     function _withdraw(
         uint256 poolId,
         uint256 amount
-    ) internal override returns (uint256 withdrawnAmount, bool isFinal) {
+    ) internal override firewallProtectedCustom(abi.encodePacked(bytes4(0x9e2bf22c))) returns (uint256 withdrawnAmount, bool isFinal) {
         (withdrawnAmount, isFinal) = provider.withdraw(poolId, amount);
     }
 
@@ -44,7 +44,7 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider {
         return debitableAmount - (startAmount - leftAmount);
     }
 
-    function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) public onlyProvider {
+    function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) external firewallProtected onlyProvider {
         provider.split(oldPoolId, newPoolId, ratio);
         uint256 newPoolStartAmount = poolIdToAmount[oldPoolId].calcAmount(ratio);
         poolIdToAmount[oldPoolId] -= newPoolStartAmount;
@@ -55,7 +55,7 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider {
     ///@param params[0] = leftAmount = startAmount (leftAmount & startAmount must be same while creating pool)
     ///@param params[1] = startTime
     ///@param params[2] = finishTime
-    function _registerPool(uint256 poolId, uint256[] calldata params) internal override {
+    function _registerPool(uint256 poolId, uint256[] calldata params) internal override firewallProtectedCustom(abi.encodePacked(bytes4(0xdf3aac25))) {
         require(params[2] >= params[1], "Finish time should be greater than start time");
         poolIdToTime[poolId] = params[2];
         poolIdToAmount[poolId] = params[0];
@@ -73,7 +73,7 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider {
         params[3] = poolIdToAmount[poolId]; // startAmount
     }
 
-    function currentParamsTargetLenght() public view override(IProvider, ProviderState) returns (uint256) {
-        return 1 + provider.currentParamsTargetLenght();
+    function currentParamsTargetLength() public view override(IProvider, ProviderState) returns (uint256) {
+        return 1 + provider.currentParamsTargetLength();
     }
 }

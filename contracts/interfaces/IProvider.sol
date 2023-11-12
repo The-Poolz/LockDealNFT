@@ -16,7 +16,7 @@ interface IProvider {
 
     function getWithdrawableAmount(uint256 poolId) external view returns (uint256 withdrawalAmount);
 
-    function currentParamsTargetLenght() external view returns (uint256);
+    function currentParamsTargetLength() external view returns (uint256);
 
     function name() external view returns (string memory);
 

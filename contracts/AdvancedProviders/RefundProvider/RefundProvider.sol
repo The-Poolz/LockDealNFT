@@ -4,8 +4,9 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "../../ERC165/Refundble.sol";
 import "./RefundState.sol";
+import "@ironblocks/firewall-consumer/contracts/FirewallConsumer.sol";
 
-contract RefundProvider is RefundState, IERC721Receiver {
+contract RefundProvider is RefundState, IERC721Receiver, FirewallConsumer {
     constructor(ILockDealNFT nftContract, address provider) {
         require(address(nftContract) != address(0x0) && provider != address(0x0), "invalid address");
         lockDealNFT = nftContract;
@@ -19,7 +20,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
         address user,
         uint256 poolId,
         bytes calldata
-    ) external override returns (bytes4) {
+    ) external override firewallProtected returns (bytes4) {
         require(msg.sender == address(lockDealNFT), "invalid nft contract");
         if (provider == user) {
             uint256 collateralPoolId = poolIdToCollateralId[poolId];
@@ -46,7 +47,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
         uint256[] calldata params,
         bytes calldata tokenSignature,
         bytes calldata mainCoinSignature
-    ) external returns (uint256 poolId) {
+    ) external firewallProtected returns (uint256 poolId) {
         _validAddressLength(addresses.length, 4);
         _validProviderInterface(IProvider(addresses[3]), Refundble._INTERFACE_ID_REFUNDABLE);
         uint256 paramsLength = params.length;
@@ -78,7 +79,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
         collateralProvider.registerPool(collateralPoolId, params);
         lockDealNFT.cloneVaultId(collateralPoolId + 2, dataPoolID); // clone token data to sub-collateral poolId
         // save refund data
-        uint256[] memory refundRegisterParams = new uint256[](currentParamsTargetLenght());
+        uint256[] memory refundRegisterParams = new uint256[](currentParamsTargetLength());
         refundRegisterParams[0] = collateralPoolId;
         _registerPool(poolId, refundRegisterParams);
     }
@@ -87,7 +88,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
     function registerPool(
         uint256 poolId,
         uint256[] calldata params
-    ) public override onlyProvider validProviderId(poolId) validProviderAssociation(params[0], collateralProvider) {
+    ) external override firewallProtected onlyProvider validProviderId(poolId) validProviderAssociation(params[0], collateralProvider) {
         require(lockDealNFT.ownerOf(poolId + 1) == address(this), "Must Own poolId+1");
         _registerPool(poolId, params);
     }
@@ -95,14 +96,18 @@ contract RefundProvider is RefundState, IERC721Receiver {
     function _registerPool(
         uint256 poolId,
         uint256[] memory params
-    ) internal validParamsLength(params.length, currentParamsTargetLenght()) {
+    )
+        internal
+        firewallProtectedCustom(abi.encodePacked(bytes4(0xdf3aac25)))
+        validParamsLength(params.length, currentParamsTargetLength())
+    {
         poolIdToCollateralId[poolId] = params[0];
         emit UpdateParams(poolId, params);
     }
 
     ///@dev split tokens and main coins into new pools
-    function split(uint256 poolId, uint256 newPoolId, uint256 ratio) external onlyNFT {
-        uint256[] memory params = new uint256[](currentParamsTargetLenght());
+    function split(uint256 poolId, uint256 newPoolId, uint256 ratio) external firewallProtected onlyNFT {
+        uint256[] memory params = new uint256[](currentParamsTargetLength());
         params[0] = poolIdToCollateralId[poolId];
         _registerPool(newPoolId, params);
         uint256 userPoolId = poolId + 1;
@@ -110,7 +115,7 @@ contract RefundProvider is RefundState, IERC721Receiver {
     }
 
     ///@dev user withdraws his tokens
-    function withdraw(uint256 poolId) public override onlyNFT returns (uint256 amountToBeWithdrawed, bool isFinal) {
+    function withdraw(uint256 poolId) external override firewallProtected onlyNFT returns (uint256 amountToBeWithdrawed, bool isFinal) {
         uint256 userDataPoolId = poolId + 1;
         IProvider provider = lockDealNFT.poolIdToProvider(userDataPoolId);
         amountToBeWithdrawed = provider.getWithdrawableAmount(userDataPoolId);
