@@ -1,6 +1,6 @@
 # SimpleRefundBuilder
 
-`The SimpleRefundBuilder` is a **Solidity** smart contract designed for the efficient mass creation of [Refund provider](https://github.com/The-Poolz/LockDealNFT/tree/master/contracts/AdvancedProviders/RefundProvider) **Non-Fungible Tokens (NFTs).** Its primary purpose is to streamline the process of creating multiple refund pools. By leveraging the capabilities of this contract, users can initiate the creation of **RefundProvider NFTs** in a single transaction, simplifying the management of refundable deals.
+`The SimpleRefundBuilder` is a **Solidity** smart contract for efficiently generating [Refund provider](https://github.com/The-Poolz/LockDealNFT/tree/master/contracts/AdvancedProviders/RefundProvider) **Non-Fungible Tokens (NFTs)** on a large scale. By harnessing the capabilities of this contract, users can initiate the creation of multiple `RefundProvider NFTs` in a single transaction, simplifying the management of refundable deals.
 
 **BSC Testnet** contract address [link](https://testnet.bscscan.com/address/0x9c39a03459522185a1598d4ad2a9ccccb0f5ff8f).
 
@@ -24,9 +24,9 @@ function buildMassPools(
 
 ```solidity
 // An array containing three addresses:
-// addressParams[0]: simpleProvider: The address of the simple provider contract responsible for managing refund pools.
-// addressParams[1]: token: The address of the ERC-20 token used in the refund pools.
-// addressParams[2]: mainCoin: The address of the main coin used in collateralized deals.
+// addressParams[0]: simpleProvider: The address of the simple provider contract.
+// addressParams[1]: token: The address of the ERC-20 token used in user pools.
+// addressParams[2]: mainCoin: The address of the main coin employed in refund offers.
 address[] calldata addressParams;
 ```
 
@@ -40,7 +40,7 @@ Builder calldata userData;
 ```
 
 ```solidity
-// A 2D array containing parameters for the mass pool creation process:
+// A matrix array containing parameters for the mass pool creation process:
 // params[0]: Collateral parameters, including the starting amount and finish time.
 // params[1]: Array of parameters for the simple provider. This array may be empty if the provider is a DealProvider.
 uint256[][] calldata params;
