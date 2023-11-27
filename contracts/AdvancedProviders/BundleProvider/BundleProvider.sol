@@ -64,7 +64,7 @@ contract BundleProvider is BundleModifiers, ERC721Holder, FirewallConsumer {
     ///@param params[0] = lastSubPoolId
     function _registerPool(uint256 poolId, uint256[] memory params)
         internal
-        firewallProtectedCustom(abi.encodePacked(bytes4(0xdf3aac25)))
+        firewallProtectedSig(0xdf3aac25)
         validLastPoolId(poolId, params[0])
     {
         bundlePoolIdToLastSubPoolId[poolId] = params[0];
@@ -81,7 +81,7 @@ contract BundleProvider is BundleModifiers, ERC721Holder, FirewallConsumer {
 
     function _createNewSubPool(IProvider provider, uint256[] memory params)
         internal
-        firewallProtectedCustom(abi.encodePacked(bytes4(0xc763c9c5)))
+        firewallProtectedSig(0xc763c9c5)
     {
         provider.registerPool(lockDealNFT.mintForProvider(address(this), provider), params);
     }

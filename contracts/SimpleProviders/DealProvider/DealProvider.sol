@@ -17,7 +17,7 @@ contract DealProvider is DealProviderState, BasicProvider {
     function _withdraw(
         uint256 poolId,
         uint256 amount
-    ) internal override firewallProtectedCustom(abi.encodePacked(bytes4(0x9e2bf22c))) returns (uint256 withdrawnAmount, bool isFinal) {
+    ) internal override firewallProtectedSig(0x9e2bf22c) returns (uint256 withdrawnAmount, bool isFinal) {
         if (poolIdToAmount[poolId] >= amount) {
             poolIdToAmount[poolId] -= amount;
             withdrawnAmount = amount;
@@ -37,7 +37,7 @@ contract DealProvider is DealProviderState, BasicProvider {
      * @param poolId The ID of the pool.
      * @param params An array of additional parameters.
      */
-    function _registerPool(uint256 poolId, uint256[] calldata params) internal override firewallProtectedCustom(abi.encodePacked(bytes4(0xdf3aac25))) {
+    function _registerPool(uint256 poolId, uint256[] calldata params) internal override firewallProtectedSig(0xdf3aac25) {
         poolIdToAmount[poolId] = params[0];
         emit UpdateParams(poolId, params);
     }

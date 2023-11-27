@@ -71,7 +71,7 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal, FirewallConsumer 
         uint256 totalAmount,
         uint256[] memory params,
         bytes calldata signature
-    ) internal virtual override firewallProtectedCustom(abi.encodePacked(bytes4(0x29454335))) returns (uint256 poolId) {
+    ) internal virtual override firewallProtectedSig(0x29454335) returns (uint256 poolId) {
         // one time token transfer for deacrease number transactions
         lockDealNFT.mintForProvider(owner, refundProvider);
         poolId = super._createFirstNFT(provider, token, address(refundProvider), totalAmount, params, signature);
@@ -84,7 +84,7 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal, FirewallConsumer 
         uint256 mainCoinAmount,
         uint256 collateralFinishTime,
         bytes calldata signature
-    ) internal firewallProtectedCustom(abi.encodePacked(bytes4(0x4516d406))) returns (uint256 poolId) {
+    ) internal firewallProtectedSig(0x4516d406) returns (uint256 poolId) {
         poolId = lockDealNFT.safeMintAndTransfer(
             msg.sender,
             mainCoin,
@@ -127,7 +127,7 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal, FirewallConsumer 
         uint256 mainCoinAmount,
         uint256 collateralFinishTime,
         bytes calldata signature
-    ) internal firewallProtectedCustom(abi.encodePacked(bytes4(0xcfc2dc78))) returns (uint256[] memory refundParams) {
+    ) internal firewallProtectedSig(0xcfc2dc78) returns (uint256[] memory refundParams) {
         refundParams = new uint256[](1);
         refundParams[0] = _createCollateralProvider(
             mainCoin,
@@ -147,7 +147,7 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal, FirewallConsumer 
         uint256 tokenPoolId,
         uint256[] memory simpleParams,
         uint256[] memory refundParams
-    ) internal firewallProtectedCustom(abi.encodePacked(bytes4(0xbbc1f709))) {
+    ) internal firewallProtectedSig(0xbbc1f709) {
         uint256 length = userData.length;
         require(length > 0, "invalid userPools length");
         totalAmount -= userData[0].amount;

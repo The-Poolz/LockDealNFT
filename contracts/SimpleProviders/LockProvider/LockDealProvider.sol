@@ -36,7 +36,7 @@ contract LockDealProvider is BasicProvider, LockDealState {
 
     ///@param params[0] = amount
     ///@param params[1] = startTime
-    function _registerPool(uint256 poolId, uint256[] calldata params) internal override firewallProtectedCustom(abi.encodePacked(bytes4(0xdf3aac25))) {
+    function _registerPool(uint256 poolId, uint256[] calldata params) internal override firewallProtectedSig(0xdf3aac25) {
         require(block.timestamp <= params[1], "Invalid start time");
 
         poolIdToTime[poolId] = params[1];

@@ -38,7 +38,7 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState, Fir
     /// @param params[params.length - 1] = FinishTime
     function _registerPool(uint256 poolId, uint256[] calldata params)
         internal
-        firewallProtectedCustom(abi.encodePacked(bytes4(0xdf3aac25)))
+        firewallProtectedSig(0xdf3aac25)
     {
         uint256 tokenAmount = params[0];
         uint256 mainCoinAmount = params[params.length - 2];
@@ -60,7 +60,7 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState, Fir
 
     function _setPoolProperties(uint256 poolId, uint256 rate, uint256 finishTime, uint256 mainCoinAmount)
         private
-        firewallProtectedCustom(abi.encodePacked(bytes4(0x91666b02)))
+        firewallProtectedSig(0x91666b02)
     {
         poolIdToRateToWei[poolId] = rate;
         poolIdToTime[poolId] = finishTime;
@@ -69,16 +69,13 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState, Fir
         provider.registerPool(poolId + 3, mainCoinParams); // Just need the 0 index, token left amount
     }
 
-    function _mintNFTs() private firewallProtectedCustom(abi.encodePacked(bytes4(0x1cd0f8c5))) returns (uint256 poolId) {
+    function _mintNFTs() private firewallProtectedSig(0x1cd0f8c5) returns (uint256 poolId) {
         lockDealNFT.mintForProvider(address(this), provider); // Main Coin Collector
         lockDealNFT.mintForProvider(address(this), provider); // Token Collector
         poolId = lockDealNFT.mintForProvider(address(this), provider);
     }
 
-    function _cloneVaultIds(uint256 mainCoinPoolId)
-        private
-        firewallProtectedCustom(abi.encodePacked(bytes4(0x720a8731)))
-    {
+    function _cloneVaultIds(uint256 mainCoinPoolId) private firewallProtectedSig(0x720a8731) {
         lockDealNFT.cloneVaultId(mainCoinPoolId + 1, mainCoinPoolId);
         lockDealNFT.cloneVaultId(mainCoinPoolId + 3, mainCoinPoolId);
     }
@@ -102,7 +99,7 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState, Fir
         _splitter(coinHolderAmount, mainCoinHolderId, ratio);
     }
 
-    function _splitter(uint256 amount, uint256 poolId, uint256 ratio) internal firewallProtectedCustom(abi.encodePacked(bytes4(0x203fb415))) {
+    function _splitter(uint256 amount, uint256 poolId, uint256 ratio) internal firewallProtectedSig(0x203fb415) {
         if (amount > 0) {
             lockDealNFT.safeTransferFrom(address(this), address(lockDealNFT), poolId, abi.encode(ratio));
         } else {
@@ -134,7 +131,7 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState, Fir
         _deposit(mainCoinCollectorId, mainCoinAmount);
     }
 
-    function _deposit(uint256 poolId, uint256 amount) internal firewallProtectedCustom(abi.encodePacked(bytes4(0xf3207723))) {
+    function _deposit(uint256 poolId, uint256 amount) internal firewallProtectedSig(0xf3207723) {
         uint256[] memory params = provider.getParams(poolId);
         params[0] += amount;
         provider.registerPool(poolId, params);

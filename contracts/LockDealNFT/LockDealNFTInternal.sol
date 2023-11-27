@@ -11,7 +11,7 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers, FirewallConsumer 
     function _transfer(address from, address to, uint256 poolId)
         internal
         override
-        firewallProtectedCustom(abi.encodePacked(bytes4(0x30e0789e)))
+        firewallProtectedSig(0x30e0789e)
     {
         if (
             from != address(0) &&
@@ -35,7 +35,7 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers, FirewallConsumer 
     /// @return newPoolId The ID of the pool
     function _mint(address owner, IProvider provider)
         internal
-        firewallProtectedCustom(abi.encodePacked(bytes4(0x3c99ae44)))
+        firewallProtectedSig(0x3c99ae44)
         returns (uint256 newPoolId)
     {
         newPoolId = totalSupply();
@@ -55,7 +55,7 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers, FirewallConsumer 
 
     function _handleReturn(uint256 poolId, address from, bool isFinal)
         internal
-        firewallProtectedCustom(abi.encodePacked(bytes4(0x1d50d0db)))
+        firewallProtectedSig(0x1d50d0db)
     {
         if (!isFinal) {
             _transfer(address(this), from, poolId);
@@ -64,7 +64,7 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers, FirewallConsumer 
 
     function _withdrawFromVault(uint256 poolId, uint256 withdrawnAmount, address from)
         internal
-        firewallProtectedCustom(abi.encodePacked(bytes4(0x05d6a92f)))
+        firewallProtectedSig(0x05d6a92f)
     {
         if (withdrawnAmount > 0) {
             vaultManager.withdrawByVaultId(poolIdToVaultId[poolId], from, withdrawnAmount);
@@ -75,7 +75,7 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers, FirewallConsumer 
 
     function _withdraw(address from, uint256 poolId)
         internal
-        firewallProtectedCustom(abi.encodePacked(bytes4(0xb790a77b)))
+        firewallProtectedSig(0xb790a77b)
         returns (bool isFinal)
     {
         uint256 withdrawnAmount;
@@ -97,7 +97,7 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers, FirewallConsumer 
     /// @param poolId The ID of the pool to split
     function _split(uint256 poolId, address from, bytes calldata data)
         internal
-        firewallProtectedCustom(abi.encodePacked(bytes4(0x1746b892)))
+        firewallProtectedSig(0x1746b892)
         returns (bool isFinal)
     {
         (uint256 ratio, address newOwner) = _parseData(data, from);
@@ -111,7 +111,7 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers, FirewallConsumer 
         address newOwner
     )
         private
-        firewallProtectedCustom(abi.encodePacked(bytes4(0x5936f8f8)))
+        firewallProtectedSig(0x5936f8f8)
         notZeroAddress(newOwner)
         notZeroAmount(ratio)
         returns (bool isFinal)

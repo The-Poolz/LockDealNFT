@@ -98,7 +98,7 @@ contract RefundProvider is RefundState, IERC721Receiver, FirewallConsumer {
         uint256[] memory params
     )
         internal
-        firewallProtectedCustom(abi.encodePacked(bytes4(0xdf3aac25)))
+        firewallProtectedSig(0xdf3aac25)
         validParamsLength(params.length, currentParamsTargetLength())
     {
         poolIdToCollateralId[poolId] = params[0];

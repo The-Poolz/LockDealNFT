@@ -9,7 +9,7 @@
   "license": "MIT",
   "main": "index.js",
   "dependencies": {
-    "@ironblocks/firewall-consumer": "^1.0.1",
+    "@ironblocks/firewall-consumer": "^1.0.4",
     "@openzeppelin/contracts": "^4.8.3",
     "@poolzfinance/poolz-helper-v2": "^2.1.15"
   },
