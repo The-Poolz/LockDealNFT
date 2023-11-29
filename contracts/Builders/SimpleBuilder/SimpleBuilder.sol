@@ -12,6 +12,14 @@ contract SimpleBuilder is ERC721Holder, BuilderInternal, FirewallConsumer {
         lockDealNFT = _nft;
     }
 
+    struct MassPoolsLocals {
+        uint256 totalAmount;
+        address token;
+        ISimpleProvider provider;
+        uint256 length;
+        uint256 poolId;
+    }
+
     /// @notice Build mass pools
     /// @param addressParams[0] - Provider address
     /// @param addressParams[1] - Token address
@@ -29,23 +37,24 @@ contract SimpleBuilder is ERC721Holder, BuilderInternal, FirewallConsumer {
             "invalid provider type"
         );
         require(userData.userPools.length > 0, "invalid user length");
-        uint256 totalAmount = userData.totalAmount;
-        _notZeroAmount(totalAmount);
-        address token = addressParams[1];
-        ISimpleProvider provider = ISimpleProvider(addressParams[0]);
+        MassPoolsLocals memory locals;
+        locals.totalAmount = userData.totalAmount;
+        _notZeroAmount(locals.totalAmount);
+        locals.token = addressParams[1];
+        locals.provider = ISimpleProvider(addressParams[0]);
         UserPool calldata firstUserData = userData.userPools[0];
-        uint256 length = userData.userPools.length;
+        locals.length = userData.userPools.length;
         // one time transfer for deacrease number transactions
         uint256[] memory simpleParams = _concatParams(firstUserData.amount, params);
-        uint256 poolId = _createFirstNFT(provider, token, firstUserData.user, totalAmount, simpleParams, signature);
-        totalAmount -= firstUserData.amount;
-        for (uint256 i = 1; i < length; ) {
+        locals.poolId = _createFirstNFT(locals.provider, locals.token, firstUserData.user, locals.totalAmount, simpleParams, signature);
+        locals.totalAmount -= firstUserData.amount;
+        for (uint256 i = 1; i < locals.length; ) {
             UserPool calldata userPool = userData.userPools[i];
-            totalAmount -= _createNewNFT(provider, poolId, userPool, simpleParams);
+            locals.totalAmount -= _createNewNFT(locals.provider, locals.poolId, userPool, simpleParams);
             unchecked {
                 ++i;
             }
         }
-        assert(totalAmount == 0);
+        assert(locals.totalAmount == 0);
     }
 }
