@@ -18,7 +18,7 @@ contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
     function mintForProvider(
         address owner,
         IProvider provider
-    ) external onlyApprovedContract(address(provider)) notZeroAddress(owner) returns (uint256 poolId) {
+    ) external firewallProtected onlyApprovedContract(address(provider)) notZeroAddress(owner) returns (uint256 poolId) {
         poolId = _mint(owner, provider);
     }
 
@@ -28,7 +28,8 @@ contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
         uint256 amount,
         IProvider provider
     )
-        public
+        external
+        firewallProtected
         onlyApprovedContract(address(provider))
         notZeroAddress(owner)
         notZeroAddress(token)
@@ -48,7 +49,8 @@ contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
         IProvider provider,
         bytes calldata data
     )
-        public
+        external
+        firewallProtected
         onlyApprovedContract(address(provider))
         notZeroAddress(owner)
         notZeroAddress(token)
@@ -62,7 +64,7 @@ contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
     function cloneVaultId(
         uint256 destinationPoolId,
         uint256 sourcePoolId
-    ) external onlyApprovedContract(msg.sender) validPoolId(destinationPoolId) validPoolId(sourcePoolId) {
+    ) external firewallProtected onlyApprovedContract(msg.sender) validPoolId(destinationPoolId) validPoolId(sourcePoolId) {
         poolIdToVaultId[destinationPoolId] = poolIdToVaultId[sourcePoolId];
     }
 
@@ -85,7 +87,7 @@ contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
         address from,
         uint256 poolId,
         bytes calldata data
-    ) external override returns (bytes4) {
+    ) external override firewallProtected returns (bytes4) {
         require(msg.sender == address(this), "invalid nft contract");
         _handleReturn(poolId, from, data.length > 0 ? _split(poolId, from, data) : _withdraw(from, poolId));
         return IERC721Receiver.onERC721Received.selector;
