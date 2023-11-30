@@ -104,6 +104,11 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers, FirewallConsumer 
         isFinal = _split(poolId, from, ratio, newOwner);
     }
 
+    struct SplitLocals {
+        IProvider provider;
+        uint256 newPoolId;
+    }
+
     function _split(
         uint256 poolId,
         address from,
@@ -117,12 +122,13 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers, FirewallConsumer 
         returns (bool isFinal)
     {
         require(ratio <= 1e21, "split amount exceeded");
-        IProvider provider = poolIdToProvider[poolId];
-        uint256 newPoolId = _mint(newOwner, provider);
-        poolIdToVaultId[newPoolId] = poolIdToVaultId[poolId];
-        provider.split(poolId, newPoolId, ratio);
-        isFinal = provider.getParams(poolId)[0] == 0;
-        emit PoolSplit(poolId, from, newPoolId, newOwner, _getData(poolId).params[0], _getData(newPoolId).params[0]);
+        SplitLocals memory locals;
+        locals.provider = poolIdToProvider[poolId];
+        locals.newPoolId = _mint(newOwner, locals.provider);
+        poolIdToVaultId[locals.newPoolId] = poolIdToVaultId[poolId];
+        locals.provider.split(poolId, locals.newPoolId, ratio);
+        isFinal = locals.provider.getParams(poolId)[0] == 0;
+        emit PoolSplit(poolId, from, locals.newPoolId, newOwner, _getData(poolId).params[0], _getData(locals.newPoolId).params[0]);
         emit MetadataUpdate(poolId);
     }
 }

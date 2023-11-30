@@ -35,6 +35,13 @@ contract RefundProvider is RefundState, IERC721Receiver, FirewallConsumer {
         return IERC721Receiver.onERC721Received.selector;
     }
 
+    struct RefundPoolLocals {
+        uint256 paramsLength;
+        IProvider provider;
+        uint256 dataPoolID;
+        uint256 collateralPoolId;
+    }
+
     ///@param addresses[0] = owner
     ///@param addresses[1] = token
     ///@param addresses[2] = main coin
@@ -50,37 +57,38 @@ contract RefundProvider is RefundState, IERC721Receiver, FirewallConsumer {
     ) external firewallProtected returns (uint256 poolId) {
         _validAddressLength(addresses.length, 4);
         _validProviderInterface(IProvider(addresses[3]), Refundble._INTERFACE_ID_REFUNDABLE);
-        uint256 paramsLength = params.length;
-        require(paramsLength > 2, "invalid params length");
-        IProvider provider = IProvider(addresses[3]);
+        RefundPoolLocals memory locals;
+        locals.paramsLength = params.length;
+        require(locals.paramsLength > 2, "invalid params length");
+        locals.provider = IProvider(addresses[3]);
         // create new refund pool | Owner User
         poolId = lockDealNFT.mintForProvider(addresses[0], this);
 
         // Hold token (data) | Owner Refund Provider
-        uint256 dataPoolID = lockDealNFT.safeMintAndTransfer(
+        locals.dataPoolID = lockDealNFT.safeMintAndTransfer(
             address(this),
             addresses[1],
             msg.sender,
             params[0],
-            provider,
+            locals.provider,
             tokenSignature
         );
-        provider.registerPool(dataPoolID, params);
+        locals.provider.registerPool(locals.dataPoolID, params);
 
         // Hold main coin | Project Owner
-        uint256 collateralPoolId = lockDealNFT.safeMintAndTransfer(
+        locals.collateralPoolId = lockDealNFT.safeMintAndTransfer(
             msg.sender,
             addresses[2],
             msg.sender,
-            params[paramsLength - 2],
+            params[locals.paramsLength - 2],
             collateralProvider,
             mainCoinSignature
         );
-        collateralProvider.registerPool(collateralPoolId, params);
-        lockDealNFT.cloneVaultId(collateralPoolId + 2, dataPoolID); // clone token data to sub-collateral poolId
+        collateralProvider.registerPool(locals.collateralPoolId, params);
+        lockDealNFT.cloneVaultId(locals.collateralPoolId + 2, locals.dataPoolID); // clone token data to sub-collateral poolId
         // save refund data
         uint256[] memory refundRegisterParams = new uint256[](currentParamsTargetLength());
-        refundRegisterParams[0] = collateralPoolId;
+        refundRegisterParams[0] = locals.collateralPoolId;
         _registerPool(poolId, refundRegisterParams);
     }
 

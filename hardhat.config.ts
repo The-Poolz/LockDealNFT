@@ -2,7 +2,7 @@ import '@nomicfoundation/hardhat-toolbox';
 import '@truffle/dashboard-hardhat-plugin';
 import 'hardhat-gas-reporter';
 import { HardhatUserConfig } from 'hardhat/config';
-import 'solidity-coverage'
+import 'solidity-coverage';
 
 //import 'dotenv/config';
 
@@ -11,9 +11,8 @@ const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
-        version: "0.8.19",
+        version: '0.8.19',
         settings: {
-          viaIR: true,
           optimizer: {
             enabled: true,
             runs: 200,
@@ -23,7 +22,6 @@ const config: HardhatUserConfig = {
       {
         version: '0.8.18',
         settings: {
-          viaIR: true,
           evmVersion: 'istanbul',
           optimizer: {
             enabled: true,
