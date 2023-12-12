@@ -38,7 +38,7 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState, Fir
     /// @param params[params.length - 1] = FinishTime
     function _registerPool(uint256 poolId, uint256[] calldata params)
         internal
-        firewallProtectedSig(0xdf3aac25)
+        firewallProtectedSig(0x8b60dedb)
     {
         uint256 tokenAmount = params[0];
         uint256 mainCoinAmount = params[params.length - 2];

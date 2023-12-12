@@ -55,7 +55,7 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider {
     ///@param params[0] = leftAmount = startAmount (leftAmount & startAmount must be same while creating pool)
     ///@param params[1] = startTime
     ///@param params[2] = finishTime
-    function _registerPool(uint256 poolId, uint256[] calldata params) internal override firewallProtectedSig(0xdf3aac25) {
+    function _registerPool(uint256 poolId, uint256[] calldata params) internal override firewallProtectedSig(0xb99c642c) {
         require(params[2] >= params[1], "Finish time should be greater than start time");
         poolIdToTime[poolId] = params[2];
         poolIdToAmount[poolId] = params[0];

@@ -64,7 +64,7 @@ contract BundleProvider is BundleModifiers, ERC721Holder, FirewallConsumer {
     ///@param params[0] = lastSubPoolId
     function _registerPool(uint256 poolId, uint256[] memory params)
         internal
-        firewallProtectedSig(0xdf3aac25)
+        firewallProtectedSig(0x450b60bc)
         validLastPoolId(poolId, params[0])
     {
         bundlePoolIdToLastSubPoolId[poolId] = params[0];
