@@ -37,7 +37,7 @@ contract DealProvider is DealProviderState, BasicProvider {
      * @param poolId The ID of the pool.
      * @param params An array of additional parameters.
      */
-    function _registerPool(uint256 poolId, uint256[] calldata params) internal override firewallProtectedSig(0xdf3aac25) {
+    function _registerPool(uint256 poolId, uint256[] calldata params) internal override firewallProtectedSig(0x677df66b) {
         poolIdToAmount[poolId] = params[0];
         emit UpdateParams(poolId, params);
     }
