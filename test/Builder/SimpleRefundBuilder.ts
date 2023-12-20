@@ -10,7 +10,7 @@ import { deployed, token, BUSD, _createUsers, _logGasPrice, MAX_RATIO } from '..
 import { time } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
-import { BigNumber, Bytes, constants } from 'ethers';
+import { BigNumber, Bytes } from 'ethers';
 import { ethers } from 'hardhat';
 import { BuilderState } from '../../typechain-types/contracts/Builders/SimpleBuilder/SimpleBuilder';
 
