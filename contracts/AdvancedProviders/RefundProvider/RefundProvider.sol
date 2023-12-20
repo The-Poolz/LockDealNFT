@@ -65,6 +65,8 @@ contract RefundProvider is RefundState, IERC721Receiver {
             tokenSignature
         );
         provider.registerPool(dataPoolID, params);
+        // clone token data to refund poolId
+        lockDealNFT.cloneVaultId(poolId, dataPoolID);
 
         // Hold main coin | Project Owner
         uint256 collateralPoolId = lockDealNFT.safeMintAndTransfer(

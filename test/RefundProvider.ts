@@ -92,9 +92,9 @@ describe('Refund Provider', function () {
         refundProvider.address,
         name,
         poolId,
-        0,
+        vaultId.sub(1),
         receiver.address,
-        constants.AddressZero,
+        token,
         params,
       ]);
     });
@@ -201,7 +201,7 @@ describe('Refund Provider', function () {
       const collateralParams = [mainCoinAmount, finishTime, MAX_RATIO.div(10)];
       const fullData = await lockDealNFT.getFullData(poolId);
       expect(fullData).to.deep.equal([
-        [refundProvider.address, name, poolId, 0, receiver.address, constants.AddressZero, refundParams],
+        [refundProvider.address, name, poolId, vaultId.add(1), receiver.address, token, refundParams],
         [timedProvider.address, timedName, poolId + 1, vaultId.add(1), refundProvider.address, token, timedParams],
         [collateralProvider.address, collateralName, poolId + 2, vaultId.add(2), projectOwner.address, BUSD, collateralParams]
       ]);
@@ -220,9 +220,9 @@ describe('Refund Provider', function () {
         refundProvider.address,
         name,
         poolId,
-        0,
+        vaultId.sub(1),
         receiver.address,
-        constants.AddressZero,
+        token,
         params,
       ]);
     });
@@ -255,9 +255,9 @@ describe('Refund Provider', function () {
         refundProvider.address,
         name,
         poolId + 6,
-        0,
+        vaultId.sub(1),
         receiver.address,
-        constants.AddressZero,
+        token,
         params,
       ]);
     });
