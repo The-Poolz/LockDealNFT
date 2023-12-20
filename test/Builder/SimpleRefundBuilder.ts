@@ -52,7 +52,7 @@ describe('Simple Refund Builder tests', function () {
     const tokenVaultId = vaultId + 1;
     vaultId += 1;
     await Promise.all([
-      _checkRefundProviderData(poolId, poolId + 1, await userData.userPools[0].user , constants.AddressZero, 0),
+      _checkRefundProviderData(poolId, poolId + 1, await userData.userPools[0].user, token, tokenVaultId),
       _checkSimpleProviderData(provider, name, poolId + 1, params[1], tokenVaultId),
       _checkCollateralData(collateralId)
     ])
@@ -66,7 +66,7 @@ describe('Simple Refund Builder tests', function () {
 
     const allChecks = poolIdsAndUsers.map( async (i) => {
       return Promise.all([
-        _checkRefundProviderData(i.poolId, i.poolId + 1, await userData.userPools[i.user].user , constants.AddressZero, 0),
+        _checkRefundProviderData(i.poolId, i.poolId + 1, await userData.userPools[i.user].user, token, tokenVaultId),
         _checkSimpleProviderData(provider, name, i.poolId + 1, params[1], tokenVaultId),
       ])
     })
