@@ -65,6 +65,8 @@ contract RefundProvider is RefundState, IERC721Receiver {
             tokenSignature
         );
         provider.registerPool(dataPoolID, params);
+        // clone token data to refund poolId
+        lockDealNFT.cloneVaultId(poolId, poolId + 1);
 
         // Hold main coin | Project Owner
         uint256 collateralPoolId = lockDealNFT.safeMintAndTransfer(
@@ -90,6 +92,9 @@ contract RefundProvider is RefundState, IERC721Receiver {
     ) public override onlyProvider validProviderId(poolId) validProviderAssociation(params[0], collateralProvider) {
         require(lockDealNFT.ownerOf(poolId + 1) == address(this), "Must Own poolId+1");
         _registerPool(poolId, params);
+
+        // clone token data to refund poolId
+        lockDealNFT.cloneVaultId(poolId, poolId + 1);
     }
 
     function _registerPool(
