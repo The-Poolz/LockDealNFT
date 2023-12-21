@@ -7,8 +7,9 @@ import "../../interfaces/ISimpleProvider.sol";
 import "../../ERC165/Refundble.sol";
 import "../../ERC165/Bundable.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
+import "@ironblocks/firewall-consumer/contracts/FirewallConsumer.sol";
 
-abstract contract BasicProvider is ProviderModifiers, ISimpleProvider, ERC165 {
+abstract contract BasicProvider is ProviderModifiers, ISimpleProvider, ERC165, FirewallConsumer {
     /**
      * @dev Creates a new pool with the specified parameters.
      * @param addresses[0] The address of the pool owner.
@@ -22,10 +23,11 @@ abstract contract BasicProvider is ProviderModifiers, ISimpleProvider, ERC165 {
         uint256[] calldata params,
         bytes calldata signature
     )
-        public
+        external
         virtual
+        firewallProtected
         validAddressesLength(addresses.length, 2)
-        validParamsLength(params.length, currentParamsTargetLenght())
+        validParamsLength(params.length, currentParamsTargetLength())
         returns (uint256 poolId)
     {
         poolId = lockDealNFT.safeMintAndTransfer(addresses[0], addresses[1], msg.sender, params[0], this, signature);
@@ -36,7 +38,7 @@ abstract contract BasicProvider is ProviderModifiers, ISimpleProvider, ERC165 {
     function registerPool(
         uint256 poolId,
         uint256[] calldata params
-    ) public virtual onlyProvider validParamsLength(params.length, currentParamsTargetLenght()) {
+    ) external virtual firewallProtected onlyProvider validParamsLength(params.length, currentParamsTargetLength()) {
         _registerPool(poolId, params);
     }
 
@@ -46,7 +48,7 @@ abstract contract BasicProvider is ProviderModifiers, ISimpleProvider, ERC165 {
      * @return withdrawnAmount The amount of tokens withdrawn.
      * @return isFinal Boolean indicating whether the pool is empty after a withdrawal.
      */
-    function withdraw(uint256 poolId) public virtual override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
+    function withdraw(uint256 poolId) external virtual firewallProtected override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
         (withdrawnAmount, isFinal) = _withdraw(poolId, getWithdrawableAmount(poolId));
     }
 
@@ -54,7 +56,7 @@ abstract contract BasicProvider is ProviderModifiers, ISimpleProvider, ERC165 {
     function withdraw(
         uint256 poolId,
         uint256 amount
-    ) public virtual onlyProvider returns (uint256 withdrawnAmount, bool isFinal) {
+    ) external virtual firewallProtected onlyProvider returns (uint256 withdrawnAmount, bool isFinal) {
         (withdrawnAmount, isFinal) = _withdraw(poolId, amount);
     }
 

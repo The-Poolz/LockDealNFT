@@ -2,21 +2,34 @@ import '@nomicfoundation/hardhat-toolbox';
 import '@truffle/dashboard-hardhat-plugin';
 import 'hardhat-gas-reporter';
 import { HardhatUserConfig } from 'hardhat/config';
-import 'solidity-coverage'
+import 'solidity-coverage';
 
 //import 'dotenv/config';
 
 const config: HardhatUserConfig = {
   defaultNetwork: 'hardhat',
   solidity: {
-    version: '0.8.18',
-    settings: {
-      evmVersion: 'istanbul',
-      optimizer: {
-        enabled: true,
-        runs: 200,
+    compilers: [
+      {
+        version: '0.8.19',
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
       },
-    },
+      {
+        version: '0.8.18',
+        settings: {
+          evmVersion: 'istanbul',
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+    ],
   },
   networks: {
     hardhat: {

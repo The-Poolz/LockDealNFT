@@ -17,7 +17,7 @@ contract DealProvider is DealProviderState, BasicProvider {
     function _withdraw(
         uint256 poolId,
         uint256 amount
-    ) internal override returns (uint256 withdrawnAmount, bool isFinal) {
+    ) internal override firewallProtectedSig(0x9e2bf22c) returns (uint256 withdrawnAmount, bool isFinal) {
         if (poolIdToAmount[poolId] >= amount) {
             poolIdToAmount[poolId] -= amount;
             withdrawnAmount = amount;
@@ -26,7 +26,7 @@ contract DealProvider is DealProviderState, BasicProvider {
     }
 
     /// @dev Splits a pool into two pools. Used by the LockedDealNFT contract or Provider
-    function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) public override onlyProvider {
+    function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) external override firewallProtected onlyProvider {
         uint256 splitAmount = poolIdToAmount[oldPoolId].calcAmount(ratio);
         require(poolIdToAmount[oldPoolId] >= splitAmount, "Split amount exceeds the available amount");
         poolIdToAmount[oldPoolId] -= splitAmount;
@@ -37,7 +37,7 @@ contract DealProvider is DealProviderState, BasicProvider {
      * @param poolId The ID of the pool.
      * @param params An array of additional parameters.
      */
-    function _registerPool(uint256 poolId, uint256[] calldata params) internal override {
+    function _registerPool(uint256 poolId, uint256[] calldata params) internal override firewallProtectedSig(0x677df66b) {
         poolIdToAmount[poolId] = params[0];
         emit UpdateParams(poolId, params);
     }
