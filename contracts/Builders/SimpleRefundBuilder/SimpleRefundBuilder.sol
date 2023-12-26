@@ -53,7 +53,7 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal {
             tokenSignature
         );
         uint256[] memory refundParams = _finalizeFirstNFT(
-            poolId - 1,
+            poolId,
             paramsData.mainCoin,
             totalAmount,
             paramsData.mainCoinAmount,
@@ -120,7 +120,7 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal {
     }
 
     function _finalizeFirstNFT(
-        uint256 poolId,
+        uint256 tokenPoolId,
         address mainCoin,
         uint256 totalAmount,
         uint256 mainCoinAmount,
@@ -130,13 +130,13 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal {
         refundParams = new uint256[](1);
         refundParams[0] = _createCollateralProvider(
             mainCoin,
-            poolId,
+            tokenPoolId,
             totalAmount,
             mainCoinAmount,
             collateralFinishTime,
             signature
         );
-        refundProvider.registerPool(poolId, refundParams);
+        refundProvider.registerPool(tokenPoolId - 1, refundParams);
     }
 
     function _userDataIterator(
