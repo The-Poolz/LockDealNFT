@@ -290,4 +290,22 @@ describe('Collateral Provider', function () {
     expect(poolData.params[0]).to.equal(amount / 2);
     expect(newPoolData.params[0]).to.equal(amount / 2);
   });
+
+  it('should create new pool with 1 usdt to 50 tokens', async () => {
+    const tokenAmount = ethers.utils.parseUnits('50', 18);
+    const usdtAmount = ethers.utils.parseUnits('1', 18);
+    const params = [tokenAmount, usdtAmount, finishTime];
+    poolId = (await lockDealNFT.totalSupply()).toNumber();
+    await mockProvider.createNewPool([projectOwner.address, token], params, signature);
+    expect((await lockDealNFT.getData(poolId)).params[0]).to.equal(usdtAmount);
+  });
+
+  it('should create new pool with 1 token to 50 usdt', async () => {
+    const tokenAmount = ethers.utils.parseUnits('1', 18);
+    const usdtAmount = ethers.utils.parseUnits('50', 18);
+    const params = [tokenAmount, usdtAmount, finishTime];
+    poolId = (await lockDealNFT.totalSupply()).toNumber();
+    await mockProvider.createNewPool([projectOwner.address, token], params, signature);
+    expect((await lockDealNFT.getData(poolId)).params[0]).to.equal(usdtAmount);
+  });
 });
