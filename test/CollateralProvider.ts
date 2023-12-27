@@ -297,7 +297,8 @@ describe('Collateral Provider', function () {
     const params = [tokenAmount, usdtAmount, finishTime];
     poolId = (await lockDealNFT.totalSupply()).toNumber();
     await mockProvider.createNewPool([projectOwner.address, token], params, signature);
-    expect((await lockDealNFT.getData(poolId)).params[0]).to.equal(usdtAmount);
+    expect((await collateralProvider.getParams(poolId))[0]).to.equal(usdtAmount);
+    expect(await collateralProvider.poolIdToRateToWei(poolId)).to.equal(MAX_RATIO.div(50));
   });
 
   it('should create new pool with 1 token to 50 usdt', async () => {
@@ -306,6 +307,7 @@ describe('Collateral Provider', function () {
     const params = [tokenAmount, usdtAmount, finishTime];
     poolId = (await lockDealNFT.totalSupply()).toNumber();
     await mockProvider.createNewPool([projectOwner.address, token], params, signature);
-    expect((await lockDealNFT.getData(poolId)).params[0]).to.equal(usdtAmount);
+    expect((await collateralProvider.getParams(poolId))[0]).to.equal(usdtAmount);
+    expect(await collateralProvider.poolIdToRateToWei(poolId)).to.equal(MAX_RATIO.mul(50));
   });
 });
