@@ -63,7 +63,7 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal, FirewallConsumer 
             tokenSignature
         );
         locals.refundParams = _finalizeFirstNFT(
-            locals.poolId - 1,
+            locals.poolId,
             locals.paramsData.mainCoin,
             locals.totalAmount,
             locals.paramsData.mainCoinAmount,
@@ -130,7 +130,7 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal, FirewallConsumer 
     }
 
     function _finalizeFirstNFT(
-        uint256 poolId,
+        uint256 tokenPoolId,
         address mainCoin,
         uint256 totalAmount,
         uint256 mainCoinAmount,
@@ -140,13 +140,13 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal, FirewallConsumer 
         refundParams = new uint256[](1);
         refundParams[0] = _createCollateralProvider(
             mainCoin,
-            poolId,
+            tokenPoolId,
             totalAmount,
             mainCoinAmount,
             collateralFinishTime,
             signature
         );
-        refundProvider.registerPool(poolId, refundParams);
+        refundProvider.registerPool(tokenPoolId - 1, refundParams);
     }
 
     function _userDataIterator(
