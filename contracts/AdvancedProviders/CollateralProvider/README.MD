@@ -36,7 +36,8 @@ uint256 rate = (mainCoinAmount * 1e21) / tokenAmount;
 // Output the result
 // rate = (300 * 1e21) / 150 = 2e18
 ```
-In this case, the values for `mainCoinAmount` and `tokenAmount` are represented in `Wei` (the smallest unit of ether). The resulting rate is `2*10**18` or `2e18`. This indicates that for every `1 Wei` of the main coin, a user would receive `2 Wei` worth of tokens based on this exchange rate.
+In this case, the values for `mainCoinAmount` and `tokenAmount` are represented in `Wei` (the smallest unit of ether). The resulting rate is `2*10**18` or `2e18`. The resulting rate indicates that for every `1 Wei` of the tokens, a user would receive `2e18 Wei` worth of main coins based on this exchange rate.
+
 
 ### Conclusion
 
