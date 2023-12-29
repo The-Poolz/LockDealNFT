@@ -13,7 +13,7 @@ contract LockDealProvider is BasicProvider, LockDealState {
     }
 
     /// @dev use revert only for permissions
-    function withdraw(uint256 poolId) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
+    function withdraw(uint256 poolId) external override firewallProtected onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
         (withdrawnAmount, isFinal) = _withdraw(poolId, getParams(poolId)[0]);
     }
 
@@ -25,18 +25,18 @@ contract LockDealProvider is BasicProvider, LockDealState {
         (withdrawnAmount, isFinal) = provider.withdraw(poolId, amount > withdrawnAmount ? withdrawnAmount : amount);
     }
 
-    function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) public override onlyProvider {
+    function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) external override firewallProtected onlyProvider {
         provider.split(oldPoolId, newPoolId, ratio);
         poolIdToTime[newPoolId] = poolIdToTime[oldPoolId];
     }
 
-    function currentParamsTargetLenght() public view override(IProvider, ProviderState) returns (uint256) {
-        return 1 + provider.currentParamsTargetLenght();
+    function currentParamsTargetLength() public view override(IProvider, ProviderState) returns (uint256) {
+        return 1 + provider.currentParamsTargetLength();
     }
 
     ///@param params[0] = amount
     ///@param params[1] = startTime
-    function _registerPool(uint256 poolId, uint256[] calldata params) internal override {
+    function _registerPool(uint256 poolId, uint256[] calldata params) internal override firewallProtectedSig(0xfe3627e9) {
         require(block.timestamp <= params[1], "Invalid start time");
 
         poolIdToTime[poolId] = params[1];
