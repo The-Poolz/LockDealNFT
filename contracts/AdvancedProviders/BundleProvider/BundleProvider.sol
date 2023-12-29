@@ -7,8 +7,9 @@ import "../../interfaces/ISimpleProvider.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import "../../ERC165/Bundable.sol";
+import "@ironblocks/firewall-consumer/contracts/FirewallConsumer.sol";
 
-contract BundleProvider is BundleModifiers, ERC721Holder {
+contract BundleProvider is BundleModifiers, ERC721Holder, FirewallConsumer {
     using CalcUtils for uint256;
 
     constructor(ILockDealNFT _lockDealNFT) {
@@ -28,7 +29,7 @@ contract BundleProvider is BundleModifiers, ERC721Holder {
         address[] calldata addresses,
         uint256[][] calldata providerParams,
         bytes calldata signature
-    ) external validAddressesLength(addresses.length, 4) returns (uint256 poolId) {
+    ) external firewallProtected validAddressesLength(addresses.length, 4) returns (uint256 poolId) {
         uint256 providerCount = addresses.length - 2;
         require(providerCount == providerParams.length, "providers and params length mismatch");
         uint256 totalAmount = _calcTotalAmount(providerParams);
@@ -51,20 +52,26 @@ contract BundleProvider is BundleModifiers, ERC721Holder {
         uint256[] calldata params
     )
         external
+        firewallProtected
         override
         validBundleParams(poolId, params[0])
         onlyProvider
-        validParamsLength(params.length, currentParamsTargetLenght())
+        validParamsLength(params.length, currentParamsTargetLength())
     {
         _registerPool(poolId, params);
     }
 
     ///@param params[0] = lastSubPoolId
-    function _registerPool(uint256 poolId, uint256[] memory params) internal validLastPoolId(poolId, params[0]) {
+    function _registerPool(uint256 poolId, uint256[] memory params)
+        internal
+        firewallProtectedSig(0x450b60bc)
+        validLastPoolId(poolId, params[0])
+    {
         bundlePoolIdToLastSubPoolId[poolId] = params[0];
         emit UpdateParams(poolId, params);
     }
 
+    // Since this just performs checks and calls itself essentially, no firewall protected needed
     function _createNewSubPool(
         address provider,
         uint256[] memory params
@@ -72,11 +79,14 @@ contract BundleProvider is BundleModifiers, ERC721Holder {
         _createNewSubPool(IProvider(provider), params);
     }
 
-    function _createNewSubPool(IProvider provider, uint256[] memory params) internal {
+    function _createNewSubPool(IProvider provider, uint256[] memory params)
+        internal
+        firewallProtectedSig(0xc763c9c5)
+    {
         provider.registerPool(lockDealNFT.mintForProvider(address(this), provider), params);
     }
 
-    function withdraw(uint256 poolId) public override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
+    function withdraw(uint256 poolId) external override firewallProtected onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
         // withdraw the sub pools
         uint256 lastSubPoolId = bundlePoolIdToLastSubPoolId[poolId];
         isFinal = true;
@@ -89,7 +99,7 @@ contract BundleProvider is BundleModifiers, ERC721Holder {
         }
     }
 
-    function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) public override onlyProvider {
+    function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) external override firewallProtected onlyProvider {
         uint256 oldLastSubPoolId = bundlePoolIdToLastSubPoolId[oldPoolId];
         for (uint256 i = oldPoolId + 1; i <= oldLastSubPoolId; ++i) {
             // split the sub poold
@@ -100,7 +110,7 @@ contract BundleProvider is BundleModifiers, ERC721Holder {
     }
 
     function getParams(uint256 poolId) public view override returns (uint256[] memory params) {
-        params = new uint256[](currentParamsTargetLenght() + 1);
+        params = new uint256[](currentParamsTargetLength() + 1);
         params[0] = getTotalRemainingAmount(poolId);
         params[1] = bundlePoolIdToLastSubPoolId[poolId];
     }

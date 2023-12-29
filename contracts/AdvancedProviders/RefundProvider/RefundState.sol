@@ -24,7 +24,7 @@ abstract contract RefundState is ProviderModifiers, IInnerWithdraw, IERC165 {
         }
     }
 
-    function currentParamsTargetLenght() public pure override returns (uint256) {
+    function currentParamsTargetLength() public pure override returns (uint256) {
         return 1;
     }
 
