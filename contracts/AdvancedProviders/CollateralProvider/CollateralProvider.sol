@@ -47,10 +47,13 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState, Fir
         require(block.timestamp <= finishTime, "start time must be in the future");
         require(poolId == lockDealNFT.totalSupply() - 1, "Invalid poolId");
 
+        // rate - exchange rate between the main coin (USDT) and the token
+        // rate = (mainCoinAmount * 1e21) / tokenAmount
+        // 1e21 is the precision where 1e21 = 100% = 1:1 | 1e20 = 10% = 0.1:1
+        // 1e22 = 1000% = 10:1 | 1e19 = 1% = 0.01:1
         uint256 rate = mainCoinAmount.calcRate(tokenAmount);
-        require(rate <= 1e21, "invalid rateToWei");
-
         uint256 mainCoinHolderId = _mintNFTs();
+
         _setPoolProperties(poolId, rate, finishTime, mainCoinAmount);
         _cloneVaultIds(poolId);
 
