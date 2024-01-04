@@ -50,6 +50,7 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState, Fir
         // rate - exchange rate between the main coin (USDT) and the token
         // rate = (mainCoinAmount * 1e21) / tokenAmount
         // 1e21 is the precision where 1e21 = 100% = 1:1 | 1e20 = 10% = 0.1:1
+        // 1e22 = 1000% = 10:1 | 1e19 = 1% = 0.01:1
         uint256 rate = mainCoinAmount.calcRate(tokenAmount);
         uint256 mainCoinHolderId = _mintNFTs();
 
