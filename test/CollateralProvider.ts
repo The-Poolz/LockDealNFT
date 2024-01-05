@@ -122,14 +122,33 @@ describe('Collateral Provider', function () {
     await expect(collateralProvider.withdraw(poolId)).to.be.revertedWith('only NFT contract can call this function');
   });
 
-  it('should withdraw before time main coins', async () => {
+  it("should increase holder pool's amount", async () => {
     await mockProvider.handleWithdraw(poolId, amount);
+    expect((await lockDealNFT.getData(poolId + 1)).params[0]).to.deep.equal(amount / 2);
+  });
+
+  it("should increase token pool's amount", async () => {
+    await mockProvider.handleRefund(poolId, projectOwner.address, amount);
+    expect((await lockDealNFT.getData(poolId + 2)).params[0]).to.deep.equal(amount);
+  });
+
+  it("should increase holder and token pool's amount", async () => {
+    await mockProvider.handleWithdraw(poolId, amount);
+    await mockProvider.handleRefund(poolId, projectOwner.address, amount);
+    expect((await lockDealNFT.getData(poolId + 1)).params[0]).to.deep.equal(amount / 2);
+    expect((await lockDealNFT.getData(poolId + 2)).params[0]).to.deep.equal(amount);
+  });
+
+  it('should withdraw half main coins before time', async () => {
+    // user withdraw half token amount
+    await mockProvider.handleWithdraw(poolId, amount);
+    // Project owner withdraw half main coin amount before time
     await lockDealNFT
       .connect(projectOwner)
       ['safeTransferFrom(address,address,uint256)'](projectOwner.address, lockDealNFT.address, poolId);
-    expect((await lockDealNFT.getData(poolId + 1)).params[0]).to.deep.equal(amount / 2);
+    expect((await lockDealNFT.getData(poolId + 1)).params[0]).to.deep.equal(0);
     expect((await lockDealNFT.getData(poolId + 2)).params[0]).to.deep.equal(0);
-    expect((await lockDealNFT.getData(poolId + 3)).params[0]).to.deep.equal(0);
+    expect((await lockDealNFT.getData(poolId + 3)).params[0]).to.deep.equal(amount / 2);
   });
 
   it('should withdraw tokens before time', async () => {
@@ -139,7 +158,7 @@ describe('Collateral Provider', function () {
       ['safeTransferFrom(address,address,uint256)'](projectOwner.address, lockDealNFT.address, poolId);
     expect((await lockDealNFT.getData(poolId + 1)).params[0]).to.deep.equal(0);
     expect((await lockDealNFT.getData(poolId + 2)).params[0]).to.deep.equal(0);
-    expect((await lockDealNFT.getData(poolId + 3)).params[0]).to.deep.equal(0);
+    expect((await lockDealNFT.getData(poolId + 3)).params[0]).to.deep.equal(amount / 2);
   });
 
   it('should withdraw main coins and tokens before time', async () => {
@@ -148,7 +167,7 @@ describe('Collateral Provider', function () {
     await lockDealNFT
       .connect(projectOwner)
       ['safeTransferFrom(address,address,uint256)'](projectOwner.address, lockDealNFT.address, poolId);
-    expect((await lockDealNFT.getData(poolId + 1)).params[0]).to.deep.equal(amount / 2);
+    expect((await lockDealNFT.getData(poolId + 1)).params[0]).to.deep.equal(0);
     expect((await lockDealNFT.getData(poolId + 2)).params[0]).to.deep.equal(0);
     expect((await lockDealNFT.getData(poolId + 3)).params[0]).to.deep.equal(0);
   });

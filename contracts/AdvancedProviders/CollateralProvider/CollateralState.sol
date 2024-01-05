@@ -23,7 +23,7 @@ abstract contract CollateralState is LockDealState, IInnerWithdraw, IERC165, Pro
             (ids[0], ids[1], ids[2]) = getInnerIds(poolId);
         } else {
             ids = new uint256[](2);
-            (, ids[0], ids[1]) = getInnerIds(poolId);
+            (ids[0], ids[1], ) = getInnerIds(poolId);
         }
     }
 
@@ -55,9 +55,7 @@ abstract contract CollateralState is LockDealState, IInnerWithdraw, IERC165, Pro
         return interfaceId == type(IERC165).interfaceId || interfaceId == type(IInnerWithdraw).interfaceId;
     }
 
-    function getSubProvidersPoolIds(
-        uint256 poolId
-    ) public view virtual override returns (uint256[] memory poolIds) {
+    function getSubProvidersPoolIds(uint256 poolId) public view virtual override returns (uint256[] memory poolIds) {
         if (lockDealNFT.poolIdToProvider(poolId) == this) {
             poolIds = new uint256[](3);
             poolIds[0] = poolId + 1;
