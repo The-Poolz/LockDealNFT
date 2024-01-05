@@ -18,7 +18,7 @@ abstract contract CollateralState is LockDealState, IInnerWithdraw, IERC165, Pro
     }
 
     function getInnerIdsArray(uint256 poolId) public view override returns (uint256[] memory ids) {
-        if (poolIdToTime[poolId] < block.timestamp) {
+        if (isPoolFinished(poolId)) {
             ids = new uint256[](3);
             (ids[0], ids[1], ids[2]) = getInnerIds(poolId);
         } else {
@@ -43,7 +43,7 @@ abstract contract CollateralState is LockDealState, IInnerWithdraw, IERC165, Pro
         if (lockDealNFT.poolIdToProvider(poolId) == this) {
             (uint256 mainCoinCollectorId, , uint256 mainCoinHolderId) = getInnerIds(poolId);
             withdrawalAmount = lockDealNFT.getWithdrawableAmount(mainCoinCollectorId);
-            if (poolIdToTime[poolId] <= block.timestamp) {
+            if (isPoolFinished(poolId)) {
                 withdrawalAmount += lockDealNFT.getWithdrawableAmount(mainCoinHolderId);
             }
         }
@@ -62,5 +62,9 @@ abstract contract CollateralState is LockDealState, IInnerWithdraw, IERC165, Pro
             poolIds[1] = poolId + 2;
             poolIds[2] = poolId + 3;
         }
+    }
+
+    function isPoolFinished(uint256 poolId) public view returns (bool) {
+        return poolIdToTime[poolId] < block.timestamp;
     }
 }
