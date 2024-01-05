@@ -23,7 +23,7 @@ abstract contract CollateralState is LockDealState, IInnerWithdraw, IERC165, Pro
             (ids[0], ids[1], ids[2]) = getInnerIds(poolId);
         } else {
             ids = new uint256[](2);
-            (, ids[0], ids[1]) = getInnerIds(poolId);
+            (ids[0], ids[1], ) = getInnerIds(poolId);
         }
     }
 
