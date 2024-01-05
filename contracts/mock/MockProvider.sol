@@ -6,7 +6,7 @@ import "../interfaces/IFundsManager.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /// @dev MockProvider is a contract for testing purposes.
-contract MockProvider is IFundsManager {
+contract MockProvider {
     IProvider public _provider;
     ILockDealNFT public lockDealNFT;
 

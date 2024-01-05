@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../CollateralProvider/CollateralProvider.sol";
+import "../../interfaces/IFundsManager.sol";
+import "../../SimpleProviders/Provider/ProviderModifiers.sol";
+import "../../util/CalcUtils.sol";
 import "../../interfaces/IInnerWithdraw.sol";
 
 abstract contract RefundState is ProviderModifiers, IInnerWithdraw, IERC165 {
     using CalcUtils for uint256;
 
-    CollateralProvider public collateralProvider;
+    IFundsManager public collateralProvider;
     mapping(uint256 => uint256) public poolIdToCollateralId;
 
     ///@return params  params [0] = tokenLeftAmount; - user(poolId + 1) data
@@ -18,7 +20,7 @@ abstract contract RefundState is ProviderModifiers, IInnerWithdraw, IERC165 {
             params = new uint256[](2);
             uint256 tokenAmount = dataParams[0];
             uint256 collateralPoolId = poolIdToCollateralId[poolId];
-            uint256 rateToWei = collateralProvider.poolIdToRateToWei(collateralPoolId);
+            uint256 rateToWei = collateralProvider.getParams(collateralPoolId)[2];
             params[0] = tokenAmount;
             params[1] = tokenAmount.calcAmount(rateToWei);
         }

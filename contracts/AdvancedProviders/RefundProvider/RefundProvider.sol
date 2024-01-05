@@ -10,7 +10,7 @@ contract RefundProvider is RefundState, IERC721Receiver, FirewallConsumer {
     constructor(ILockDealNFT nftContract, address provider) {
         require(address(nftContract) != address(0x0) && provider != address(0x0), "invalid address");
         lockDealNFT = nftContract;
-        collateralProvider = CollateralProvider(provider);
+        collateralProvider = IFundsManager(provider);
         name = "RefundProvider";
     }
 
@@ -24,8 +24,8 @@ contract RefundProvider is RefundState, IERC721Receiver, FirewallConsumer {
         require(msg.sender == address(lockDealNFT), "invalid nft contract");
         if (provider == user) {
             uint256 collateralPoolId = poolIdToCollateralId[poolId];
-            require(collateralProvider.poolIdToTime(collateralPoolId) > block.timestamp, "too late");
-            ISimpleProvider dealProvider = collateralProvider.provider();
+            require(collateralProvider.getParams(collateralPoolId)[2] > block.timestamp, "too late");
+            ISimpleProvider dealProvider = collateralProvider.getProvider();
             uint256 userDataPoolId = poolId + 1;
             // user withdraws his tokens and will receives refund
             uint256 amount = dealProvider.getParams(userDataPoolId)[0];
@@ -133,7 +133,7 @@ contract RefundProvider is RefundState, IERC721Receiver, FirewallConsumer {
         uint256 userDataPoolId = poolId + 1;
         IProvider provider = lockDealNFT.poolIdToProvider(userDataPoolId);
         amountToBeWithdrawed = provider.getWithdrawableAmount(userDataPoolId);
-        if (collateralProvider.poolIdToTime(poolIdToCollateralId[poolId]) >= block.timestamp) {
+        if (collateralProvider.getParams(poolIdToCollateralId[poolId])[1] >= block.timestamp) {
             collateralProvider.handleWithdraw(poolIdToCollateralId[poolId], amountToBeWithdrawed);
         }
         isFinal = provider.getParams(userDataPoolId)[0] == amountToBeWithdrawed;
