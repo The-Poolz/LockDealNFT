@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "../../ERC165/Refundble.sol";
+import "../../SimpleProviders/LockProvider/LockDealState.sol";
 import "./RefundState.sol";
 import "@ironblocks/firewall-consumer/contracts/FirewallConsumer.sol";
 
@@ -25,7 +26,7 @@ contract RefundProvider is RefundState, IERC721Receiver, FirewallConsumer {
         if (provider == user) {
             uint256 collateralPoolId = poolIdToCollateralId[poolId];
             require(collateralProvider.getParams(collateralPoolId)[2] > block.timestamp, "too late");
-            ISimpleProvider dealProvider = collateralProvider.getProvider();
+            ISimpleProvider dealProvider = LockDealState(address(collateralProvider)).provider();
             uint256 userDataPoolId = poolId + 1;
             // user withdraws his tokens and will receives refund
             uint256 amount = dealProvider.getParams(userDataPoolId)[0];
