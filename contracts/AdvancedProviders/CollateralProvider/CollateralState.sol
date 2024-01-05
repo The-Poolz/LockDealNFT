@@ -10,9 +10,9 @@ abstract contract CollateralState is LockDealState, IInnerWithdraw, IERC165, Pro
     mapping(uint256 => uint256) public poolIdToRateToWei;
 
     function getParams(uint256 poolId) public view override returns (uint256[] memory params) {
-        (, , uint256 mainCoinCollectorId) = getInnerIds(poolId);
+        (, , uint256 mainCoinHolderId) = getInnerIds(poolId);
         params = new uint256[](3);
-        params[0] = provider.getParams(mainCoinCollectorId)[0];
+        params[0] = provider.getParams(mainCoinHolderId)[0];
         params[1] = poolIdToTime[poolId];
         params[2] = poolIdToRateToWei[poolId];
     }
@@ -33,18 +33,18 @@ abstract contract CollateralState is LockDealState, IInnerWithdraw, IERC165, Pro
 
     function getInnerIds(
         uint256 poolId
-    ) internal pure returns (uint256 mainCoinHolderId, uint256 tokenHolderId, uint256 mainCoinCollectorId) {
-        mainCoinHolderId = poolId + 1;
-        tokenHolderId = poolId + 2;
-        mainCoinCollectorId = poolId + 3;
+    ) internal pure returns (uint256 mainCoinCollectorId, uint256 tokenCollectorId, uint256 mainCoinHolderId) {
+        mainCoinCollectorId = poolId + 1;
+        tokenCollectorId = poolId + 2;
+        mainCoinHolderId = poolId + 3;
     }
 
     function getWithdrawableAmount(uint256 poolId) public view override returns (uint256 withdrawalAmount) {
         if (lockDealNFT.poolIdToProvider(poolId) == this) {
-            (uint256 mainCoinHolderId, , uint256 mainCoinCollectorId) = getInnerIds(poolId);
-            withdrawalAmount = lockDealNFT.getWithdrawableAmount(mainCoinHolderId);
+            (uint256 mainCoinCollectorId, , uint256 mainCoinHolderId) = getInnerIds(poolId);
+            withdrawalAmount = lockDealNFT.getWithdrawableAmount(mainCoinCollectorId);
             if (poolIdToTime[poolId] <= block.timestamp) {
-                withdrawalAmount += lockDealNFT.getWithdrawableAmount(mainCoinCollectorId);
+                withdrawalAmount += lockDealNFT.getWithdrawableAmount(mainCoinHolderId);
             }
         }
     }

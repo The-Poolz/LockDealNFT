@@ -36,7 +36,10 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState, Fir
     /// @param params[0] = token amount
     /// @param params[params.length - 2] = main coin amount
     /// @param params[params.length - 1] = FinishTime
-    function _registerPool(uint256 poolId, uint256[] calldata params) internal firewallProtectedSig(0x8b60dedb) {
+    function _registerPool(uint256 poolId, uint256[] calldata params)
+        internal
+        firewallProtectedSig(0x8b60dedb)
+    {
         uint256 tokenAmount = params[0];
         uint256 mainCoinAmount = params[params.length - 2];
         uint256 finishTime = params[params.length - 1];
@@ -49,21 +52,19 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState, Fir
         // 1e21 is the precision where 1e21 = 100% = 1:1 | 1e20 = 10% = 0.1:1
         // 1e22 = 1000% = 10:1 | 1e19 = 1% = 0.01:1
         uint256 rate = mainCoinAmount.calcRate(tokenAmount);
-        uint256 mainCoinCollectorId = _mintNFTs();
+        uint256 mainCoinHolderId = _mintNFTs();
 
         _setPoolProperties(poolId, rate, finishTime, mainCoinAmount);
         _cloneVaultIds(poolId);
 
-        assert(mainCoinCollectorId == poolId + 3);
+        assert(mainCoinHolderId == poolId + 3);
         emit UpdateParams(poolId, params);
     }
 
-    function _setPoolProperties(
-        uint256 poolId,
-        uint256 rate,
-        uint256 finishTime,
-        uint256 mainCoinAmount
-    ) private firewallProtectedSig(0x91666b02) {
+    function _setPoolProperties(uint256 poolId, uint256 rate, uint256 finishTime, uint256 mainCoinAmount)
+        private
+        firewallProtectedSig(0x91666b02)
+    {
         poolIdToRateToWei[poolId] = rate;
         poolIdToTime[poolId] = finishTime;
         uint256[] memory mainCoinParams = new uint256[](1);
@@ -89,16 +90,16 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState, Fir
 
     ///@dev newPoolId is collateral provider
     function split(uint256 poolId, uint256, uint256 ratio) external override firewallProtected onlyNFT {
-        (uint256 mainCoinHolderId, uint256 tokenCollectorId, uint256 mainCoinCollectorId) = getInnerIds(poolId);
+        (uint256 mainCoinCollectorId, uint256 tokenCollectorId, uint256 mainCoinHolderId) = getInnerIds(poolId);
         uint256 tokenCollectorAmount = provider.getWithdrawableAmount(tokenCollectorId);
-        uint256 coinHolderAmount = provider.getWithdrawableAmount(mainCoinHolderId);
-        uint256 coinCollectorAmount = poolIdToTime[poolId] < block.timestamp
-            ? provider.getWithdrawableAmount(mainCoinCollectorId)
+        uint256 coinCollectorAmount = provider.getWithdrawableAmount(mainCoinCollectorId);
+        uint256 coinHolderAmount = poolIdToTime[poolId] < block.timestamp
+            ? provider.getWithdrawableAmount(mainCoinHolderId)
             : 0;
         require(coinHolderAmount + coinCollectorAmount + tokenCollectorAmount > 0, "pools are empty");
-        _splitter(coinHolderAmount, mainCoinHolderId, ratio);
-        _splitter(tokenCollectorAmount, tokenCollectorId, ratio);
         _splitter(coinCollectorAmount, mainCoinCollectorId, ratio);
+        _splitter(tokenCollectorAmount, tokenCollectorId, ratio);
+        _splitter(coinHolderAmount, mainCoinHolderId, ratio);
     }
 
     function _splitter(uint256 amount, uint256 poolId, uint256 ratio) internal firewallProtectedSig(0x203fb415) {
@@ -114,26 +115,23 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState, Fir
         address user,
         uint256 tokenAmount
     ) external override firewallProtected onlyProvider validProviderId(poolId) {
-        (, uint256 tokenCollectorId, uint256 mainCoinCollectorId) = getInnerIds(poolId);
+        (, uint256 tokenCollectorId, uint256 mainCoinHolderId) = getInnerIds(poolId);
         uint256 mainCoinAmount = tokenAmount.calcAmount(poolIdToRateToWei[poolId]);
-        provider.withdraw(mainCoinCollectorId, mainCoinAmount);
+        provider.withdraw(mainCoinHolderId, mainCoinAmount);
         _deposit(tokenCollectorId, tokenAmount);
         uint256 newMainCoinPoolId = lockDealNFT.mintForProvider(user, provider);
         uint256[] memory params = new uint256[](1);
         params[0] = mainCoinAmount;
         provider.registerPool(newMainCoinPoolId, params);
-        lockDealNFT.cloneVaultId(newMainCoinPoolId, mainCoinCollectorId);
+        lockDealNFT.cloneVaultId(newMainCoinPoolId, mainCoinHolderId);
     }
 
-    function handleWithdraw(
-        uint256 poolId,
-        uint256 tokenAmount
-    ) external override firewallProtected onlyProvider validProviderId(poolId) {
-        uint256 mainCoinHolderId = poolId + 1;
-        uint256 mainCoinCollectorId = poolId + 3;
+    function handleWithdraw(uint256 poolId, uint256 tokenAmount) external override firewallProtected onlyProvider validProviderId(poolId) {
+        uint256 mainCoinCollectorId = poolId + 1;
+        uint256 mainCoinHolderId = poolId + 3;
         uint256 mainCoinAmount = tokenAmount.calcAmount(poolIdToRateToWei[poolId]);
-        provider.withdraw(mainCoinCollectorId, mainCoinAmount);
-        _deposit(mainCoinHolderId, mainCoinAmount);
+        provider.withdraw(mainCoinHolderId, mainCoinAmount);
+        _deposit(mainCoinCollectorId, mainCoinAmount);
     }
 
     function _deposit(uint256 poolId, uint256 amount) internal firewallProtectedSig(0xf3207723) {
