@@ -33,9 +33,9 @@ abstract contract CollateralState is LockDealState, IInnerWithdraw, IERC165, Pro
 
     function getInnerIds(
         uint256 poolId
-    ) internal pure returns (uint256 mainCoinCollectorId, uint256 tokenHolderId, uint256 mainCoinHolderId) {
+    ) internal pure returns (uint256 mainCoinCollectorId, uint256 tokenCollectorId, uint256 mainCoinHolderId) {
         mainCoinCollectorId = poolId + 1;
-        tokenHolderId = poolId + 2;
+        tokenCollectorId = poolId + 2;
         mainCoinHolderId = poolId + 3;
     }
 
