@@ -129,8 +129,7 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState, Fir
     }
 
     function handleWithdraw(uint256 poolId, uint256 tokenAmount) external override firewallProtected onlyProvider validProviderId(poolId) {
-        uint256 mainCoinCollectorId = poolId + 1;
-        uint256 mainCoinHolderId = poolId + 3;
+        (uint256 mainCoinCollectorId, , uint256 mainCoinHolderId) = getInnerIds(poolId);
         uint256 mainCoinAmount = tokenAmount.calcAmount(poolIdToRateToWei[poolId]);
         provider.withdraw(mainCoinHolderId, mainCoinAmount);
         _deposit(mainCoinCollectorId, mainCoinAmount);
