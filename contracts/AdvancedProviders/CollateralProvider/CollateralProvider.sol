@@ -82,7 +82,7 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState, Fir
 
     // this need to give the project owner to get the tokens that in the poolId + 2
     function withdraw(uint256 poolId) public view override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
-        isFinal = poolIdToTime[poolId] < block.timestamp;
+        isFinal = isPoolFinished(poolId);
         // LockDealNFT uses getInnerIdsArray to get the withdraw amount
         withdrawnAmount = 0;
     }
@@ -92,9 +92,7 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState, Fir
         (uint256 mainCoinCollectorId, uint256 tokenCollectorId, uint256 mainCoinHolderId) = getInnerIds(poolId);
         uint256 tokenCollectorAmount = provider.getWithdrawableAmount(tokenCollectorId);
         uint256 coinCollectorAmount = provider.getWithdrawableAmount(mainCoinCollectorId);
-        uint256 coinHolderAmount = poolIdToTime[poolId] < block.timestamp
-            ? provider.getWithdrawableAmount(mainCoinHolderId)
-            : 0;
+        uint256 coinHolderAmount = isPoolFinished(poolId) ? provider.getWithdrawableAmount(mainCoinHolderId) : 0;
         require(coinHolderAmount + coinCollectorAmount + tokenCollectorAmount > 0, "pools are empty");
         _splitter(coinCollectorAmount, mainCoinCollectorId, ratio);
         _splitter(tokenCollectorAmount, tokenCollectorId, ratio);
