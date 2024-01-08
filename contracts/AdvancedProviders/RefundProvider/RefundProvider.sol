@@ -25,7 +25,7 @@ contract RefundProvider is RefundState, IERC721Receiver, FirewallConsumer {
         require(msg.sender == address(lockDealNFT), "invalid nft contract");
         if (provider == user) {
             uint256 collateralPoolId = poolIdToCollateralId[poolId];
-            require(collateralProvider.getParams(collateralPoolId)[2] > block.timestamp, "too late");
+            require(collateralProvider.getParams(collateralPoolId)[1] > block.timestamp, "too late");
             ISimpleProvider dealProvider = LockDealState(address(collateralProvider)).provider();
             uint256 userDataPoolId = poolId + 1;
             // user withdraws his tokens and will receives refund
