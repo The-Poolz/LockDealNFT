@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../../interfaces/IFundsManager.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "./CollateralState.sol";
 import "../../util/CalcUtils.sol";
 import "@ironblocks/firewall-consumer/contracts/FirewallConsumer.sol";
 
-contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState, FirewallConsumer {
+contract CollateralProvider is ERC721Holder, CollateralState, FirewallConsumer {
     using CalcUtils for uint256;
 
     ///@dev withdraw tokens

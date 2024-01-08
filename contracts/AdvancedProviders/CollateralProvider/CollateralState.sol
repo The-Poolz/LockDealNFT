@@ -5,8 +5,9 @@ import "../../SimpleProviders/LockProvider/LockDealState.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import "../../SimpleProviders/Provider/ProviderModifiers.sol";
 import "../../interfaces/IInnerWithdraw.sol";
+import "../../interfaces/IFundsManager.sol";
 
-abstract contract CollateralState is LockDealState, IInnerWithdraw, IERC165, ProviderModifiers {
+abstract contract CollateralState is LockDealState, IInnerWithdraw, IFundsManager, IERC165, ProviderModifiers {
     mapping(uint256 => uint256) public poolIdToRateToWei;
 
     function getParams(uint256 poolId) public view override returns (uint256[] memory params) {
@@ -26,7 +27,7 @@ abstract contract CollateralState is LockDealState, IInnerWithdraw, IERC165, Pro
         }
     }
 
-    function currentParamsTargetLength() public pure override returns (uint256) {
+    function currentParamsTargetLength() public pure override(IProvider, ProviderState) returns (uint256) {
         return 3;
     }
 
@@ -54,7 +55,7 @@ abstract contract CollateralState is LockDealState, IInnerWithdraw, IERC165, Pro
         return interfaceId == type(IERC165).interfaceId || interfaceId == type(IInnerWithdraw).interfaceId;
     }
 
-    function getSubProvidersPoolIds(uint256 poolId) public view virtual override returns (uint256[] memory poolIds) {
+    function getSubProvidersPoolIds(uint256 poolId) public view virtual override(IProvider, ProviderState) returns (uint256[] memory poolIds) {
         if (lockDealNFT.poolIdToProvider(poolId) == this) {
             poolIds = new uint256[](3);
             (poolIds[0], poolIds[1], poolIds[2]) = getInnerIds(poolId);

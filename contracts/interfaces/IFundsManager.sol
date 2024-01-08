@@ -6,4 +6,5 @@ import "./IProvider.sol";
 interface IFundsManager is IProvider {
     function handleWithdraw(uint256 poolId, uint256 tokenAmount) external;
     function handleRefund(uint256 poolId, address user, uint256 tokenAmount) external;
+    function isPoolFinished(uint256 poolId) external view returns (bool);
 }

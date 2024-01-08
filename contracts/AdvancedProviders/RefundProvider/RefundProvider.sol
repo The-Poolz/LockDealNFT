@@ -25,10 +25,7 @@ contract RefundProvider is RefundState, IERC721Receiver, FirewallConsumer {
         require(msg.sender == address(lockDealNFT), "RefundProvider: invalid nft contract");
         if (provider == user) {
             uint256 collateralPoolId = poolIdToCollateralId[poolId];
-            require(
-                collateralProvider.getParams(collateralPoolId)[1] > block.timestamp,
-                "RefundProvider: Refund period has expired"
-            );
+            require(!collateralProvider.isPoolFinished(collateralPoolId), "RefundProvider: Refund period has expired");
             ISimpleProvider dealProvider = ISimpleProvider(address(lockDealNFT.poolIdToProvider(collateralPoolId + 1)));
             // user pool id can be TimedProvider, LockProvider or DealProvider
             uint256 userDataPoolId = poolId + 1;
@@ -139,7 +136,7 @@ contract RefundProvider is RefundState, IERC721Receiver, FirewallConsumer {
         uint256 userDataPoolId = poolId + 1;
         IProvider provider = lockDealNFT.poolIdToProvider(userDataPoolId);
         amountToBeWithdrawed = provider.getWithdrawableAmount(userDataPoolId);
-        if (collateralProvider.getParams(poolIdToCollateralId[poolId])[1] >= block.timestamp) {
+        if (!collateralProvider.isPoolFinished(poolIdToCollateralId[poolId])) {
             collateralProvider.handleWithdraw(poolIdToCollateralId[poolId], amountToBeWithdrawed);
         }
         isFinal = provider.getParams(userDataPoolId)[0] == amountToBeWithdrawed;
