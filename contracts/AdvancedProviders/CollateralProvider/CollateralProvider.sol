@@ -12,7 +12,7 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState, Fir
 
     ///@dev withdraw tokens
     constructor(ILockDealNFT _lockDealNFT, address _dealProvider) {
-        require(address(_lockDealNFT) != address(0x0) && _dealProvider != address(0x0), "invalid address");
+        require(address(_lockDealNFT) != address(0x0) && _dealProvider != address(0x0), "CollateralProvider: invalid address");
         lockDealNFT = _lockDealNFT;
         provider = ISimpleProvider(_dealProvider);
         name = "CollateralProvider";
@@ -41,8 +41,8 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState, Fir
         uint256 mainCoinAmount = params[params.length - 2];
         uint256 finishTime = params[params.length - 1];
 
-        require(block.timestamp <= finishTime, "start time must be in the future");
-        require(poolId == lockDealNFT.totalSupply() - 1, "Invalid poolId");
+        require(block.timestamp <= finishTime, "CollateralProvider: start time must be in the future");
+        require(poolId == lockDealNFT.totalSupply() - 1, "CollateralProvider: Invalid poolId");
 
         // rate - exchange rate between the main coin (USDT) and the token
         // rate = (mainCoinAmount * 1e21) / tokenAmount
@@ -93,7 +93,7 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState, Fir
         uint256 tokenCollectorAmount = provider.getWithdrawableAmount(tokenCollectorId);
         uint256 coinCollectorAmount = provider.getWithdrawableAmount(mainCoinCollectorId);
         uint256 coinHolderAmount = isPoolFinished(poolId) ? provider.getWithdrawableAmount(mainCoinHolderId) : 0;
-        require(coinHolderAmount + coinCollectorAmount + tokenCollectorAmount > 0, "pools are empty");
+        require(coinHolderAmount + coinCollectorAmount + tokenCollectorAmount > 0, "CollateralProvider: pools are empty");
         _splitter(coinCollectorAmount, mainCoinCollectorId, ratio);
         _splitter(tokenCollectorAmount, tokenCollectorId, ratio);
         _splitter(coinHolderAmount, mainCoinHolderId, ratio);

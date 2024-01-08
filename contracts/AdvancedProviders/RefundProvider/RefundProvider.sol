@@ -9,7 +9,7 @@ import "@ironblocks/firewall-consumer/contracts/FirewallConsumer.sol";
 
 contract RefundProvider is RefundState, IERC721Receiver, FirewallConsumer {
     constructor(ILockDealNFT nftContract, address provider) {
-        require(address(nftContract) != address(0x0) && provider != address(0x0), "invalid address");
+        require(address(nftContract) != address(0x0) && provider != address(0x0), "RefundProvider: invalid address");
         lockDealNFT = nftContract;
         collateralProvider = IFundsManager(provider);
         name = "RefundProvider";
@@ -22,13 +22,16 @@ contract RefundProvider is RefundState, IERC721Receiver, FirewallConsumer {
         uint256 poolId,
         bytes calldata
     ) external override firewallProtected returns (bytes4) {
-        require(msg.sender == address(lockDealNFT), "invalid nft contract");
+        require(msg.sender == address(lockDealNFT), "RefundProvider: invalid nft contract");
         if (provider == user) {
             uint256 collateralPoolId = poolIdToCollateralId[poolId];
-            require(collateralProvider.getParams(collateralPoolId)[1] > block.timestamp, "too late");
+            require(
+                collateralProvider.getParams(collateralPoolId)[1] > block.timestamp,
+                "RefundProvider: Refund period has expired"
+            );
             ISimpleProvider dealProvider = LockDealState(address(collateralProvider)).provider();
             uint256 userDataPoolId = poolId + 1;
-            // user withdraws his tokens and will receives refund
+            // User receives a refund and the tokens go into the collateral pool
             uint256 amount = dealProvider.getParams(userDataPoolId)[0];
             (uint256 withdrawnAmount, ) = dealProvider.withdraw(userDataPoolId, amount);
             collateralProvider.handleRefund(collateralPoolId, user, withdrawnAmount);
@@ -60,7 +63,7 @@ contract RefundProvider is RefundState, IERC721Receiver, FirewallConsumer {
         _validProviderInterface(IProvider(addresses[3]), Refundble._INTERFACE_ID_REFUNDABLE);
         RefundPoolLocals memory locals;
         locals.paramsLength = params.length;
-        require(locals.paramsLength > 2, "invalid params length");
+        require(locals.paramsLength > 2, "RefundProvider: invalid params length");
         locals.provider = IProvider(addresses[3]);
         // create new refund pool | Owner User
         poolId = lockDealNFT.mintForProvider(addresses[0], this);
@@ -101,7 +104,7 @@ contract RefundProvider is RefundState, IERC721Receiver, FirewallConsumer {
         uint256 poolId,
         uint256[] calldata params
     ) external override firewallProtected onlyProvider validProviderId(poolId) validProviderAssociation(params[0], collateralProvider) {
-        require(lockDealNFT.ownerOf(poolId + 1) == address(this), "Must Own poolId+1");
+        require(lockDealNFT.ownerOf(poolId + 1) == address(this), "RefundProvider: Must Own poolId+1");
         _registerPool(poolId, params);
 
         // clone token data to refund poolId

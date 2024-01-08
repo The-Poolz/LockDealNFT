@@ -54,7 +54,7 @@ describe('Collateral Provider', function () {
 
   it('should revert invalid zero address before creation', async () => {
     await expect(deployed('CollateralProvider', lockDealNFT.address, constants.AddressZero)).to.be.revertedWith(
-      'invalid address',
+      'CollateralProvider: invalid address',
     );
   });
 
@@ -95,7 +95,7 @@ describe('Collateral Provider', function () {
   it('should revert invalid finish time', async () => {
     await expect(
       mockProvider.createNewPool([receiver.address, token], [amount, (await time.latest()) - 1, 0, 0], signature),
-    ).to.be.revertedWith('start time must be in the future');
+    ).to.be.revertedWith('CollateralProvider: start time must be in the future');
   });
 
   it('should deposit tokens', async () => {
