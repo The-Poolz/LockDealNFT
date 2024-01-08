@@ -18,7 +18,7 @@ abstract contract CollateralState is LockDealState, IInnerWithdraw, IERC165, Pro
     }
 
     function getInnerIdsArray(uint256 poolId) public view override returns (uint256[] memory ids) {
-        if (poolIdToTime[poolId] < block.timestamp) {
+        if (isPoolFinished(poolId)) {
             return getSubProvidersPoolIds(poolId);
         } else {
             ids = new uint256[](2);
@@ -59,5 +59,9 @@ abstract contract CollateralState is LockDealState, IInnerWithdraw, IERC165, Pro
             poolIds = new uint256[](3);
             (poolIds[0], poolIds[1], poolIds[2]) = getInnerIds(poolId);
         }
+    }
+
+    function isPoolFinished(uint256 poolId) public view returns (bool) {
+        return poolIdToTime[poolId] < block.timestamp;
     }
 }
