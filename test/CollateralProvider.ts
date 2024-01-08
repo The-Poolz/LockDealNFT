@@ -188,7 +188,7 @@ describe('Collateral Provider', function () {
   });
 
   it('should get full amount after time', async () => {
-    await time.setNextBlockTimestamp(finishTime + 1);
+    await time.setNextBlockTimestamp(finishTime);
     await mine(1);
     const withdrawAmount = await lockDealNFT.getWithdrawableAmount(poolId);
     expect(withdrawAmount).to.equal(amount);

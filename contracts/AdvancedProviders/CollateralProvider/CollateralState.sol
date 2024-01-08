@@ -42,7 +42,7 @@ abstract contract CollateralState is LockDealState, IInnerWithdraw, IERC165, Pro
         if (lockDealNFT.poolIdToProvider(poolId) == this) {
             (uint256 mainCoinCollectorId, , uint256 mainCoinHolderId) = getInnerIds(poolId);
             withdrawalAmount = lockDealNFT.getWithdrawableAmount(mainCoinCollectorId);
-            if (isPoolFinished(poolId)) {
+            if (poolIdToTime[poolId] <= block.timestamp) {
                 withdrawalAmount += lockDealNFT.getWithdrawableAmount(mainCoinHolderId);
             }
         }
