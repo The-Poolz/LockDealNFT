@@ -438,5 +438,18 @@ describe('Refund Provider', function () {
         [amount],
       ]);
     });
+
+    it('should revert expired refund time', async () => {
+      await refundProvider
+        .connect(projectOwner)
+        .createNewRefundPool(addresses, params, tokenSignature, mainCoinsignature);
+      await time.setNextBlockTimestamp(finishTime + 1);
+      await mine(1);
+      await expect(
+        lockDealNFT
+          .connect(receiver)
+          ['safeTransferFrom(address,address,uint256)'](receiver.address, refundProvider.address, poolId),
+      ).to.be.revertedWith('RefundProvider: Refund period has expired');
+    });
   });
 });
