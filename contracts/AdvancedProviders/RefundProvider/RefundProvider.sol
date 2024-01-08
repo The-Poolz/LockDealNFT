@@ -29,8 +29,8 @@ contract RefundProvider is RefundState, IERC721Receiver, FirewallConsumer {
                 collateralProvider.getParams(collateralPoolId)[1] > block.timestamp,
                 "RefundProvider: Refund period has expired"
             );
-            ISimpleProvider dealProvider = LockDealState(address(collateralProvider)).provider();
             uint256 userDataPoolId = poolId + 1;
+            ISimpleProvider dealProvider = ISimpleProvider(address(lockDealNFT.poolIdToProvider(userDataPoolId)));
             // User receives a refund and the tokens go into the collateral pool
             uint256 amount = dealProvider.getParams(userDataPoolId)[0];
             (uint256 withdrawnAmount, ) = dealProvider.withdraw(userDataPoolId, amount);
