@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "../../ERC165/Refundble.sol";
-import "../../SimpleProviders/LockProvider/LockDealState.sol";
+import "../../interfaces/ISimpleProvider.sol";
 import "./RefundState.sol";
 import "@ironblocks/firewall-consumer/contracts/FirewallConsumer.sol";
 
@@ -29,10 +29,12 @@ contract RefundProvider is RefundState, IERC721Receiver, FirewallConsumer {
                 collateralProvider.getParams(collateralPoolId)[1] > block.timestamp,
                 "RefundProvider: Refund period has expired"
             );
+            ISimpleProvider dealProvider = ISimpleProvider(address(lockDealNFT.poolIdToProvider(collateralPoolId + 1)));
+            // user pool id can be TimedProvider, LockProvider or DealProvider
             uint256 userDataPoolId = poolId + 1;
-            ISimpleProvider dealProvider = ISimpleProvider(address(lockDealNFT.poolIdToProvider(userDataPoolId)));
             // User receives a refund and the tokens go into the collateral pool
             uint256 amount = dealProvider.getParams(userDataPoolId)[0];
+            // using directly the deal provider for withdraw
             (uint256 withdrawnAmount, ) = dealProvider.withdraw(userDataPoolId, amount);
             collateralProvider.handleRefund(collateralPoolId, user, withdrawnAmount);
         }
