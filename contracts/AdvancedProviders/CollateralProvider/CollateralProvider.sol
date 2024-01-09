@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../../interfaces/IFundsManager.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "./CollateralState.sol";
 import "../../util/CalcUtils.sol";
 import "@ironblocks/firewall-consumer/contracts/FirewallConsumer.sol";
 
-contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState, FirewallConsumer {
+contract CollateralProvider is ERC721Holder, CollateralState, FirewallConsumer {
     using CalcUtils for uint256;
 
     ///@dev withdraw tokens
@@ -36,10 +35,7 @@ contract CollateralProvider is IFundsManager, ERC721Holder, CollateralState, Fir
     /// @param params[0] = token amount
     /// @param params[params.length - 2] = main coin amount
     /// @param params[params.length - 1] = FinishTime
-    function _registerPool(uint256 poolId, uint256[] calldata params)
-        internal
-        firewallProtectedSig(0x8b60dedb)
-    {
+    function _registerPool(uint256 poolId, uint256[] calldata params) internal firewallProtectedSig(0x8b60dedb) {
         uint256 tokenAmount = params[0];
         uint256 mainCoinAmount = params[params.length - 2];
         uint256 finishTime = params[params.length - 1];

@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "../../ERC165/Refundble.sol";
+import "../../interfaces/ISimpleProvider.sol";
 import "./RefundState.sol";
 import "@ironblocks/firewall-consumer/contracts/FirewallConsumer.sol";
 
@@ -10,7 +11,7 @@ contract RefundProvider is RefundState, IERC721Receiver, FirewallConsumer {
     constructor(ILockDealNFT nftContract, address provider) {
         require(address(nftContract) != address(0x0) && provider != address(0x0), "RefundProvider: invalid address");
         lockDealNFT = nftContract;
-        collateralProvider = CollateralProvider(provider);
+        collateralProvider = FundsManager(provider);
         name = "RefundProvider";
     }
 
@@ -24,14 +25,13 @@ contract RefundProvider is RefundState, IERC721Receiver, FirewallConsumer {
         require(msg.sender == address(lockDealNFT), "RefundProvider: invalid nft contract");
         if (provider == user) {
             uint256 collateralPoolId = poolIdToCollateralId[poolId];
-            require(
-                collateralProvider.poolIdToTime(collateralPoolId) > block.timestamp,
-                "RefundProvider: Refund period has expired"
-            );
+            require(!collateralProvider.isPoolFinished(collateralPoolId), "RefundProvider: Refund period has expired");
             ISimpleProvider dealProvider = collateralProvider.provider();
+            // user pool id can be TimedProvider, LockProvider or DealProvider
             uint256 userDataPoolId = poolId + 1;
             // User receives a refund and the tokens go into the collateral pool
             uint256 amount = dealProvider.getParams(userDataPoolId)[0];
+            // using directly the deal provider for withdraw
             (uint256 withdrawnAmount, ) = dealProvider.withdraw(userDataPoolId, amount);
             collateralProvider.handleRefund(collateralPoolId, user, withdrawnAmount);
         }
@@ -136,7 +136,7 @@ contract RefundProvider is RefundState, IERC721Receiver, FirewallConsumer {
         uint256 userDataPoolId = poolId + 1;
         IProvider provider = lockDealNFT.poolIdToProvider(userDataPoolId);
         amountToBeWithdrawed = provider.getWithdrawableAmount(userDataPoolId);
-        if (collateralProvider.poolIdToTime(poolIdToCollateralId[poolId]) >= block.timestamp) {
+        if (!collateralProvider.isPoolFinished(poolIdToCollateralId[poolId])) {
             collateralProvider.handleWithdraw(poolIdToCollateralId[poolId], amountToBeWithdrawed);
         }
         isFinal = provider.getParams(userDataPoolId)[0] == amountToBeWithdrawed;
