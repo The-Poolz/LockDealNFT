@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "../SimpleProviders/TimedDealProvider/TimedDealProvider.sol";
-import "../interfaces/IFundsManager.sol";
+import "../interfaces/FundsManager.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /// @dev MockProvider is a contract for testing purposes.
@@ -53,11 +53,11 @@ contract MockProvider {
     }
 
     function handleWithdraw(uint256 poolId, uint256 tokenAmount) external {
-        IFundsManager(address(_provider)).handleWithdraw(poolId, tokenAmount);
+        FundsManager(address(_provider)).handleWithdraw(poolId, tokenAmount);
     }
 
     function handleRefund(uint256 poolId, address user, uint256 tokenAmount) external {
-        IFundsManager(address(_provider)).handleRefund(poolId, user, tokenAmount);
+        FundsManager(address(_provider)).handleRefund(poolId, user, tokenAmount);
     }
 
     function registerNewRefundPool(address owner, IProvider provider) external returns (uint256 poolId) {

@@ -11,7 +11,7 @@ contract RefundProvider is RefundState, IERC721Receiver, FirewallConsumer {
     constructor(ILockDealNFT nftContract, address provider) {
         require(address(nftContract) != address(0x0) && provider != address(0x0), "RefundProvider: invalid address");
         lockDealNFT = nftContract;
-        collateralProvider = IFundsManager(provider);
+        collateralProvider = FundsManager(provider);
         name = "RefundProvider";
     }
 
@@ -26,7 +26,7 @@ contract RefundProvider is RefundState, IERC721Receiver, FirewallConsumer {
         if (provider == user) {
             uint256 collateralPoolId = poolIdToCollateralId[poolId];
             require(!collateralProvider.isPoolFinished(collateralPoolId), "RefundProvider: Refund period has expired");
-            ISimpleProvider dealProvider = ISimpleProvider(address(lockDealNFT.poolIdToProvider(collateralPoolId + 1)));
+            ISimpleProvider dealProvider = collateralProvider.provider();
             // user pool id can be TimedProvider, LockProvider or DealProvider
             uint256 userDataPoolId = poolId + 1;
             // User receives a refund and the tokens go into the collateral pool

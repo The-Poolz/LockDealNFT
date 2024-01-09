@@ -5,9 +5,9 @@ import "../../SimpleProviders/LockProvider/LockDealState.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import "../../SimpleProviders/Provider/ProviderModifiers.sol";
 import "../../interfaces/IInnerWithdraw.sol";
-import "../../interfaces/IFundsManager.sol";
+import "../../interfaces/FundsManager.sol";
 
-abstract contract CollateralState is LockDealState, IInnerWithdraw, IFundsManager, IERC165, ProviderModifiers {
+abstract contract CollateralState is IInnerWithdraw, FundsManager, IERC165, ProviderModifiers {
     mapping(uint256 => uint256) public poolIdToRateToWei;
 
     function getParams(uint256 poolId) public view override returns (uint256[] memory params) {
@@ -43,7 +43,7 @@ abstract contract CollateralState is LockDealState, IInnerWithdraw, IFundsManage
         if (lockDealNFT.poolIdToProvider(poolId) == this) {
             (uint256 mainCoinCollectorId, , uint256 mainCoinHolderId) = getInnerIds(poolId);
             withdrawalAmount = lockDealNFT.getWithdrawableAmount(mainCoinCollectorId);
-            if (poolIdToTime[poolId] <= block.timestamp) {
+            if (isPoolFinished(poolId)) {
                 withdrawalAmount += lockDealNFT.getWithdrawableAmount(mainCoinHolderId);
             }
         }
@@ -62,7 +62,7 @@ abstract contract CollateralState is LockDealState, IInnerWithdraw, IFundsManage
         }
     }
 
-    function isPoolFinished(uint256 poolId) public view returns (bool) {
-        return poolIdToTime[poolId] < block.timestamp;
+    function isPoolFinished(uint256 poolId) public view override returns (bool) {
+        return poolIdToTime[poolId] <= block.timestamp;
     }
 }
