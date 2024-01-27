@@ -2,13 +2,14 @@
 pragma solidity ^0.8.0;
 
 import "../SimpleProviders/LockProvider/LockDealProvider.sol";
+import "../interfaces/ILockDealNFT.sol"; 
 
 contract FeeLockProvider is LockDealProvider {
-    constructor(ILockDealNFT lockDealNFT, FeeDealProvider provider) LockDealProvider(lockDealNFT, address provider) {
-        require(provider.name() == "FeeDealProvider", "invalid provider");
+    constructor(ILockDealNFT _lockDealNFT, IProvider _provider) LockDealProvider(_lockDealNFT, _provider) {
+        require(_provider.name() == "FeeDealProvider", "invalid provider");
     }
 
-    name() external override pure returns (string memory) {
+    function name() external override pure returns (string memory) {
         return "FeeLockProvider";
     }
 }
