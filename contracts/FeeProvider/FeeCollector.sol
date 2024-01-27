@@ -11,10 +11,10 @@ contract FeeCollector is IERC721Receiver, IFeeCollector {
     address public feeCollector;
     ILockDealNFT public lockDealNFT;
 
-    constructor(uint256 fee, address feeCollector, ILockDealNFT lockDealNFT) {
-        this.fee = fee;
-        this.feeCollector = feeCollector;
-        this.lockDealNFT = lockDealNFT;
+    constructor(uint256 _fee, address _feeCollector, ILockDealNFT _lockDealNFT) {
+        fee = _fee;
+        feeCollector = _feeCollector;
+        lockDealNFT = _lockDealNFT;
     }
 
     bool public feeCollected;
@@ -25,7 +25,7 @@ contract FeeCollector is IERC721Receiver, IFeeCollector {
         uint256 poolId,
         bytes calldata
     ) external override returns (bytes4) {
-        require(!feeCollected, "FeeCollectorProvider: fee already collected")
+        require(!feeCollected, "FeeCollectorProvider: fee already collected");
         require(provider == address(lockDealNFT), "FeeCollectorProvider: wrong provider");
         feeCollected = true;
         uint256 amount = lockDealNFT.getWithdrawableAmount(poolId);
@@ -34,7 +34,7 @@ contract FeeCollector is IERC721Receiver, IFeeCollector {
         IERC20 token = IERC20(lockDealNFT.tokenOf(poolId));
         token.transfer(feeCollector, feeAmount);
         token.transfer(user, amount - feeAmount);
-        if(lockDealNFT.OwnerOf(poolId) == address(this)) {
+        if(lockDealNFT.ownerOf(poolId) == address(this)) {
             lockDealNFT.transferFrom(address(this), user, poolId);
         }
         feeCollected = false;

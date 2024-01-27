@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../SimpleProviders/TimedProvider/TimedDealProvider.sol";
+import "../SimpleProviders/TimedDealProvider/TimedDealProvider.sol";
 import "../interfaces/ILockDealNFT.sol"; 
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract FeeTimedProvider is TimedDealProvider {
-    constructor(ILockDealNFT lockDealNFT, IProvider provider) TimedDealProvider(lockDealNFT, address provider) {
-        require(provider.name() == "FeeLockProvider", "invalid provider");
-    }
-
-    name() external override pure returns (string memory) {
-        return "FeeTimedProvider";
+    constructor(ILockDealNFT lockDealNFT, IProvider _provider) TimedDealProvider(lockDealNFT, address(_provider)) {
+        require(keccak256(bytes(_provider.name())) == keccak256(bytes("FeeLockProvider")), "invalid provider");
+        name = "FeeTimedProvider";
     }
 }
