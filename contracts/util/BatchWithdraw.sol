@@ -11,11 +11,13 @@ contract BatchWithdraw {
     }
 
     function batchWithdraw(uint256[] memory tokenIds) external {
+        bool isApproved = lockDealNFT.isApprovedForAll(msg.sender, address(this));
         for (uint256 i = 0; i < tokenIds.length; i++) {
-            require(lockDealNFT.ownerOf(tokenIds[i]) == msg.sender, "BatchWithdraw: not owner");
-            require(lockDealNFT.isApprovedForAll(msg.sender, address(this)) ||
-             lockDealNFT.getApproved(tokenIds[i]) == address(this), "BatchWithdraw: not approved");
-            lockDealNFT.safeTransferFrom(msg.sender, address(lockDealNFT) , tokenIds[i]);
+            uint256 poolId = tokenIds[i];
+            require(lockDealNFT.ownerOf(poolId) == msg.sender, "BatchWithdraw: not owner");
+            require(isApproved ||
+             lockDealNFT.getApproved(poolId) == address(this), "BatchWithdraw: not approved");
+            lockDealNFT.safeTransferFrom(msg.sender, address(lockDealNFT) , poolId); // transfer to lockDealNFT = withdraw
         }
     }
 }
