@@ -10,9 +10,9 @@ contract BatchWithdraw {
         lockDealNFT = _lockDealNFT;
     }
 
-    function batchWithdraw(uint256[] memory tokenIds) external {
+    function batchWithdraw(uint256[] calldata tokenIds) external {
         bool isApproved = lockDealNFT.isApprovedForAll(msg.sender, address(this));
-        for (uint256 i = 0; i < tokenIds.length; i++) {
+        for (uint256 i = 0; i < tokenIds.length; ++i) {
             uint256 poolId = tokenIds[i];
             require(lockDealNFT.ownerOf(poolId) == msg.sender, "BatchWithdraw: not owner");
             require(isApproved ||
