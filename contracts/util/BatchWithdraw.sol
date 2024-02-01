@@ -12,23 +12,23 @@ contract BatchWithdraw {
 
     function batchWithdraw(uint256[] calldata tokenIds) external {
         bool isApproved = _getIsApproved();
-        for (uint256 i = tokenIds.length; i > 0; --i) {
-            _withdrawIfNoEmpty(isApproved, tokenIds[i - 1]);
+        for (uint256 i = tokenIds.length; i > 0;) {
+            _withdrawIfNoEmpty(isApproved, tokenIds[--i]);
         }
     }
 
     function withdrawAll() external {
         bool isApproved = _getIsApproved();
-        for (uint256 i = lockDealNFT.balanceOf(msg.sender); i > 0; --i) {
-            uint256 token = lockDealNFT.tokenOfOwnerByIndex(msg.sender, i - 1);
+        for (uint256 i = lockDealNFT.balanceOf(msg.sender); i > 0;) {
+            uint256 token = lockDealNFT.tokenOfOwnerByIndex(msg.sender, --i );
             _withdrawIfNoEmpty(isApproved, token);
         }
     }
 
     function withdrawAll(address[] calldata tokenFilter) external {
         bool isApproved = _getIsApproved();
-        for (uint256 i = lockDealNFT.balanceOf(msg.sender, tokenFilter); i > 0; --i) {
-            uint256 token = lockDealNFT.tokenOfOwnerByIndex(msg.sender, i - 1, tokenFilter);
+        for (uint256 i = lockDealNFT.balanceOf(msg.sender, tokenFilter); i > 0;) {
+            uint256 token = lockDealNFT.tokenOfOwnerByIndex(msg.sender, --i, tokenFilter);
             _withdrawIfNoEmpty(isApproved, token);
         }
     }
