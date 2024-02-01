@@ -3,21 +3,27 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../interfaces/ILockDealNFT.sol";
-import "./IFeeCollector.sol";
+import "./FeeDealProvider.sol";
+import "./FeeLockProvider.sol";
+import "./FeeTimedProvider.sol";
 
 contract FeeCollector is IERC721Receiver, IFeeCollector {
     uint256 public fee; // 1e18 = 100%
-    address public feeCollector;
-    ILockDealNFT public lockDealNFT;
+    address public immutable feeCollector;
+    ILockDealNFT public immutable lockDealNFT;
+    IProvider public immutable feeDealProvider;
+    IProvider public immutable feeLockProvider;
+    IProvider public immutable feeTimedProvider;
+    bool public feeCollected;
 
     constructor(uint256 _fee, address _feeCollector, ILockDealNFT _lockDealNFT) {
         fee = _fee;
         feeCollector = _feeCollector;
         lockDealNFT = _lockDealNFT;
+        feeDealProvider = new FeeDealProvider(IFeeCollector(this), _lockDealNFT);
+        feeLockProvider = new FeeLockProvider(_lockDealNFT, feeDealProvider);
+        feeTimedProvider = new FeeTimedProvider(_lockDealNFT, feeLockProvider);
     }
-
-    bool public feeCollected;
 
     function onERC721Received(
         address provider,
@@ -34,7 +40,7 @@ contract FeeCollector is IERC721Receiver, IFeeCollector {
         IERC20 token = IERC20(lockDealNFT.tokenOf(poolId));
         token.transfer(feeCollector, feeAmount);
         token.transfer(user, amount - feeAmount);
-        if(lockDealNFT.ownerOf(poolId) == address(this)) {
+        if (lockDealNFT.ownerOf(poolId) == address(this)) {
             lockDealNFT.transferFrom(address(this), user, poolId);
         }
         feeCollected = false;

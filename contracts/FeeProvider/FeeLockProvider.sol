@@ -2,8 +2,6 @@
 pragma solidity ^0.8.0;
 
 import "../SimpleProviders/LockProvider/LockDealProvider.sol";
-import "../interfaces/ILockDealNFT.sol"; 
-import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract FeeLockProvider is LockDealProvider {
     constructor(ILockDealNFT _lockDealNFT, IProvider _provider) LockDealProvider(_lockDealNFT, address(_provider)) {
