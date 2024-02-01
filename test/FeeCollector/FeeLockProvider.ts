@@ -1,4 +1,4 @@
-import { FeeLockProvider, LockDealNFT, FeeCollector } from '../../typechain-types';
+import { FeeLockProvider, FeeDealProvider, LockDealNFT, FeeCollector } from '../../typechain-types';
 import { MockVaultManager } from '../../typechain-types';
 import { deployed, token, MAX_RATIO } from '../helper';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -23,16 +23,20 @@ describe('Fee Lock Provider', function () {
   const amount = 10000;
   const fee = '100';
   const signature: Bytes = ethers.utils.toUtf8Bytes('signature');
-  const ratio = MAX_RATIO.div(2); // half of the amount
 
   before(async () => {
     [receiver, newOwner] = await ethers.getSigners();
     mockVaultManager = await deployed('MockVaultManager');
     lockDealNFT = await deployed('LockDealNFT', mockVaultManager.address, '');
     feeCollector = await deployed('FeeCollector', fee, receiver.address, lockDealNFT.address);
-    const feeLockProviderAddress = await feeCollector.feeLockProvider();
-    feeLockProvider = await ethers.getContractAt('FeeLockProvider', feeLockProviderAddress);
+    const feeDealProvider: FeeDealProvider = await deployed(
+      'FeeDealProvider',
+      feeCollector.address,
+      lockDealNFT.address,
+    );
+    feeLockProvider = await deployed('FeeLockProvider', lockDealNFT.address, feeDealProvider.address);
     await lockDealNFT.setApprovedContract(feeLockProvider.address, true);
+    await lockDealNFT.setApprovedContract(feeCollector.address, true);
   });
 
   beforeEach(async () => {
@@ -62,4 +66,6 @@ describe('Fee Lock Provider', function () {
         ['safeTransferFrom(address,address,uint256)'](receiver.address, lockDealNFT.address, poolId),
     ).to.be.revertedWith('FeeDealProvider: fee not collected');
   });
+
+  it("should withdraw fee to fee collector's address", async () => {});
 });

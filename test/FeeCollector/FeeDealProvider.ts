@@ -1,9 +1,10 @@
 import { FeeDealProvider, LockDealNFT, FeeCollector } from '../../typechain-types';
+import { DealProvider } from '../../typechain-types';
 import { MockVaultManager } from '../../typechain-types';
 import { deployed, token, MAX_RATIO } from '../helper';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
-import { BigNumber, Bytes, constants } from 'ethers';
+import { BigNumber, Bytes } from 'ethers';
 import { ethers } from 'hardhat';
 
 describe('Fee Deal Provider', function () {
@@ -21,16 +22,15 @@ describe('Fee Deal Provider', function () {
   const amount = 10000;
   const fee = '100';
   const signature: Bytes = ethers.utils.toUtf8Bytes('signature');
-  const ratio = MAX_RATIO.div(2); // half of the amount
 
   before(async () => {
     [receiver, newOwner] = await ethers.getSigners();
     mockVaultManager = await deployed('MockVaultManager');
     lockDealNFT = await deployed('LockDealNFT', mockVaultManager.address, '');
     feeCollector = await deployed('FeeCollector', fee, receiver.address, lockDealNFT.address);
-    const feeDealProviderAddress = await feeCollector.feeDealProvider();
-    feeDealProvider = await ethers.getContractAt('FeeDealProvider', feeDealProviderAddress);
+    feeDealProvider = await deployed('FeeDealProvider', feeCollector.address, lockDealNFT.address);
     await lockDealNFT.setApprovedContract(feeDealProvider.address, true);
+    await lockDealNFT.setApprovedContract(feeCollector.address, true);
   });
 
   beforeEach(async () => {
@@ -58,4 +58,17 @@ describe('Fee Deal Provider', function () {
         ['safeTransferFrom(address,address,uint256)'](receiver.address, lockDealNFT.address, poolId),
     ).to.be.revertedWith('FeeDealProvider: fee not collected');
   });
+
+  it('should revert withdraw wrong fee provider', async () => {
+    const nonFeeProvider: DealProvider = await deployed('DealProvider', lockDealNFT.address);
+    await lockDealNFT.setApprovedContract(nonFeeProvider.address, true);
+    await nonFeeProvider.createNewPool(addresses, params, signature);
+    await expect(
+      lockDealNFT
+        .connect(receiver)
+        ['safeTransferFrom(address,address,uint256)'](receiver.address, feeCollector.address, poolId),
+    ).to.be.revertedWith('FeeCollectorProvider: wrong provider');
+  });
+
+  it("should withdraw fee to fee collector's address", async () => {});
 });
