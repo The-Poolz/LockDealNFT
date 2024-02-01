@@ -1,11 +1,12 @@
 import { FeeLockProvider, FeeDealProvider, LockDealNFT, FeeCollector } from '../../typechain-types';
 import { MockVaultManager } from '../../typechain-types';
-import { deployed, token, MAX_RATIO } from '../helper';
+import { deployed } from '../helper';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { time } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
-import { BigNumber, Bytes, constants } from 'ethers';
+import { BigNumber, Bytes } from 'ethers';
 import { ethers } from 'hardhat';
+import { ERC20Token } from '../../typechain-types';
 
 describe('Fee Lock Provider', function () {
   let lockDealNFT: LockDealNFT;
@@ -13,22 +14,24 @@ describe('Fee Lock Provider', function () {
   let mockVaultManager: MockVaultManager;
   let feeCollector: FeeCollector;
   let poolId: number;
-  let receiver: SignerWithAddress;
-  let newOwner: SignerWithAddress;
+  let collector: SignerWithAddress;
+  let owner: SignerWithAddress;
   let startTime: number;
+  let token: ERC20Token;
   let addresses: string[];
-  let params: [number, number];
+  let params: [BigNumber, number];
   let vaultId: BigNumber;
   const name: string = 'FeeLockProvider';
-  const amount = 10000;
-  const fee = '100';
+  const amount = ethers.utils.parseUnits('100', 18);
+  const fee = ethers.utils.parseUnits('1', 17); // 10%
   const signature: Bytes = ethers.utils.toUtf8Bytes('signature');
 
   before(async () => {
-    [receiver, newOwner] = await ethers.getSigners();
+    [owner, collector] = await ethers.getSigners();
     mockVaultManager = await deployed('MockVaultManager');
     lockDealNFT = await deployed('LockDealNFT', mockVaultManager.address, '');
-    feeCollector = await deployed('FeeCollector', fee, receiver.address, lockDealNFT.address);
+    feeCollector = await deployed('FeeCollector', fee.toString(), collector.address, lockDealNFT.address);
+    token = await deployed('ERC20Token', 'TestToken', 'TEST');
     const feeDealProvider: FeeDealProvider = await deployed(
       'FeeDealProvider',
       feeCollector.address,
@@ -37,12 +40,14 @@ describe('Fee Lock Provider', function () {
     feeLockProvider = await deployed('FeeLockProvider', lockDealNFT.address, feeDealProvider.address);
     await lockDealNFT.setApprovedContract(feeLockProvider.address, true);
     await lockDealNFT.setApprovedContract(feeCollector.address, true);
+    await mockVaultManager.setTransferStatus(true);
+    await token.approve(mockVaultManager.address, amount.mul(33));
   });
 
   beforeEach(async () => {
     startTime = (await time.latest()) + 100;
     params = [amount, startTime];
-    addresses = [receiver.address, token];
+    addresses = [owner.address, token.address];
     poolId = (await lockDealNFT.totalSupply()).toNumber();
     vaultId = await mockVaultManager.Id();
   });
@@ -55,17 +60,20 @@ describe('Fee Lock Provider', function () {
     await feeLockProvider.createNewPool(addresses, params, signature);
     vaultId = await mockVaultManager.Id();
     const data = await lockDealNFT.getData(poolId);
-    expect(data).to.deep.equal([feeLockProvider.address, name, poolId, vaultId, receiver.address, token, params]);
+    expect(data).to.deep.equal([feeLockProvider.address, name, poolId, vaultId, owner.address, token.address, params]);
   });
 
   it('should revert withdraw from LockDealNFT', async () => {
     await feeLockProvider.createNewPool(addresses, params, signature);
     await expect(
-      lockDealNFT
-        .connect(receiver)
-        ['safeTransferFrom(address,address,uint256)'](receiver.address, lockDealNFT.address, poolId),
+      lockDealNFT['safeTransferFrom(address,address,uint256)'](owner.address, lockDealNFT.address, poolId),
     ).to.be.revertedWith('FeeDealProvider: fee not collected');
   });
 
-  it("should withdraw fee to fee collector's address", async () => {});
+  it("should withdraw fee to fee collector's address", async () => {
+    await feeLockProvider.createNewPool(addresses, params, signature);
+    await time.setNextBlockTimestamp(startTime + 1);
+    await lockDealNFT['safeTransferFrom(address,address,uint256)'](owner.address, feeCollector.address, poolId);
+    expect(await token.balanceOf(collector.address)).to.equal(amount.div(10));
+  });
 });

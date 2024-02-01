@@ -54,6 +54,7 @@ describe('LockDealNFT', function () {
     finishTime = startTime + 100;
     poolId = (await lockDealNFT.totalSupply()).toNumber();
     addresses = [receiver.address, token];
+    await mockVaultManager.setTransferStatus(false);
     await dealProvider.createNewPool(addresses, [amount], signature);
     vaultId = await mockVaultManager.Id();
   });
@@ -133,16 +134,20 @@ describe('LockDealNFT', function () {
   });
 
   it('should check double transfer by using mintAndTransfer', async () => {
+    await mockVaultManager.setTransferStatus(true);
     const addresses = [receiver.address, mockToken.address];
     const params = [amount];
     await mockToken.connect(receiver).approve(mockProvider.address, amount);
     await mockProvider.connect(receiver).createNewPoolWithTransfer(addresses, params);
     expect(await mockToken.balanceOf(mockVaultManager.address)).to.equal(amount);
+    await mockVaultManager.setTransferStatus(false);
   });
 
   it('test IBeforeTransfer call', async () => {
+    await mockVaultManager.setTransferStatus(false);
     poolId = (await lockDealNFT.totalSupply()).toNumber();
     await mockTransfer.connect(receiver).createNewPool(addresses, [amount], signature);
+    await mockVaultManager.setTransferStatus(true);
     await lockDealNFT.connect(receiver).approvePoolTransfers(true);
     await lockDealNFT.connect(receiver).transferFrom(receiver.address, notOwner.address, poolId);
     await lockDealNFT.connect(receiver).approvePoolTransfers(false);
@@ -150,18 +155,16 @@ describe('LockDealNFT', function () {
   });
 
   it("should revert transfer before the pool's start time", async () => {
-    await mockVaultManager.setTransferStatus(false);
     await lockDealNFT.connect(receiver).approvePoolTransfers(true);
-
     await expect(lockDealNFT.transferFrom(receiver.address, notOwner.address, poolId)).to.be.revertedWith(
       "Can't transfer before trade start time",
     );
     // set back
     await lockDealNFT.connect(receiver).approvePoolTransfers(false);
-    await mockVaultManager.setTransferStatus(true);
   });
 
   it('should allow owner to transfer token', async () => {
+    await mockVaultManager.setTransferStatus(true);
     const initialOwner = receiver;
     const newOwner = notOwner;
     const tokenId = poolId; // Assuming the token ID is the pool ID

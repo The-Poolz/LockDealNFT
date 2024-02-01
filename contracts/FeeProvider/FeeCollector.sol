@@ -21,17 +21,17 @@ contract FeeCollector is IERC721Receiver, IFeeCollector {
     }
 
     function onERC721Received(
-        address provider,
+        address,
         address user,
         uint256 poolId,
         bytes calldata
     ) external override returns (bytes4) {
-        require(!feeCollected, "FeeCollectorProvider: fee already collected");
-        require(provider == address(lockDealNFT), "FeeCollectorProvider: wrong provider");
+        require(msg.sender == address(lockDealNFT), "FeeCollector: invalid nft contract");
+        require(!feeCollected, "FeeCollector: fee already collected");
         IProvider feeProvider = lockDealNFT.poolIdToProvider(poolId);
         require(
             ERC165Checker.supportsInterface(address(feeProvider), type(IFeeProvider).interfaceId),
-            "FeeCollectorProvider: wrong provider"
+            "FeeCollector: wrong provider"
         );
         feeCollected = true;
         uint256 amount = lockDealNFT.getWithdrawableAmount(poolId);
