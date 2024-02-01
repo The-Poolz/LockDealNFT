@@ -1,10 +1,10 @@
 import { FeeTimedProvider, FeeDealProvider, FeeLockProvider, LockDealNFT, FeeCollector } from '../../typechain-types';
 import { MockVaultManager } from '../../typechain-types';
-import { deployed, token, MAX_RATIO } from '../helper';
+import { deployed, token } from '../helper';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { time } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
-import { BigNumber, Bytes, constants } from 'ethers';
+import { BigNumber, Bytes } from 'ethers';
 import { ethers } from 'hardhat';
 
 describe('Fee Timed Provider', function () {
@@ -14,7 +14,6 @@ describe('Fee Timed Provider', function () {
   let feeCollector: FeeCollector;
   let poolId: number;
   let receiver: SignerWithAddress;
-  let newOwner: SignerWithAddress;
   let addresses: string[];
   let params: [number, number, number];
   let vaultId: BigNumber;
@@ -23,11 +22,10 @@ describe('Fee Timed Provider', function () {
   const fee = '100';
   const ONE_DAY = 86400;
   let startTime: number, finishTime: number;
-  let halfTime: number;
   const signature: Bytes = ethers.utils.toUtf8Bytes('signature');
 
   before(async () => {
-    [receiver, newOwner] = await ethers.getSigners();
+    [receiver] = await ethers.getSigners();
     mockVaultManager = await deployed('MockVaultManager');
     lockDealNFT = await deployed('LockDealNFT', mockVaultManager.address, '');
     feeCollector = await deployed('FeeCollector', fee, receiver.address, lockDealNFT.address);
@@ -54,7 +52,6 @@ describe('Fee Timed Provider', function () {
     poolId = (await lockDealNFT.totalSupply()).toNumber();
     addresses = [receiver.address, token];
     vaultId = await mockVaultManager.Id();
-    halfTime = (finishTime - startTime) / 2;
   });
 
   it("should return fee timed provider's name", async () => {
