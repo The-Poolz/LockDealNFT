@@ -13,7 +13,7 @@ contract BatchWithdraw {
     function batchWithdraw(uint256[] calldata tokenIds) external {
         bool isApproved = getIsApproved();
         for (uint256 i = tokenIds.length; i > 0; --i) {
-            withdraw(isApproved, tokenIds[i - 1]);
+            withdrawIfNoEmpty(isApproved, tokenIds[i - 1]);
         }
     }
 
