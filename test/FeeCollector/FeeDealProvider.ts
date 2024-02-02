@@ -1,5 +1,4 @@
 import { FeeDealProvider, LockDealNFT, FeeCollector } from '../../typechain-types';
-import { DealProvider } from '../../typechain-types';
 import { MockVaultManager } from '../../typechain-types';
 import { deployed } from '../helper';
 import { ERC20Token } from '../../typechain-types';
@@ -62,7 +61,7 @@ describe('Fee Deal Provider', function () {
     ).to.be.revertedWith('FeeDealProvider: fee not collected');
   });
 
-  it('should Withdraw with Fee Calculation', async () => {
+  it('should withdraw with fee calculation', async () => {
     await feeDealProvider.createNewPool(addresses, params, signature);
     const beforeBalance = await token.balanceOf(owner.address);
     await lockDealNFT['safeTransferFrom(address,address,uint256)'](owner.address, feeCollector.address, poolId);

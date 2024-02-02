@@ -19,7 +19,6 @@ describe('Fee Collector', function () {
   let owner: SignerWithAddress;
   let addresses: string[];
   let params: [BigNumber, number, number];
-  let vaultId: BigNumber;
   let token: ERC20Token;
   const amount = ethers.utils.parseUnits('100', 18);
   const fee = ethers.utils.parseUnits('1', 17); // 10%
@@ -50,7 +49,6 @@ describe('Fee Collector', function () {
     params = [amount, startTime, finishTime];
     poolId = (await lockDealNFT.totalSupply()).toNumber();
     addresses = [owner.address, token.address];
-    vaultId = await mockVaultManager.Id();
   });
 
   it('should revert withdraw wrong fee provider', async () => {
