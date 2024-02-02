@@ -63,7 +63,7 @@ describe('Fee Timed Provider', function () {
     vaultId = await mockVaultManager.Id();
     const data = await lockDealNFT.getData(poolId);
     const expectedParams = [amount, startTime, finishTime, amount];
-    expect(data).to.deep.equal([feeTimeProvider.address, name, poolId, vaultId, owner.address, token, expectedParams]);
+    expect(data).to.deep.equal([feeTimeProvider.address, name, poolId, vaultId, owner.address, token.address, expectedParams]);
   });
 
   it('should revert withdraw from LockDealNFT', async () => {
