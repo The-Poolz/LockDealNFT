@@ -70,7 +70,7 @@ describe('Fee Lock Provider', function () {
     ).to.be.revertedWith('FeeDealProvider: fee not collected');
   });
 
-  it('should withdraw tokens without fee to user', async () => {
+  it('should withdraw with fee calculation', async () => {
     await feeLockProvider.createNewPool(addresses, params, signature);
     const beforeBalance = await token.balanceOf(owner.address);
     await time.setNextBlockTimestamp(startTime + 1);
