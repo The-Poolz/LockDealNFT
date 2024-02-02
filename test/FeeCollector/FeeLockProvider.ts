@@ -23,14 +23,14 @@ describe('Fee Lock Provider', function () {
   let vaultId: BigNumber;
   const name: string = 'FeeLockProvider';
   const amount = ethers.utils.parseUnits('100', 18);
-  const fee = ethers.utils.parseUnits('1', 17); // 10%
+  const fee = '1000'; // 10%
   const signature: Bytes = ethers.utils.toUtf8Bytes('signature');
 
   before(async () => {
     [owner, collector] = await ethers.getSigners();
     mockVaultManager = await deployed('MockVaultManager');
     lockDealNFT = await deployed('LockDealNFT', mockVaultManager.address, '');
-    feeCollector = await deployed('FeeCollector', fee.toString(), collector.address, lockDealNFT.address);
+    feeCollector = await deployed('FeeCollector', lockDealNFT.address);
     token = await deployed('ERC20Token', 'TestToken', 'TEST');
     const feeDealProvider: FeeDealProvider = await deployed(
       'FeeDealProvider',
@@ -50,6 +50,7 @@ describe('Fee Lock Provider', function () {
     addresses = [owner.address, token.address];
     poolId = (await lockDealNFT.totalSupply()).toNumber();
     vaultId = await mockVaultManager.Id();
+    await mockVaultManager.setVaultRoyalty(vaultId.add(1), collector.address, fee);
   });
 
   it("should return fee lock provider's name", async () => {

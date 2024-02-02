@@ -23,7 +23,7 @@ describe('Fee Timed Provider', function () {
   let token: ERC20Token;
   const name: string = 'FeeTimedProvider';
   const amount = ethers.utils.parseUnits('100', 18);
-  const fee = ethers.utils.parseUnits('1', 17); // 10%
+  const fee = '1000'; // 10%
   const ONE_DAY = 86400;
   let startTime: number, finishTime: number;
   const signature: Bytes = ethers.utils.toUtf8Bytes('signature');
@@ -32,7 +32,7 @@ describe('Fee Timed Provider', function () {
     [owner, collector] = await ethers.getSigners();
     mockVaultManager = await deployed('MockVaultManager');
     lockDealNFT = await deployed('LockDealNFT', mockVaultManager.address, '');
-    feeCollector = await deployed('FeeCollector', fee.toString(), collector.address, lockDealNFT.address);
+    feeCollector = await deployed('FeeCollector', lockDealNFT.address);
     feeDealProvider = await deployed('FeeDealProvider', feeCollector.address, lockDealNFT.address);
     feeLockProvider = await deployed('FeeLockProvider', lockDealNFT.address, feeDealProvider.address);
     token = await deployed('ERC20Token', 'TestToken', 'TEST');
@@ -52,6 +52,7 @@ describe('Fee Timed Provider', function () {
     poolId = (await lockDealNFT.totalSupply()).toNumber();
     addresses = [owner.address, token.address];
     vaultId = await mockVaultManager.Id();
+    await mockVaultManager.setVaultRoyalty(vaultId.add(1), collector.address, fee);
   });
 
   it("should return fee timed provider's name", async () => {

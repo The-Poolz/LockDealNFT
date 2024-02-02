@@ -9,14 +9,10 @@ import "../interfaces/ILockDealNFT.sol";
 import "../interfaces/IFeeProvider.sol";
 
 contract FeeCollector is IERC721Receiver, IFeeCollector {
-    uint256 public fee; // 1e18 = 100%
-    address public immutable feeCollector;
     ILockDealNFT public immutable lockDealNFT;
     bool public feeCollected;
 
-    constructor(uint256 _fee, address _feeCollector, ILockDealNFT _lockDealNFT) {
-        fee = _fee;
-        feeCollector = _feeCollector;
+    constructor(ILockDealNFT _lockDealNFT) {
         lockDealNFT = _lockDealNFT;
     }
 
@@ -36,11 +32,11 @@ contract FeeCollector is IERC721Receiver, IFeeCollector {
         feeCollected = true;
         uint256 amount = lockDealNFT.getWithdrawableAmount(poolId);
         if (amount > 0) {
-            uint256 feeAmount = (amount * fee) / 1e18;
+            (address feeCollector, uint256 fee) = IERC2981(address(lockDealNFT)).royaltyInfo(poolId, amount);
             lockDealNFT.safeTransferFrom(address(this), address(lockDealNFT), poolId);
             IERC20 token = IERC20(lockDealNFT.tokenOf(poolId));
-            if (feeAmount > 0) token.transfer(feeCollector, feeAmount);
-            token.transfer(user, amount - feeAmount);
+            if (fee > 0) token.transfer(feeCollector, fee);
+            token.transfer(user, amount - fee);
         }
         if (lockDealNFT.ownerOf(poolId) == address(this)) {
             lockDealNFT.transferFrom(address(this), user, poolId);

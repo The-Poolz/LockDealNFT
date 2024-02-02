@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/token/common/ERC2981.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract MockVaultManager {
+contract MockVaultManager is ERC2981 {
     mapping(address => uint) public tokenToVaultId;
     mapping(uint256 => address) vaultIdtoToken;
     bool public transfers = false;
@@ -42,11 +43,11 @@ contract MockVaultManager {
         return vaultIdtoToken[_vaultId];
     }
 
-    function royaltyInfo(uint256, uint256) external pure returns (address receiver, uint256 royaltyAmount) {
-        return (address(0), 0);
-    }
-
     function vaultIdToTradeStartTime(uint256) external view returns (uint256) {
         return transfers ? block.timestamp - 1 : block.timestamp + 1;
+    }
+
+    function setVaultRoyalty(uint _vaultId, address _royaltyReceiver, uint96 _feeNumerator) external {
+        _setTokenRoyalty(_vaultId, _royaltyReceiver, _feeNumerator);
     }
 }
