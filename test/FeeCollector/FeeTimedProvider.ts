@@ -21,6 +21,7 @@ describe('Fee Timed Provider', function () {
   let params: [BigNumber, number, number];
   let vaultId: BigNumber;
   let token: ERC20Token;
+  const name: string = 'FeeTimedProvider';
   const amount = ethers.utils.parseUnits('100', 18);
   const fee = ethers.utils.parseUnits('1', 17); // 10%
   const ONE_DAY = 86400;
