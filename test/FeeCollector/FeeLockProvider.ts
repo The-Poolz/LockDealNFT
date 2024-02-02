@@ -70,10 +70,12 @@ describe('Fee Lock Provider', function () {
     ).to.be.revertedWith('FeeDealProvider: fee not collected');
   });
 
-  it("should withdraw fee to fee collector's address", async () => {
+  it('should withdraw tokens without fee to user', async () => {
     await feeLockProvider.createNewPool(addresses, params, signature);
+    const beforeBalance = await token.balanceOf(owner.address);
     await time.setNextBlockTimestamp(startTime + 1);
     await lockDealNFT['safeTransferFrom(address,address,uint256)'](owner.address, feeCollector.address, poolId);
-    expect(await token.balanceOf(collector.address)).to.equal(amount.div(10));
+    const afterBalance = await token.balanceOf(owner.address);
+    expect(afterBalance).to.equal(beforeBalance.add(amount.sub(amount.div(10))));
   });
 });

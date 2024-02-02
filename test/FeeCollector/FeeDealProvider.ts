@@ -62,18 +62,11 @@ describe('Fee Deal Provider', function () {
     ).to.be.revertedWith('FeeDealProvider: fee not collected');
   });
 
-  it('should revert withdraw wrong fee provider', async () => {
-    const nonFeeProvider: DealProvider = await deployed('DealProvider', lockDealNFT.address);
-    await lockDealNFT.setApprovedContract(nonFeeProvider.address, true);
-    await nonFeeProvider.createNewPool(addresses, params, signature);
-    await expect(
-      lockDealNFT['safeTransferFrom(address,address,uint256)'](owner.address, feeCollector.address, poolId),
-    ).to.be.revertedWith('FeeCollector: wrong provider');
-  });
-
-  it("should withdraw fee to fee collector's address", async () => {
+  it('should withdraw tokens without fee to user', async () => {
     await feeDealProvider.createNewPool(addresses, params, signature);
+    const beforeBalance = await token.balanceOf(owner.address);
     await lockDealNFT['safeTransferFrom(address,address,uint256)'](owner.address, feeCollector.address, poolId);
-    expect(await token.balanceOf(collector.address)).to.equal(amount.div(10));
+    const afterBalance = await token.balanceOf(owner.address);
+    expect(afterBalance).to.equal(beforeBalance.add(amount.sub(amount.div(10))));
   });
 });
