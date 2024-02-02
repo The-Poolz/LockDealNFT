@@ -10,6 +10,8 @@ contract BatchWithdraw {
         lockDealNFT = _lockDealNFT;
     }
 
+    ///@dev Use this function to withdraw the tokens from the user
+    ///@param tokenIds - array of token ids - must be owned by the user
     function batchWithdraw(uint256[] calldata tokenIds) external {
         bool isApproved = _getIsApproved();
         for (uint256 i = tokenIds.length; i > 0; ) {
@@ -17,15 +19,18 @@ contract BatchWithdraw {
         }
     }
 
+    ///@dev Use this function to refund the tokens to the user
+    ///@param tokenIds - array of token ids - must be owned by the user and be RefundProvider
     function batchRefund(uint256[] calldata tokenIds) external {
         bool isApproved = _getIsApproved();
         require(isApproved, "BatchWithdraw: not approved");
         for (uint256 i = tokenIds.length; i > 0; ) {
             uint256 token = tokenIds[--i];
-            _withdraw(isApproved, _refund(isApproved, token));
+            _withdraw(_refund(token));
         }
     }
-
+    ///@dev withdraw all tokens from the user that are not empty
+    ///@notice This is very expensive function, use it only if you know what you are doing
     function withdrawAll() external {
         bool isApproved = _getIsApproved();
         for (uint256 i = lockDealNFT.balanceOf(msg.sender); i > 0; ) {
@@ -34,6 +39,9 @@ contract BatchWithdraw {
         }
     }
 
+    ///@dev withdraw all tokens from the user that are not empty and match the filter
+    ///@param tokenFilter - filter by token address
+    ///@notice This is very expensive function, use it only if you know what you are doing
     function withdrawAll(address[] calldata tokenFilter) external {
         bool isApproved = _getIsApproved();
         for (uint256 i = lockDealNFT.balanceOf(msg.sender, tokenFilter); i > 0; ) {
@@ -53,11 +61,14 @@ contract BatchWithdraw {
 
     function _withdraw(bool isApproved, uint256 poolId) internal {
         _checkData(isApproved, poolId);
+        _withdraw(poolId);
+    }
+
+    function _withdraw(uint256 poolId) internal {
         lockDealNFT.safeTransferFrom(msg.sender, address(lockDealNFT), poolId); // transfer to lockDealNFT = withdraw
     }
 
-    function _refund(bool isApproved, uint256 poolId) internal returns (uint256 newPoolId) {
-        _checkData(isApproved, poolId);
+    function _refund(uint256 poolId) internal returns (uint256 newPoolId) {
         IProvider refundProvider = _getProvider(poolId);
         require(_isRefundProvider(refundProvider), "BatchWithdraw: must be RefundProvider");
         newPoolId = lockDealNFT.totalSupply();
