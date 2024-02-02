@@ -54,7 +54,6 @@ describe('LockDealNFT', function () {
     finishTime = startTime + 100;
     poolId = (await lockDealNFT.totalSupply()).toNumber();
     addresses = [receiver.address, token];
-    await mockVaultManager.setTransferStatus(false);
     await dealProvider.createNewPool(addresses, [amount], signature);
     vaultId = await mockVaultManager.Id();
   });
@@ -144,7 +143,6 @@ describe('LockDealNFT', function () {
   });
 
   it('test IBeforeTransfer call', async () => {
-    await mockVaultManager.setTransferStatus(false);
     poolId = (await lockDealNFT.totalSupply()).toNumber();
     await mockTransfer.connect(receiver).createNewPool(addresses, [amount], signature);
     await mockVaultManager.setTransferStatus(true);
@@ -152,6 +150,7 @@ describe('LockDealNFT', function () {
     await lockDealNFT.connect(receiver).transferFrom(receiver.address, notOwner.address, poolId);
     await lockDealNFT.connect(receiver).approvePoolTransfers(false);
     expect(await mockTransfer.isBeforeTransferCalled()).to.equal(true);
+    await mockVaultManager.setTransferStatus(false);
   });
 
   it("should revert transfer before the pool's start time", async () => {
@@ -179,6 +178,7 @@ describe('LockDealNFT', function () {
     // Check new owner
     expect(await lockDealNFT.ownerOf(tokenId)).to.equal(newOwner.address);
     await lockDealNFT.connect(initialOwner).approvePoolTransfers(false);
+    await mockVaultManager.setTransferStatus(false);
   });
 
   it('should not allow non-owner and non-approved address to transfer token', async () => {
