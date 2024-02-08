@@ -2,12 +2,13 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "@ironblocks/firewall-consumer/contracts/FirewallConsumer.sol";
 import "../../ERC165/Refundble.sol";
 import "../../interfaces/ISimpleProvider.sol";
+import "..../Abstract/LastPoolOwnerState.sol";
 import "./RefundState.sol";
-import "@ironblocks/firewall-consumer/contracts/FirewallConsumer.sol";
 
-contract RefundProvider is RefundState, IERC721Receiver, FirewallConsumer {
+contract RefundProvider is RefundState, IERC721Receiver, FirewallConsumer, LastPoolOwnerState {
     constructor(ILockDealNFT nftContract, address provider) {
         require(address(nftContract) != address(0x0) && provider != address(0x0), "RefundProvider: invalid address");
         lockDealNFT = nftContract;
@@ -139,6 +140,10 @@ contract RefundProvider is RefundState, IERC721Receiver, FirewallConsumer {
         if (!collateralProvider.isPoolFinished(poolIdToCollateralId[poolId])) {
             collateralProvider.handleWithdraw(poolIdToCollateralId[poolId], amountToBeWithdrawed);
         }
-        isFinal = provider.getParams(userDataPoolId)[0] == amountToBeWithdrawed;
+        isFinal = true;
+        if (provider.getParams(userDataPoolId)[0] > amountToBeWithdrawed)
+        {
+            lockDealNFT.safeTransferFrom(address(this), lastPoolOwner[poolId], userDataPoolId);
+        }
     }
 }
