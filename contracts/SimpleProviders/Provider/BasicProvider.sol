@@ -2,8 +2,8 @@
 pragma solidity ^0.8.0;
 
 import "./ProviderModifiers.sol";
-import "../../interfaces/IProvider.sol";
-import "../../interfaces/ISimpleProvider.sol";
+import "@poolzfinance/poolz-helper-v2/contracts/interfaces/IProvider.sol";
+import "@poolzfinance/poolz-helper-v2/contracts/interfaces/ISimpleProvider.sol";
 import "../../ERC165/Refundble.sol";
 import "../../ERC165/Bundable.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";

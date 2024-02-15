@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../../interfaces/ISimpleProvider.sol";
+import "@poolzfinance/poolz-helper-v2/contracts/interfaces/ISimpleProvider.sol";
 
 /// @title LockDealState contract
 /// @notice Contains storage variables
