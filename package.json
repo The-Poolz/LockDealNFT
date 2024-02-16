@@ -1,6 +1,6 @@
 {
-  "name": "poolz-lockdeal-nft",
-  "version": "1.0.0",
+  "name": "lockdeal-nft",
+  "version": "0.8.0",
   "description": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -11,7 +11,7 @@
   "dependencies": {
     "@ironblocks/firewall-consumer": "^1.0.4",
     "@openzeppelin/contracts": "^4.8.3",
-    "@poolzfinance/poolz-helper-v2": "^2.3.4"
+    "@poolzfinance/poolz-helper-v2": "^2.3.5"
   },
   "devDependencies": {
     "@ethersproject/bignumber": "^5.7.0",
