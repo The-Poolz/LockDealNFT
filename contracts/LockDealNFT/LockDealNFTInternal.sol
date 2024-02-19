@@ -2,9 +2,9 @@
 pragma solidity ^0.8.0;
 
 import "./LockDealNFTModifiers.sol";
-import "../interfaces/IInnerWithdraw.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
-import "../interfaces/IBeforeTransfer.sol";
+import "@poolzfinance/poolz-helper-v2/contracts/interfaces/IBeforeTransfer.sol";
+import "@poolzfinance/poolz-helper-v2/contracts/interfaces/IInnerWithdraw.sol";
 import "@ironblocks/firewall-consumer/contracts/FirewallConsumer.sol";
 
 abstract contract LockDealNFTInternal is LockDealNFTModifiers, FirewallConsumer {

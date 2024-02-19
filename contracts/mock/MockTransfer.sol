@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "../SimpleProviders/DealProvider/DealProvider.sol";
-import "../interfaces/IBeforeTransfer.sol";
+import "@poolzfinance/poolz-helper-v2/contracts/interfaces/IBeforeTransfer.sol";
 
 contract MockTransfer is IBeforeTransfer, DealProvider {
     bool public isBeforeTransferCalled;

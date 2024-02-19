@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../../interfaces/ILockDealNFT.sol";
+import "@poolzfinance/poolz-helper-v2/contracts/interfaces/ILockDealNFT.sol";
 
 abstract contract ProviderState is IProvider {
     ///@dev Each provider sets its own name

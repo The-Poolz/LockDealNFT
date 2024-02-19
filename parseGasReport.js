@@ -16,10 +16,6 @@ fs.readFile('gas-report.txt', 'utf8', (err, data) => {
 
   let mdSimpleProvider =
     '## Simple Providers\n| Contract | Method | Min | Max | Avg | # calls |\n|----------|--------|-----|-----|-----|---------|\n';
-  let mdAdvancedProvider =
-    '## Advanced Providers\n| Contract | Method | Min | Max | Avg | # calls |\n|----------|--------|-----|-----|-----|---------|\n';
-  let mdBuilders =
-    '## Builders\n| Contract | Method | Min | Max | Avg | # calls |\n|----------|--------|-----|-----|-----|---------|\n';
   // Add the Deployments table header
   let mdDeployments =
     '## Deployments\n| Contract | Min | Max | Avg | % of limit |\n|----------|-----|-----|-----|------------|\n';
@@ -50,14 +46,6 @@ fs.readFile('gas-report.txt', 'utf8', (err, data) => {
           contract.includes('TimedDealProvider')
         ) {
           mdSimpleProvider += `| ${contract} | ${method} | ${min} | ${max} | ${avg} | ${calls} |\n`;
-        } else if (
-          contract.includes('RefundProvider') ||
-          contract.includes('CollateralProvider') ||
-          contract.includes('BundleProvider')
-        ) {
-          mdAdvancedProvider += `| ${contract} | ${method} | ${min} | ${max} | ${avg} | ${calls} |\n`;
-        } else if (contract.includes('Builder')) {
-          mdBuilders += `| ${contract} | ${method} | ${min} | ${max} | ${avg} | ${calls} |\n`;
         }
       }
     } else {
@@ -72,7 +60,7 @@ fs.readFile('gas-report.txt', 'utf8', (err, data) => {
   });
 
   // Combine the parsed content
-  mdContent += mdSimpleProvider += mdAdvancedProvider += mdBuilders += mdDeployments;
+  mdContent += mdSimpleProvider += mdDeployments;
 
   // Write to md_gas_report.txt
   fs.writeFile('md_gas_report.txt', mdContent, err => {
