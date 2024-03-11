@@ -3,6 +3,8 @@
 [![Build and Test](https://github.com/The-Poolz/LockDealNFT/actions/workflows/node.js.yml/badge.svg)](https://github.com/The-Poolz/LockDealNFT/actions/workflows/node.js.yml)
 [![codecov](https://codecov.io/gh/The-Poolz/LockDealNFT/branch/master/graph/badge.svg?token=s2B22Bif9x)](https://codecov.io/gh/The-Poolz/LockDealNFT)
 [![CodeFactor](https://www.codefactor.io/repository/github/the-poolz/lockdealnft/badge)](https://www.codefactor.io/repository/github/the-poolz/lockdealnft)
+[![npm version](https://img.shields.io/npm/v/@poolzfinance/lockdeal-nft/latest.svg)](https://www.npmjs.com/package/@poolzfinance/lockdeal-nft/v/latest)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/The-Poolz/LockDealNFT/blob/master/LICENSE)
 
 Basic data:
 ![Providers-table](https://github.com/The-Poolz/LockDealNFT/assets/68740472/bb72b0e9-67da-4658-bb14-07f1997d326d)
@@ -33,3 +35,7 @@ the API can be found here: [LockDeal-NFT-API](https://github.com/The-Poolz/LockD
 ### Conclusion:
 
 Providers play a pivotal role in the creation and management of pools within our system. They store pool data and delegate token storage to vaults. Additionally, the creation of NFTs establishes proof of ownership for the pools. LockDealNFTs further enhance pool management by enabling pool splitting and withdrawal. By leveraging providers and the vaultManager, users can efficiently manage their assets, tailor investment strategies, and enjoy increased liquidity options within the system.
+
+## License
+
+[The-Poolz](https://poolz.finance/) Contracts is released under the [MIT License](https://github.com/The-Poolz/LockDealNFT/blob/master/LICENSE).
