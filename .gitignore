@@ -1,7 +1,3 @@
-# Created by https://www.toptal.com/developers/gitignore/api/soliditytruffle
-# Edit at https://www.toptal.com/developers/gitignore?templates=soliditytruffle
-
-### SolidityTruffle ###
 # depedencies
 node_modules
 
@@ -9,7 +5,10 @@ node_modules
 coverage
 coverage.json
 cache
-artifacts
+artifacts/@ironblocks/**
+artifacts/@openzeppelin/**
+artifacts/@poolzfinance/**
+artifacts/build-info/**
 typechain
 typechain-types
 
