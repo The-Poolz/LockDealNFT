@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./DealProviderState.sol";
 import "../Provider/BasicProvider.sol";
-import "../../util/CalcUtils.sol";
+import "@poolzfinance/poolz-helper-v2/contracts/CalcUtils.sol";
 
 contract DealProvider is DealProviderState, BasicProvider {
     using CalcUtils for uint256;
