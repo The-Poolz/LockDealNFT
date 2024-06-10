@@ -11,17 +11,7 @@ const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
-        version: '0.8.19',
-        settings: {
-          evmVersion: 'istanbul',
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          },
-        },
-      },
-      {
-        version: '0.8.18',
+        version: '0.8.25',
         settings: {
           evmVersion: 'istanbul',
           optimizer: {
@@ -34,6 +24,7 @@ const config: HardhatUserConfig = {
   },
   networks: {
     hardhat: {
+      allowUnlimitedContractSize: true,
       blockGasLimit: 130_000_000,
     },
     ropsten: {

@@ -128,7 +128,8 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers, FirewallConsumer 
         poolIdToVaultId[locals.newPoolId] = poolIdToVaultId[poolId];
         locals.provider.split(poolId, locals.newPoolId, ratio);
         isFinal = locals.provider.getParams(poolId)[0] == 0;
-        emit PoolSplit(poolId, from, locals.newPoolId, newOwner, _getData(poolId).params[0], _getData(locals.newPoolId).params[0]);
+        uint256 splitLeftAmount = _getData(poolId).params[0];
+        emit PoolSplit(poolId, from, locals.newPoolId, newOwner, splitLeftAmount, _getData(locals.newPoolId).params[0]);
         emit MetadataUpdate(poolId);
     }
 }
