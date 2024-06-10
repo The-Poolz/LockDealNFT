@@ -1,5 +1,5 @@
 {
     "detectors_to_exclude": "solc-version,similar-names",
-    "filter_paths": "contracts/mock,node_modules/@ironblocks/firewall-consumer/contracts/,node_modules/@poolzfinance/poolz-helper-v2,node_modules/@openzeppelin",
+    "filter_paths": "contracts/mock,node_modules/@ironblocks/firewall-consumer/contracts/,node_modules/@openzeppelin",
     "compile_force_framework": "hardhat"
 }
