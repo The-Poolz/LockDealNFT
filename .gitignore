@@ -5,10 +5,7 @@ node_modules
 coverage
 coverage.json
 cache
-artifacts/@ironblocks/**
-artifacts/@openzeppelin/**
-artifacts/@poolzfinance/**
-artifacts/build-info/**
+artifacts
 typechain
 typechain-types
 
@@ -29,7 +26,6 @@ blockchain/history
 #truffle
 .tern-port
 yarn.lock
-package-lock.json
 gasReporterOutput.json
 gas-report.txt
 md_gas_report.txt
