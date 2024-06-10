@@ -1,84 +1,16 @@
-name: Build and Test
+name: CI for Solidity Contracts
 
 on:
-  pull_request:
+    push:
+        branches:
+            - master
+    pull_request:
+        types: [opened, synchronize, reopened]
 
 jobs:
-  Gas-Test:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' # This line ensures that this job only runs on pull requests
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18.15.0'
-
-      - name: Restore cache
-        id: restore-cache
-        uses: actions/cache/restore@v3
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-
-      - name: Install HardHat
-        if: steps.restore-cache.outputs.cache-hit != 'true'
-        run: npm i hardhat
-
-      - name: Run gas tests and generate report
-        id: gas_test
-        run: npx hardhat test
-        env:
-          BSCSCAN_API_KEY: ${{ secrets.BSCSCAN_API_KEY }}
-          CMC_API_KEY: ${{ secrets.CMC_API_KEY }}
-
-      - name: Generate Markdown Table and Save to Env
-        run: node parseGasReport.js
-
-      - name: Comment PR with Gas Test Report
-        uses: thollander/actions-comment-pull-request@v2
-        with:
-          filePath: md_gas_report.txt
-          comment_tag: 'gas_report'
-
-  Coverage-Test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18.15.0'
-
-      - name: Restore cache
-        id: restore-cache
-        uses: actions/cache/restore@v3
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-
-      - name: Install HardHat
-        if: steps.restore-cache.outputs.cache-hit != 'true'
-        run: npm i hardhat
-
-      - name: Run tests and generate coverage
-        run: npx hardhat coverage
-
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3
-
-      # Save cache only if it was not restored before
-      - name: Save cache
-        if: steps.restore-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v3
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/package.json') }}
+    build:
+        uses: The-Poolz/solidity-workflows/.github/workflows/build.yml@v0.4.0
+        secrets:
+            codecov_token: ${{ secrets.CODECOV_TOKEN }}
+            bscscan_api_key: ${{ secrets.BSCSCAN_API_KEY }}
+            cmc_api_key: ${{ secrets.CMC_API_KEY }}            

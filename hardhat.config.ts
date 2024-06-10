@@ -1,10 +1,10 @@
-import '@nomicfoundation/hardhat-toolbox';
-import '@truffle/dashboard-hardhat-plugin';
+import { HardhatUserConfig } from "hardhat/config";
 import 'hardhat-gas-reporter';
-import { HardhatUserConfig } from 'hardhat/config';
+import '@typechain/hardhat';
 import 'solidity-coverage';
-
-//import 'dotenv/config';
+import '@nomicfoundation/hardhat-network-helpers';
+import '@nomicfoundation/hardhat-chai-matchers';
+import "@truffle/dashboard-hardhat-plugin"
 
 const config: HardhatUserConfig = {
   defaultNetwork: 'hardhat',
@@ -13,6 +13,7 @@ const config: HardhatUserConfig = {
       {
         version: '0.8.19',
         settings: {
+          evmVersion: 'istanbul',
           optimizer: {
             enabled: true,
             runs: 200,
@@ -79,14 +80,17 @@ const config: HardhatUserConfig = {
   },
   gasReporter: {
     enabled: true,
-    showTimeSpent: true,
     showMethodSig: true,
     currency: 'USD',
     token: 'BNB',
     gasPriceApi: 'https://api.bscscan.com/api?module=proxy&action=eth_gasPrice&apikey=' + process.env.BSCSCAN_API_KEY,
     coinmarketcap: process.env.CMC_API_KEY || '',
     noColors: true,
-    outputFile: 'gas-report.txt',
+    reportFormat: "markdown",
+    outputFile: "gasReport.md",
+    forceTerminalOutput: true,
+    L1: "binance",
+    forceTerminalOutputFormat: "terminal"
   },
 };
 

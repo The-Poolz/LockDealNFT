@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../interfaces/IProvider.sol";
+import "@poolzfinance/poolz-helper-v2/contracts/interfaces/IProvider.sol";
 
 /// @title ILockDealNFTEvents interface
 /// @notice Contains all events emitted by the LockDealNFT

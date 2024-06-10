@@ -1,7 +1,3 @@
-# Created by https://www.toptal.com/developers/gitignore/api/soliditytruffle
-# Edit at https://www.toptal.com/developers/gitignore?templates=soliditytruffle
-
-### SolidityTruffle ###
 # depedencies
 node_modules
 
@@ -30,9 +26,9 @@ blockchain/history
 #truffle
 .tern-port
 yarn.lock
-package-lock.json
 gasReporterOutput.json
 gas-report.txt
+gasReport.md
 md_gas_report.txt
 
 # End of https://www.toptal.com/developers/gitignore/api/soliditytruffle
