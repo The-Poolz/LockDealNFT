@@ -116,7 +116,6 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers, FirewallConsumer 
         address newOwner
     )
         private
-        firewallProtectedSig(0x5936f8f8)
         notZeroAddress(newOwner)
         notZeroAmount(ratio)
         returns (bool isFinal)
