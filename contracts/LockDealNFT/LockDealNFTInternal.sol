@@ -8,26 +8,23 @@ import "@poolzfinance/poolz-helper-v2/contracts/interfaces/IInnerWithdraw.sol";
 import "@ironblocks/firewall-consumer/contracts/FirewallConsumer.sol";
 
 abstract contract LockDealNFTInternal is LockDealNFTModifiers, FirewallConsumer {
-    function _transfer(address from, address to, uint256 poolId)
-        internal
-        override
-        firewallProtectedSig(0x30e0789e)
-    {
-        if (
-            from != address(0) &&
-            ERC165Checker.supportsInterface(address(poolIdToProvider[poolId]), type(IBeforeTransfer).interfaceId)
-        ) {
-            IBeforeTransfer(address(poolIdToProvider[poolId])).beforeTransfer(from, to, poolId);
+    function _update(
+        address to,
+        uint256 poolId,
+        address auth
+    ) internal override firewallProtectedSig(0x30e0789e) returns (address from) {
+        if (auth != address(0) && ERC165Checker.supportsInterface(address(poolIdToProvider[poolId]), type(IBeforeTransfer).interfaceId)) {
+            IBeforeTransfer(address(poolIdToProvider[poolId])).beforeTransfer(auth, to, poolId);
         }
         // check for split and withdraw transfers
-        if (!(approvedContracts[to] || approvedContracts[from])) {
-            require(approvedPoolUserTransfers[from], "Pool transfer not approved by user");
+        if (auth != address(0) && !(approvedContracts[to] || approvedContracts[auth])) {
+            require(approvedPoolUserTransfers[auth], "Pool transfer not approved by user");
             require(
                 vaultManager.vaultIdToTradeStartTime(poolIdToVaultId[poolId]) < block.timestamp,
                 "Can't transfer before trade start time"
             );
         }
-        super._transfer(from, to, poolId);
+        from = super._update(to, poolId, auth);
     }
 
     /// @param owner The address to assign the token to
@@ -53,10 +50,7 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers, FirewallConsumer 
         return baseURI;
     }
 
-    function _handleReturn(uint256 poolId, address from, bool isFinal)
-        internal
-        firewallProtectedSig(0x1d50d0db)
-    {
+    function _handleReturn(uint256 poolId, address from, bool isFinal) internal firewallProtectedSig(0x1d50d0db) {
         if (!isFinal) {
             _transfer(address(this), from, poolId);
         }
@@ -73,11 +67,7 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers, FirewallConsumer 
         }
     }
 
-    function _withdraw(address from, uint256 poolId)
-        internal
-        firewallProtectedSig(0xb790a77b)
-        returns (bool isFinal)
-    {
+    function _withdraw(address from, uint256 poolId) internal firewallProtectedSig(0xb790a77b) returns (bool isFinal) {
         uint256 withdrawnAmount;
         IProvider provider = poolIdToProvider[poolId];
         (withdrawnAmount, isFinal) = provider.withdraw(poolId);
@@ -95,11 +85,11 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers, FirewallConsumer 
 
     /// @dev Splits a pool into two pools with adjusted amounts
     /// @param poolId The ID of the pool to split
-    function _split(uint256 poolId, address from, bytes calldata data)
-        internal
-        firewallProtectedSig(0x1746b892)
-        returns (bool isFinal)
-    {
+    function _split(
+        uint256 poolId,
+        address from,
+        bytes calldata data
+    ) internal firewallProtectedSig(0x1746b892) returns (bool isFinal) {
         (uint256 ratio, address newOwner) = _parseData(data, from);
         isFinal = _split(poolId, from, ratio, newOwner);
     }
@@ -114,12 +104,7 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers, FirewallConsumer 
         address from,
         uint256 ratio,
         address newOwner
-    )
-        private
-        notZeroAddress(newOwner)
-        notZeroAmount(ratio)
-        returns (bool isFinal)
-    {
+    ) private notZeroAddress(newOwner) notZeroAmount(ratio) returns (bool isFinal) {
         require(ratio <= 1e21, "split amount exceeded");
         SplitLocals memory locals;
         locals.provider = poolIdToProvider[poolId];

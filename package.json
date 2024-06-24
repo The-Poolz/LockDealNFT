@@ -10,8 +10,8 @@
   "main": "index.js",
   "dependencies": {
     "@ironblocks/firewall-consumer": "^1.0.13",
-    "@openzeppelin/contracts": "^4.8.3",
-    "@poolzfinance/poolz-helper-v2": "^2.3.5"
+    "@openzeppelin/contracts": "^5.0.2",
+    "@poolzfinance/poolz-helper-v2": "^3.0.0"
   },
   "devDependencies": {
     "@ethersproject/bignumber": "^5.7.0",

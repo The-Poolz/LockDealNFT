@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 /// @title LockDealNFT contract
 /// @notice Implements a non-fungible token (NFT) contract for locking deals
 contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
-    constructor(address _vaultManager, string memory _baseURI) ERC721("LockDealNFT", "LDNFT") {
+    constructor(address _vaultManager, string memory _baseURI) ERC721("LockDealNFT", "LDNFT") Ownable(_msgSender()){
         _notZeroAddress(_vaultManager);
         vaultManager = IVaultManager(_vaultManager);
         approvedContracts[address(this)] = true;
@@ -71,7 +71,7 @@ contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
     /// @dev Sets the approved status of a contract
     /// @param contractAddress The address of the contract
     /// @param status The new approved status (true or false)
-    function setApprovedContract(address contractAddress, bool status) external onlyOwner onlyContract(contractAddress) {
+    function setApprovedContract(address contractAddress, bool status) external onlyOwner notZeroAddress(contractAddress) {
         approvedContracts[contractAddress] = status;
         emit ContractApproved(contractAddress, status);
     }
@@ -98,8 +98,7 @@ contract LockDealNFT is LockDealNFTInternal, IERC721Receiver {
     }
 
     function transferFrom(address from, address to, uint256 tokenId) public override(ERC721, IERC721) {
-        require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: transfer caller is not owner nor approved");
-        _safeTransfer(from, to, tokenId, "");
+        ERC721.transferFrom(from, to, tokenId);
     }
 
     function setBaseURI(string memory newBaseURI) external onlyOwner {

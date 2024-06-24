@@ -100,8 +100,9 @@ describe('LockDealNFT', function () {
 
   it("should revert transferOwnership from not owner's address", async () => {
     const lockDealNFT: LockDealNFT = await deployed('LockDealNFT', mockVaultManager.address, '');
-    await expect(lockDealNFT.connect(notOwner).transferOwnership(notOwner.address)).to.be.revertedWith(
-      'Ownable: caller is not the owner',
+    await expect(lockDealNFT.connect(notOwner).transferOwnership(notOwner.address)).to.be.revertedWithCustomError(
+      lockDealNFT,
+      "OwnableUnauthorizedAccount"
     );
   });
 
@@ -113,9 +114,10 @@ describe('LockDealNFT', function () {
 
   it("should revert renounceOwnership from not owner's address", async () => {
     const lockDealNFT: LockDealNFT = await deployed('LockDealNFT', mockVaultManager.address, '');
-    await expect(lockDealNFT.connect(notOwner).renounceOwnership()).to.be.revertedWith(
-      'Ownable: caller is not the owner',
-    );
+    await expect(lockDealNFT.connect(notOwner).renounceOwnership()).to.be.revertedWithCustomError(
+      lockDealNFT,
+      "OwnableUnauthorizedAccount"
+    );;
   });
 
   it('should revert the same transfer status', async () => {
@@ -251,8 +253,9 @@ describe('LockDealNFT', function () {
 
   it('should revert set baseURI for not owner', async () => {
     const baseURI = 'https://notOwner.finance/';
-    await expect(lockDealNFT.connect(notOwner).setBaseURI(baseURI)).to.be.revertedWith(
-      'Ownable: caller is not the owner',
+    await expect(lockDealNFT.connect(notOwner).setBaseURI(baseURI)).to.be.revertedWithCustomError(
+      lockDealNFT,
+      "OwnableUnauthorizedAccount"
     );
   });
 

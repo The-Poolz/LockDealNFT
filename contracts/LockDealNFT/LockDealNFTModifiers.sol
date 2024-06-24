@@ -12,11 +12,6 @@ abstract contract LockDealNFTModifiers is LockDealNFTState {
         _;
     }
 
-    modifier onlyContract(address contractAddress) {
-        _onlyContract(contractAddress);
-        _;
-    }
-
     modifier notZeroAddress(address _address) {
         _notZeroAddress(_address);
         _;
@@ -34,10 +29,6 @@ abstract contract LockDealNFTModifiers is LockDealNFTState {
 
     function _notZeroAddress(address _address) internal pure {
         require(_address != address(0x0), "Zero Address is not allowed");
-    }
-
-    function _onlyContract(address contractAddress) private view {
-        require(Address.isContract(contractAddress), "Invalid contract address");
     }
 
     function _onlyApprovedContract(address contractAddress) internal view {
