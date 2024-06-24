@@ -50,7 +50,10 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers, FirewallConsumer 
         return baseURI;
     }
 
-    function _handleReturn(uint256 poolId, address from, bool isFinal) internal firewallProtectedSig(0x1d50d0db) {
+    function _handleReturn(uint256 poolId, address from, bool isFinal)
+        internal
+        firewallProtectedSig(0x1d50d0db)
+    {
         if (!isFinal) {
             _transfer(address(this), from, poolId);
         }
@@ -67,7 +70,11 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers, FirewallConsumer 
         }
     }
 
-    function _withdraw(address from, uint256 poolId) internal firewallProtectedSig(0xb790a77b) returns (bool isFinal) {
+    function _withdraw(address from, uint256 poolId)
+        internal
+        firewallProtectedSig(0xb790a77b)
+        returns (bool isFinal)
+    {
         uint256 withdrawnAmount;
         IProvider provider = poolIdToProvider[poolId];
         (withdrawnAmount, isFinal) = provider.withdraw(poolId);
@@ -104,7 +111,13 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers, FirewallConsumer 
         address from,
         uint256 ratio,
         address newOwner
-    ) private notZeroAddress(newOwner) notZeroAmount(ratio) returns (bool isFinal) {
+    )
+        private
+        firewallProtectedSig(0x5936f8f8)
+        notZeroAddress(newOwner)
+        notZeroAmount(ratio)
+        returns (bool isFinal)
+    {
         require(ratio <= 1e21, "split amount exceeded");
         SplitLocals memory locals;
         locals.provider = poolIdToProvider[poolId];
