@@ -92,11 +92,11 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers, FirewallConsumer 
 
     /// @dev Splits a pool into two pools with adjusted amounts
     /// @param poolId The ID of the pool to split
-    function _split(
-        uint256 poolId,
-        address from,
-        bytes calldata data
-    ) internal firewallProtectedSig(0x1746b892) returns (bool isFinal) {
+    function _split(uint256 poolId, address from, bytes calldata data)
+        internal
+        firewallProtectedSig(0x1746b892)
+        returns (bool isFinal)
+    {
         (uint256 ratio, address newOwner) = _parseData(data, from);
         isFinal = _split(poolId, from, ratio, newOwner);
     }
@@ -113,7 +113,6 @@ abstract contract LockDealNFTInternal is LockDealNFTModifiers, FirewallConsumer 
         address newOwner
     )
         private
-        firewallProtectedSig(0x5936f8f8)
         notZeroAddress(newOwner)
         notZeroAmount(ratio)
         returns (bool isFinal)
