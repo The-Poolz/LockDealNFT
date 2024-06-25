@@ -1,0 +1,12 @@
+name: Publish on Release
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+    publish:
+        uses: The-Poolz/solidity-workflows/.github/workflows/release.yml@v0.5.0
+        secrets:
+            node_auth_token: ${{ secrets.NPM_TOKEN }}
