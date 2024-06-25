@@ -100,8 +100,9 @@ describe('LockDealNFT', function () {
 
   it("should revert transferOwnership from not owner's address", async () => {
     const lockDealNFT: LockDealNFT = await deployed('LockDealNFT', mockVaultManager.address, '');
-    await expect(lockDealNFT.connect(notOwner).transferOwnership(notOwner.address)).to.be.revertedWith(
-      'Ownable: caller is not the owner',
+    await expect(lockDealNFT.connect(notOwner).transferOwnership(notOwner.address)).to.be.revertedWithCustomError(
+      lockDealNFT,
+      "OwnableUnauthorizedAccount"
     );
   });
 
@@ -113,8 +114,9 @@ describe('LockDealNFT', function () {
 
   it("should revert renounceOwnership from not owner's address", async () => {
     const lockDealNFT: LockDealNFT = await deployed('LockDealNFT', mockVaultManager.address, '');
-    await expect(lockDealNFT.connect(notOwner).renounceOwnership()).to.be.revertedWith(
-      'Ownable: caller is not the owner',
+    await expect(lockDealNFT.connect(notOwner).renounceOwnership()).to.be.revertedWithCustomError(
+      lockDealNFT,
+      "OwnableUnauthorizedAccount"
     );
   });
 
@@ -187,7 +189,7 @@ describe('LockDealNFT', function () {
     // Try to transfer the token without any approval. This should fail.
     await expect(
       lockDealNFT.connect(anotherAddress).transferFrom(initialOwner.address, newOwner.address, tokenId),
-    ).to.be.revertedWith('ERC721: transfer caller is not owner nor approved');
+    ).to.be.revertedWith('Pool transfer not approved by user');
   });
 
   it('should set provider', async () => {
@@ -251,8 +253,9 @@ describe('LockDealNFT', function () {
 
   it('should revert set baseURI for not owner', async () => {
     const baseURI = 'https://notOwner.finance/';
-    await expect(lockDealNFT.connect(notOwner).setBaseURI(baseURI)).to.be.revertedWith(
-      'Ownable: caller is not the owner',
+    await expect(lockDealNFT.connect(notOwner).setBaseURI(baseURI)).to.be.revertedWithCustomError(
+      lockDealNFT,
+      "OwnableUnauthorizedAccount"
     );
   });
 
@@ -282,7 +285,7 @@ describe('LockDealNFT', function () {
       lockDealNFT
         .connect(notOwner)
         ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData),
-    ).to.be.revertedWith('ERC721: caller is not token owner or approved');
+    ).to.be.revertedWithCustomError(lockDealNFT, "ERC721InsufficientApproval");
   });
 
   it('should refresh all metadata', async () => {

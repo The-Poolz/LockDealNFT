@@ -137,4 +137,8 @@ abstract contract LockDealNFTState is ERC721Enumerable, ILockDealNFTEvents, Owna
             }
         }
     }
+
+    function _exists(uint256 poolId) internal view returns (bool) {
+        return _ownerOf(poolId) != address(0);
+    }
 }
