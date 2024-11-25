@@ -9,6 +9,10 @@
 Basic data:
 ![Providers-table](https://github.com/The-Poolz/LockDealNFT/assets/68740472/bb72b0e9-67da-4658-bb14-07f1997d326d)
 
+
+### Audit Report
+The audit report is available here: [Audit Report](https://docs.google.com/document/d/18XSwsKKbHpLCr4MQNZe8nZSWHnG6aExtb57R5uzQ3Us/edit?tab=t.0#heading=h.5uoc4mfz7mn4)
+
 ### Pool Creation:
 
 To create a new pool, users should leverage a **Provider** contract, which acts as a gateway for creating pools. The process begins with the creator sending a designated number of tokens to the **Vault** associated with the `Pool`. The **Providers** and **LockDealNFT** then store the pool data. Each `Provider` has its own number of pool parameters like `amount`, `time`, etc. Part of the data, such as the `token` and the `owner`, is stored in the **LockDealNFT** contract, the rest of the data is stored in the **Provider** itself.
