@@ -63,9 +63,15 @@ describe('Lock Deal Provider', function () {
     expect(poolData).to.deep.equal([lockProvider.address, name, poolId, vaultId, receiver.address, token, params]);
   });
 
-  it('should revert if the start time is invalid', async () => {
-    const invalidParams = [amount, startTime - 100];
-    await expect(lockProvider.createNewPool(addresses, invalidParams, signature)).to.be.revertedWith('Invalid start time');
+  it('should pass if the start time is already in the past', async () => {
+    const params = [amount, startTime - 100];
+    await expect(lockProvider.createNewPool(addresses, params, signature)).to.not.be.reverted;
+  });
+
+  it(`should save start time if it's in the past`, async () => {
+    const params = [amount, startTime - 100];
+    await lockProvider.createNewPool(addresses, params, signature);
+    expect(await lockProvider.poolIdToTime(poolId + 1)).to.equal(startTime - 100);
   });
 
   it('should revert zero owner address', async () => {
