@@ -68,6 +68,12 @@ describe('Lock Deal Provider', function () {
     await expect(lockProvider.createNewPool(addresses, invalidParams, signature)).to.not.be.reverted;
   });
 
+  it(`should save start time if it's in the past`, async () => {
+    const invalidParams = [amount, startTime - 100];
+    await lockProvider.createNewPool(addresses, invalidParams, signature);
+    expect(await lockProvider.poolIdToTime(poolId + 1)).to.equal(startTime - 100);
+  });
+
   it('should revert zero owner address', async () => {
     addresses[1] = constants.AddressZero;
     await expect(lockProvider.createNewPool(addresses, params, signature)).to.be.revertedWith('Zero Address is not allowed');
