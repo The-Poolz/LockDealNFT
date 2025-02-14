@@ -64,13 +64,13 @@ describe('Lock Deal Provider', function () {
   });
 
   it('should pass if the start time is already in the past', async () => {
-    const invalidParams = [amount, startTime - 100];
-    await expect(lockProvider.createNewPool(addresses, invalidParams, signature)).to.not.be.reverted;
+    const params = [amount, startTime - 100];
+    await expect(lockProvider.createNewPool(addresses, params, signature)).to.not.be.reverted;
   });
 
   it(`should save start time if it's in the past`, async () => {
-    const invalidParams = [amount, startTime - 100];
-    await lockProvider.createNewPool(addresses, invalidParams, signature);
+    const params = [amount, startTime - 100];
+    await lockProvider.createNewPool(addresses, params, signature);
     expect(await lockProvider.poolIdToTime(poolId + 1)).to.equal(startTime - 100);
   });
 
