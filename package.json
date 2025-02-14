@@ -30,6 +30,7 @@
     "@typescript-eslint/eslint-plugin": "^5.44.0",
     "@typescript-eslint/parser": "^5.44.0",
     "chai": "^4.3.7",
+    "dotenv": "^16.4.7",
     "ethers": "^5.7.2",
     "fs-extra": "^10.1.0",
     "hardhat": "^2.15.0",
