@@ -76,4 +76,10 @@ abstract contract BasicProvider is ProviderModifiers, ISimpleProvider, ERC165, F
             interfaceId == type(ISimpleProvider).interfaceId ||
             super.supportsInterface(interfaceId);
     }
+
+    function _mintNewNFT(uint256 sourcePoolId, address to) internal firewallProtectedSig(0x3c99ae44) returns(uint256 newPoolId){
+        newPoolId = lockDealNFT.mintForProvider(to, this);
+        // clone vault id
+        lockDealNFT.cloneVaultId(newPoolId, sourcePoolId);
+    }
 }

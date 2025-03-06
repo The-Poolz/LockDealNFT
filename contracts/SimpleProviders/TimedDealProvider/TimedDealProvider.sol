@@ -24,7 +24,7 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider, I
         lockDealNFT = _lockDealNFT;
         name = "TimedDealProvider";
     }
-    
+
     function _withdraw(
         uint256 poolId,
         uint256 amount
@@ -32,9 +32,7 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider, I
         (withdrawnAmount, ) = provider.withdraw(poolId, amount);
         isFinal = true;
         // create new NFT
-        uint256 newPoolId = lockDealNFT.mintForProvider(lastPoolOwner[poolId], this);
-        // clone vault id
-        lockDealNFT.cloneVaultId(newPoolId, poolId);
+        uint256 newPoolId = _mintNewNFT(poolId, lastPoolOwner[poolId]);
         // register new pool
         uint256[] memory params = getParams(poolId);
         provider.registerPool(newPoolId, params);
@@ -56,12 +54,14 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider, I
         return debitableAmount - (startAmount - leftAmount);
     }
 
-    function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) external firewallProtected onlyProvider {
-        provider.split(oldPoolId, newPoolId, ratio);
-        uint256 newPoolStartAmount = poolIdToAmount[oldPoolId].calcAmount(ratio);
-        poolIdToAmount[oldPoolId] -= newPoolStartAmount;
+    function split(uint256 lockDealNFTPoolId, uint256 newPoolId, uint256 ratio) external firewallProtected onlyProvider {
+        provider.split(lockDealNFTPoolId, newPoolId, ratio);
+        uint256 newPoolStartAmount = poolIdToAmount[lockDealNFTPoolId].calcAmount(ratio);
         poolIdToAmount[newPoolId] = newPoolStartAmount;
-        poolIdToTime[newPoolId] = poolIdToTime[oldPoolId];
+        poolIdToTime[newPoolId] = poolIdToTime[lockDealNFTPoolId];
+        // save startAmount and finishTime in the copied new pool
+        poolIdToAmount[newPoolId + 1] = poolIdToAmount[lockDealNFTPoolId] - newPoolStartAmount;
+        poolIdToTime[newPoolId + 1] = poolIdToTime[lockDealNFTPoolId];
     }
 
     ///@param params[0] = leftAmount = startAmount (leftAmount & startAmount must be same while creating pool)

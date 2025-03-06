@@ -140,9 +140,9 @@ describe('Timed Deal Provider', function () {
       await lockDealNFT
         .connect(receiver)
         ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData);
-      const params = [amount / 2, startTime, finishTime, amount / 2];
+      const params = [0, startTime, finishTime, amount];
       const poolData = await lockDealNFT.getData(poolId);
-      expect(poolData).to.deep.equal([timedDealProvider.address, name, poolId, vaultId, receiver.address, token, params]);
+      expect(poolData).to.deep.equal([timedDealProvider.address, name, poolId, vaultId, lockDealNFT.address, token, params]);
     });
 
     it('should check data in new pool after split', async () => {
