@@ -37,8 +37,7 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider, I
         lockDealNFT.cloneVaultId(newPoolId, poolId);
         // register new pool
         uint256[] memory params = getParams(poolId);
-        poolIdToAmount[poolId] = params[0] - amount;
-        provider.registerPool(poolId, params);
+        provider.registerPool(newPoolId, params);
     }
 
     function getWithdrawableAmount(uint256 poolId) public view override returns (uint256) {
