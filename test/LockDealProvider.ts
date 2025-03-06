@@ -112,7 +112,6 @@ describe('Lock Deal Provider', function () {
       await lockDealNFT
         .connect(receiver)
         ['safeTransferFrom(address,address,uint256)'](receiver.address, lockDealNFT.address, poolId);
-      const params = ['0', startTime];
       const poolData = await lockDealNFT.getData(poolId);
       expect(poolData).to.deep.equal([lockProvider.address, name, poolId,  vaultId, lockDealNFT.address, token, params]);
     });

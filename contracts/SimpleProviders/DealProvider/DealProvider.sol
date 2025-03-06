@@ -19,9 +19,8 @@ contract DealProvider is DealProviderState, BasicProvider {
         uint256 amount
     ) internal override firewallProtectedSig(0x9e2bf22c) returns (uint256 withdrawnAmount, bool isFinal) {
         if (poolIdToAmount[poolId] >= amount) {
-            poolIdToAmount[poolId] -= amount;
             withdrawnAmount = amount;
-            isFinal = poolIdToAmount[poolId] == 0;
+            isFinal = poolIdToAmount[poolId] == amount;
         }
     }
 

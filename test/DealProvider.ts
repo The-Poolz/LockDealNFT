@@ -137,7 +137,6 @@ describe('Deal Provider', function () {
       await lockDealNFT
         .connect(receiver)
         ['safeTransferFrom(address,address,uint256)'](receiver.address, lockDealNFT.address, poolId);
-      const params = [0];
       const poolData = await lockDealNFT.getData(poolId);
       expect(poolData).to.deep.equal([dealProvider.address, name, poolId, vaultId, lockDealNFT.address, token, params]);
     });
@@ -153,7 +152,7 @@ describe('Deal Provider', function () {
       expect(events[events.length - 1].args.poolId.toString()).to.equal(poolId.toString());
       expect(events[events.length - 1].args.owner.toString()).to.equal(receiver.address.toString());
       expect(events[events.length - 1].args.withdrawnAmount.toString()).to.equal(amount.toString());
-      expect(events[events.length - 1].args.leftAmount.toString()).to.equal('0'.toString());
+      expect(events[events.length - 1].args.leftAmount.toString()).to.equal(amount.toString());
     });
 
     it('getWithdrawableAmount should get all amount', async () => {

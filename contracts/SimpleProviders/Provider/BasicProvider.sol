@@ -76,4 +76,21 @@ abstract contract BasicProvider is ProviderModifiers, ISimpleProvider, ERC165, F
             interfaceId == type(ISimpleProvider).interfaceId ||
             super.supportsInterface(interfaceId);
     }
+
+    /**
+     * @dev Executes before a transfer, updating state based on the transfer details.
+     * @param from Sender address.
+     * @param to Receiver address.
+     * @param poolId Pool identifier.
+     */
+    function beforeTransfer(
+        address from,
+        address to,
+        uint256 poolId
+    ) external virtual override firewallProtected onlyNFT {
+        if (to == address(lockDealNFT)) {
+            // this means it will be withdraw or split
+            lastPoolOwner[poolId] = from; //this is the only way to know the owner of the pool
+        }
+    }
 }
