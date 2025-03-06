@@ -5,9 +5,13 @@ import "../LockProvider/LockDealState.sol";
 import "../DealProvider/DealProviderState.sol";
 import "../Provider/BasicProvider.sol";
 import "@poolzfinance/poolz-helper-v2/contracts/CalcUtils.sol";
+import "@poolzfinance/poolz-helper-v2/contracts/interfaces/IBeforeTransfer.sol";
 
-contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider {
+contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider, IBeforeTransfer {
     using CalcUtils for uint256;
+
+    // Mapping to store the last owner of each SimpleProvider pool before a withdrawal
+    mapping(uint256 => address) internal lastPoolOwner;
 
     /**
      * @dev Contract constructor.
@@ -84,5 +88,26 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider {
 
     function currentParamsTargetLength() public view override(IProvider, ProviderState) returns (uint256) {
         return 1 + provider.currentParamsTargetLength();
+    }
+
+    /**
+     * @dev Executes before a transfer, updating state based on the transfer details.
+     * @param from Sender address.
+     * @param to Receiver address.
+     * @param poolId Pool identifier.
+     */
+    function beforeTransfer(
+        address from,
+        address to,
+        uint256 poolId
+    ) external virtual override firewallProtected onlyNFT {
+        if (to == address(lockDealNFT)) {
+            // this means it will be withdraw or split
+            lastPoolOwner[poolId] = from; //this is the only way to know the owner of the pool
+        }
+    }
+
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+        return interfaceId == type(IBeforeTransfer).interfaceId || super.supportsInterface(interfaceId);
     }
 }
