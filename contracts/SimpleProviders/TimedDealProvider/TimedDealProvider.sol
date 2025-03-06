@@ -59,7 +59,7 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider, I
         uint256 newPoolStartAmount = poolIdToAmount[lockDealNFTPoolId].calcAmount(ratio);
         poolIdToAmount[newPoolId] = newPoolStartAmount;
         poolIdToTime[newPoolId] = poolIdToTime[lockDealNFTPoolId];
-        // save startAmount and finishTime in the copied new pool
+        // save startAmount and FinishTime to the newly created pool from the old pool
         poolIdToAmount[newPoolId + 1] = poolIdToAmount[lockDealNFTPoolId] - newPoolStartAmount;
         poolIdToTime[newPoolId + 1] = poolIdToTime[lockDealNFTPoolId];
     }

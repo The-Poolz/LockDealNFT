@@ -30,9 +30,11 @@ contract DealProvider is DealProviderState, BasicProvider {
         uint256 splitAmount = poolIdToAmount[lockDealNFTPoolId].calcAmount(ratio);
         require(poolIdToAmount[lockDealNFTPoolId] >= splitAmount, "Split amount exceeds the available amount");
         poolIdToAmount[newPoolId] = splitAmount;
+        // save leftAmount to the newly created pool from the old pool
         uint256 copyOldPoolId = _mintNewNFT(newPoolId, lockDealNFT.ownerOf(newPoolId));
         poolIdToAmount[copyOldPoolId] = poolIdToAmount[lockDealNFTPoolId] - splitAmount;
-        poolIdToAmount[lockDealNFTPoolId] = 0; // set to 0 to finalize the pool
+        // set to 0 to finalize the pool
+        poolIdToAmount[lockDealNFTPoolId] = 0;
     }
 
     /**@dev Providers overrides this function to add additional parameters when creating a pool.

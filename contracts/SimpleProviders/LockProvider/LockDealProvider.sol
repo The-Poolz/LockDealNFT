@@ -28,7 +28,7 @@ contract LockDealProvider is BasicProvider, LockDealState {
     function split(uint256 lockDealNFTPoolId, uint256 newPoolId, uint256 ratio) external override firewallProtected onlyProvider {
         provider.split(lockDealNFTPoolId, newPoolId, ratio);
         poolIdToTime[newPoolId] = poolIdToTime[lockDealNFTPoolId];
-        // save the time in the copied new pool
+        // save startTime to the newly created pool from the old pool
         poolIdToTime[newPoolId + 1] = poolIdToTime[lockDealNFTPoolId];
     }
 
