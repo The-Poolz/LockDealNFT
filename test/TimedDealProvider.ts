@@ -61,6 +61,10 @@ describe('Timed Deal Provider', function () {
     expect(await timedDealProvider.name()).to.equal('TimedDealProvider');
   });
 
+  it('check if the contract supports IBeforeTransfer interface', async () => {
+    expect(await timedDealProvider.supportsInterface('0x1ffb811f')).to.equal(true);
+  });
+
   it('should get timed provider data after creation', async () => {
     const poolData = await lockDealNFT.getData(poolId);
     const params = [amount, startTime, finishTime, amount];
@@ -155,6 +159,16 @@ describe('Timed Deal Provider', function () {
       expect(poolData).to.deep.equal([timedDealProvider.address, name, poolId + 1, vaultId, newOwner.address, token, params]);
     });
 
+    it('should check data in newly copied pool after split', async () => {
+      const packedData = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [ratio, newOwner.address]);
+      await lockDealNFT
+        .connect(receiver)
+        ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData);
+      const params = [amount / 2, startTime, finishTime, amount / 2];
+      const poolData = await lockDealNFT.getData(poolId + 2);
+      expect(poolData).to.deep.equal([timedDealProvider.address, name, poolId + 2, vaultId, newOwner.address, token, params]);
+    });
+
     it('should check event data after split', async () => {
       const packedData = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [ratio, newOwner.address]);
       const tx = await lockDealNFT
@@ -210,7 +224,7 @@ describe('Timed Deal Provider', function () {
       expect(await timedDealProvider.getWithdrawableAmount(poolId)).to.equal(0);
     });
 
-    it('should withdraw 25% tokens', async () => {
+    it('should check old pool after withdraw 25% tokens', async () => {
       await time.setNextBlockTimestamp(startTime + halfTime / 2);
 
       await lockDealNFT
@@ -221,7 +235,7 @@ describe('Timed Deal Provider', function () {
       expect(poolData).to.deep.equal([timedDealProvider.address, name, poolId, vaultId, lockDealNFT.address, token, params]);
     });
 
-    it('should withdraw half tokens', async () => {
+    it('should check old pool after withdraw half tokens', async () => {
       await time.setNextBlockTimestamp(startTime + halfTime);
 
       await lockDealNFT
@@ -232,7 +246,7 @@ describe('Timed Deal Provider', function () {
       expect(poolData).to.deep.equal([timedDealProvider.address, name, poolId, vaultId, lockDealNFT.address, token, params]);
     });
 
-    it('should withdraw all tokens', async () => {
+    it('should check old pool after withdraw all tokens', async () => {
       await time.setNextBlockTimestamp(finishTime + 1);
 
       await lockDealNFT
@@ -241,6 +255,38 @@ describe('Timed Deal Provider', function () {
       const params = [0, startTime, finishTime, amount];
       const poolData = await lockDealNFT.getData(poolId);
       expect(poolData).to.deep.equal([timedDealProvider.address, name, poolId, vaultId, lockDealNFT.address, token, params]);
+    });
+
+    it('should check new pool after withdraw 25% tokens', async () => {
+      await time.setNextBlockTimestamp(startTime + halfTime / 2);
+
+      await lockDealNFT
+        .connect(receiver)
+        ['safeTransferFrom(address,address,uint256)'](receiver.address, lockDealNFT.address, poolId);
+      const params = [amount - amount / 4, startTime, finishTime, amount];
+      const poolData = await lockDealNFT.getData(poolId + 1);
+      expect(poolData).to.deep.equal([timedDealProvider.address, name, poolId + 1, vaultId, receiver.address, token, params]);
+    });
+
+    it('should check new pool after withdraw half tokens', async () => {
+      await time.setNextBlockTimestamp(startTime + halfTime);
+
+      await lockDealNFT
+        .connect(receiver)
+        ['safeTransferFrom(address,address,uint256)'](receiver.address, lockDealNFT.address, poolId);
+      const params = [amount / 2, startTime, finishTime, amount];
+      const poolData = await lockDealNFT.getData(poolId + 1);
+      expect(poolData).to.deep.equal([timedDealProvider.address, name, poolId + 1, vaultId, receiver.address, token, params]);
+    });
+
+    it('should not create new pool after withdraw all tokens', async () => {
+      await time.setNextBlockTimestamp(finishTime + 1);
+
+      await lockDealNFT
+        .connect(receiver)
+        ['safeTransferFrom(address,address,uint256)'](receiver.address, lockDealNFT.address, poolId);
+      const poolData = await lockDealNFT.getData(poolId + 1);
+      expect(poolData).to.deep.equal([constants.AddressZero, "", 0, 0, constants.AddressZero, constants.AddressZero, []]);
     });
   });
 

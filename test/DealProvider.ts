@@ -103,6 +103,23 @@ describe('Deal Provider', function () {
       ]);
     });
 
+    it('should check data in newly copied pool after split', async () => {
+      const packedData = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [ratio, newOwner.address]);
+      await lockDealNFT
+        .connect(receiver)['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData);
+      const params = [amount / 2];
+      const poolData = await lockDealNFT.getData(poolId + 2);
+      expect(poolData).to.deep.equal([
+        dealProvider.address,
+        name,
+        poolId + 2,
+        vaultId,
+        newOwner.address,
+        token,
+        params,
+      ]);
+    });
+
     it('should check data in new pool after selfSplit', async () => {
       const packedData = ethers.utils.defaultAbiCoder.encode(['uint256'], [ratio]);
       await lockDealNFT

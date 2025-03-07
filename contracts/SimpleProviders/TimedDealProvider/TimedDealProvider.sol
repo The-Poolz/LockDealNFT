@@ -29,10 +29,12 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider, I
         uint256 poolId,
         uint256 amount
     ) internal override firewallProtectedSig(0x9e2bf22c) returns (uint256 withdrawnAmount, bool isFinal) {
-        (withdrawnAmount, ) = provider.withdraw(poolId, amount);
-        isFinal = true;
-        // create new NFT
-        if (lastPoolOwner[poolId] != address(0)) {
+        (withdrawnAmount, isFinal) = provider.withdraw(poolId, amount);
+        // if not called from higher level provider and is not yet finalized
+        if (lastPoolOwner[poolId] != address(0) && !isFinal) {
+            // create immutable NFT
+            isFinal = true;
+            // create new NFT
             uint256 newPoolId = _mintNewNFT(poolId, lastPoolOwner[poolId]);
             // register new pool
             uint256[] memory params = getParams(poolId);
