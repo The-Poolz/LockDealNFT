@@ -5,13 +5,10 @@ import "../LockProvider/LockDealState.sol";
 import "../DealProvider/DealProviderState.sol";
 import "../Provider/BasicProvider.sol";
 import "@poolzfinance/poolz-helper-v2/contracts/CalcUtils.sol";
-import "@poolzfinance/poolz-helper-v2/contracts/interfaces/IBeforeTransfer.sol";
+import "@poolzfinance/poolz-helper-v2/contracts/LastPoolOwnerState.sol";
 
-contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider, IBeforeTransfer {
+contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider, LastPoolOwnerState {
     using CalcUtils for uint256;
-
-    // Mapping to store the last owner of each SimpleProvider pool before a withdrawal
-    mapping(uint256 => address) internal lastPoolOwner;
 
     /**
      * @dev Contract constructor.
@@ -111,7 +108,7 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider, I
         }
     }
 
-    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
-        return interfaceId == type(IBeforeTransfer).interfaceId || super.supportsInterface(interfaceId);
+    function supportsInterface(bytes4 interfaceId) public view virtual override(BasicProvider, LastPoolOwnerState) returns (bool) {
+        return BasicProvider.supportsInterface(interfaceId) || LastPoolOwnerState.supportsInterface(interfaceId);
     }
 }
