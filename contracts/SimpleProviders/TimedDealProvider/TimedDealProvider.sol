@@ -32,10 +32,12 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider, I
         (withdrawnAmount, ) = provider.withdraw(poolId, amount);
         isFinal = true;
         // create new NFT
-        uint256 newPoolId = _mintNewNFT(poolId, lastPoolOwner[poolId]);
+        uint256 newPoolId = _mintNewNFT(poolId, lastPoolOwner[poolId], this);
         // register new pool
         uint256[] memory params = getParams(poolId);
         provider.registerPool(newPoolId, params);
+        poolIdToTime[newPoolId] = params[2];
+        poolIdToAmount[newPoolId] = params[3];
     }
 
     function getWithdrawableAmount(uint256 poolId) public view override returns (uint256) {

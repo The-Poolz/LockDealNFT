@@ -166,7 +166,7 @@ describe('Timed Deal Provider', function () {
       expect(events[events.length - 1].args.newPoolId).to.equal(poolId + 1);
       expect(events[events.length - 1].args.owner).to.equal(receiver.address);
       expect(events[events.length - 1].args.newOwner).to.equal(newOwner.address);
-      expect(events[events.length - 1].args.splitLeftAmount).to.equal(amount / 2);
+      expect(events[events.length - 1].args.splitLeftAmount).to.equal(0);
       expect(events[events.length - 1].args.newSplitLeftAmount).to.equal(amount / 2);
     });
 
@@ -179,9 +179,9 @@ describe('Timed Deal Provider', function () {
       const packedData = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [ratio, newOwner.address]);
       await lockDealNFT
         .connect(receiver)
-        ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData);
-      const poolData = await lockDealNFT.getData(poolId);
-      const newPoolData = await lockDealNFT.getData(poolId + 1);
+        ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId + 1, packedData);
+      const poolData = await lockDealNFT.getData(poolId + 2);
+      const newPoolData = await lockDealNFT.getData(poolId + 3);
       expect(poolData.params[3].add(newPoolData.params[3])).to.equal(amount);
       expect(poolData.params[0].add(newPoolData.params[0])).to.equal(amount - amount / 10);
     });
@@ -196,9 +196,9 @@ describe('Timed Deal Provider', function () {
       const packedData = ethers.utils.defaultAbiCoder.encode(['uint256', 'address'], [ratio, newOwner.address]);
       await lockDealNFT
         .connect(receiver)
-        ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId, packedData);
-      const poolData = await lockDealNFT.getData(poolId);
-      const newPoolData = await lockDealNFT.getData(poolId + 1);
+        ['safeTransferFrom(address,address,uint256,bytes)'](receiver.address, lockDealNFT.address, poolId + 1, packedData);
+      const poolData = await lockDealNFT.getData(poolId + 2);
+      const newPoolData = await lockDealNFT.getData(poolId + 3);
 
       expect(poolData.params[3].add(newPoolData.params[3])).to.equal(amount);
       expect(poolData.params[0].add(newPoolData.params[0])).to.equal(amount - amount / 4);

@@ -77,8 +77,18 @@ abstract contract BasicProvider is ProviderModifiers, ISimpleProvider, ERC165, F
             super.supportsInterface(interfaceId);
     }
 
-    function _mintNewNFT(uint256 sourcePoolId, address to) internal firewallProtectedSig(0x3c99ae44) returns(uint256 newPoolId){
-        newPoolId = lockDealNFT.mintForProvider(to, this);
+    /// @dev creates a new NFT and clones the vault id from the source pool id.
+    /// @param sourcePoolId The ID of the source pool.
+    /// @param to The address of the NFT owner.
+    /// @param sourceProvider The address of the source provider.
+    /// @return newPoolId The ID of the newly created pool.
+    /// 0x7e6b33b0 - represents bytes4(keccak256("_mintNewNFT(uint256,address,address)"))
+    function _mintNewNFT(
+        uint256 sourcePoolId,
+        address to,
+        IProvider sourceProvider
+    ) internal firewallProtectedSig(0x7e6b33b0) returns (uint256 newPoolId) {
+        newPoolId = lockDealNFT.mintForProvider(to, sourceProvider);
         // clone vault id
         lockDealNFT.cloneVaultId(newPoolId, sourcePoolId);
     }
