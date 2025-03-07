@@ -68,7 +68,7 @@ describe('LockDealNFT', function () {
 
   it('should set provider address', async () => {
     await lockDealNFT.setApprovedContract(dealProvider.address, true);
-    expect(await lockDealNFT.approvedContracts(dealProvider.address)).to.be.true;
+    expect(await lockDealNFT.approvedContracts(dealProvider.address)).to.equal(true);
   });
 
   it('should return ContractApproved event', async () => {
