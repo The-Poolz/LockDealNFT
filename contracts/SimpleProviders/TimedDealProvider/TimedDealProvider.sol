@@ -32,7 +32,7 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider, I
         (withdrawnAmount, ) = provider.withdraw(poolId, amount);
         isFinal = true;
         // create new NFT
-        uint256 newPoolId = _mintNewNFT(poolId, lastPoolOwner[poolId], this);
+        uint256 newPoolId = _mintNewNFT(poolId, lastPoolOwner[poolId]);
         // register new pool
         uint256[] memory params = getParams(poolId);
         provider.registerPool(newPoolId, params);
