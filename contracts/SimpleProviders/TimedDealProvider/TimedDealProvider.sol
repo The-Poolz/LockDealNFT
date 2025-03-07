@@ -34,7 +34,6 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider, I
         if (lastPoolOwner[poolId] != address(0) && !isFinal) {
             // create immutable NFT
             isFinal = true;
-            // create new NFT
             uint256 newPoolId = _mintNewNFT(poolId, lastPoolOwner[poolId]);
             // register new pool
             uint256[] memory params = getParams(poolId);
