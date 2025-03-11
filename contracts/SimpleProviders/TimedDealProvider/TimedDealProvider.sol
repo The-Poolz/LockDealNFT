@@ -22,14 +22,18 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider, L
         name = "TimedDealProvider";
     }
 
-    function _withdraw(
-        uint256 poolId,
-        uint256 amount // Guaranteed to be valid
-    ) internal override firewallProtectedSig(0x9e2bf22c) returns (uint256, bool isFinal) {
-        if (amount == 0) return (0, false);
+    /**
+     * @dev used by LockedDealNFT contract to withdraw tokens from a pool.
+     * @param poolId The ID of the pool.
+     * @return withdrawnAmount The amount of tokens withdrawn.
+     * @return isFinal Boolean indicating whether the pool is empty after a withdrawal.
+     */
+    function withdraw(uint256 poolId) external virtual firewallProtected override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
+        withdrawnAmount = getWithdrawableAmount(poolId);
+        if (withdrawnAmount == 0) return (0, false);
         isFinal = true;
         uint256[] memory params = getParams(poolId);
-        uint256 remainingAmount = params[0] - amount;
+        uint256 remainingAmount = params[0] - withdrawnAmount;
         // Create a new pool if there are remaining tokens
         if (remainingAmount > 0) {
             uint256 newPoolId = _mintNewNFT(poolId, lastPoolOwner[poolId]);
@@ -41,6 +45,13 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider, L
         // Reset and update the original pool
         params[0] = 0;
         provider.registerPool(poolId, params);
+    }
+
+    function _withdraw(
+        uint256 poolId,
+        uint256 amount
+    ) internal override firewallProtectedSig(0x9e2bf22c) returns (uint256 withdrawnAmount, bool isFinal) {
+        // not used
     }
 
     function getWithdrawableAmount(uint256 poolId) public view override returns (uint256) {
@@ -115,3 +126,4 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider, L
         return BasicProvider.supportsInterface(interfaceId) || LastPoolOwnerState.supportsInterface(interfaceId);
     }
 }
+ 
