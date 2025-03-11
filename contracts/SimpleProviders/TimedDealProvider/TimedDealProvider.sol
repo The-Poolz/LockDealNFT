@@ -42,6 +42,7 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider, L
             provider.registerPool(newPoolId, params);
             poolIdToTime[newPoolId] = poolIdToTime[poolId];
             poolIdToAmount[newPoolId] = poolIdToAmount[poolId];
+            delete lastPoolOwner[poolId];
         }
     }
 
