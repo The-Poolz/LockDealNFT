@@ -24,16 +24,20 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider, L
 
     function _withdraw(
         uint256 poolId,
-        uint256 amount
-    ) internal override firewallProtectedSig(0x9e2bf22c) returns (uint256 withdrawnAmount, bool isFinal) {
-        (withdrawnAmount, isFinal) = provider.withdraw(poolId, amount);
-        // if not called from higher level provider and is not yet finalized
-        if (lastPoolOwner[poolId] != address(0) && !isFinal) {
-            // create immutable NFT
-            isFinal = true;
+        uint256 amount // amount is always valid
+    ) internal override firewallProtectedSig(0x9e2bf22c) returns (uint256, bool isFinal) {
+        if (amount == 0) return (0, false);
+        isFinal = true;
+        uint256[] memory params = getParams(poolId);
+        uint256 leftAmount = params[0] - amount;
+        // update the old pool
+        params[0] = 0;
+        provider.registerPool(poolId, params);
+        // create immutable NFT
+        if (leftAmount > 0) {
             uint256 newPoolId = _mintNewNFT(poolId, lastPoolOwner[poolId]);
             // register new pool
-            uint256[] memory params = getParams(poolId);
+            params[0] = leftAmount;
             provider.registerPool(newPoolId, params);
             poolIdToTime[newPoolId] = params[2];
             poolIdToAmount[newPoolId] = params[3];
