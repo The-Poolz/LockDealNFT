@@ -31,12 +31,17 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider, L
         if (lastPoolOwner[poolId] != address(0) && !isFinal) {
             // create immutable NFT
             isFinal = true;
-            uint256 newPoolId = _mintNewNFT(poolId, lastPoolOwner[poolId]);
+            uint256 newPoolId = lockDealNFT.mintForProvider(
+                lastPoolOwner[poolId],
+                lockDealNFT.poolIdToProvider(poolId)
+            );
+            // clone vault id
+            lockDealNFT.cloneVaultId(newPoolId, poolId);
             // register new pool
-            uint256[] memory params = getParams(poolId);
+            uint256[] memory params = provider.getParams(poolId);
             provider.registerPool(newPoolId, params);
-            poolIdToTime[newPoolId] = params[2];
-            poolIdToAmount[newPoolId] = params[3];
+            poolIdToTime[newPoolId] = poolIdToTime[poolId];
+            poolIdToAmount[newPoolId] = poolIdToAmount[poolId];
         }
     }
 
