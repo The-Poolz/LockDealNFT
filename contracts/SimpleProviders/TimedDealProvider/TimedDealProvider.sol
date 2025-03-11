@@ -28,19 +28,26 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider, L
      * @return withdrawnAmount The amount of tokens withdrawn.
      * @return isFinal Boolean indicating whether the pool is empty after a withdrawal.
      */
-    function withdraw(uint256 poolId) external virtual firewallProtected onlyNFT override returns (uint256 withdrawnAmount, bool isFinal) {
+    function withdraw(
+        uint256 poolId
+    ) external virtual override firewallProtected onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
         withdrawnAmount = getWithdrawableAmount(poolId);
         if (withdrawnAmount == 0) return (0, false);
         isFinal = true;
-        uint256[] memory params = getParams(poolId);
+        uint256[] memory params = provider.getParams(poolId);
         uint256 remainingAmount = params[0] - withdrawnAmount;
         // Create a new pool if there are remaining tokens
         if (remainingAmount > 0) {
-            uint256 newPoolId = _mintNewNFT(poolId, lastPoolOwner[poolId]);
+            uint256 newPoolId = lockDealNFT.mintForProvider(
+                lastPoolOwner[poolId],
+                lockDealNFT.poolIdToProvider(poolId)
+            );
+            // clone vault id
+            lockDealNFT.cloneVaultId(newPoolId, poolId);
             params[0] = remainingAmount;
             provider.registerPool(newPoolId, params);
-            poolIdToTime[newPoolId] = params[2];
-            poolIdToAmount[newPoolId] = params[3];
+            poolIdToTime[newPoolId] = poolIdToTime[poolId];
+            poolIdToAmount[newPoolId] = poolIdToAmount[poolId];
         }
         // Reset and update the original pool
         params[0] = 0;
@@ -119,4 +126,3 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider, L
         return BasicProvider.supportsInterface(interfaceId) || LastPoolOwnerState.supportsInterface(interfaceId);
     }
 }
- 
