@@ -28,7 +28,7 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider, L
      * @return withdrawnAmount The amount of tokens withdrawn.
      * @return isFinal Boolean indicating whether the pool is empty after a withdrawal.
      */
-    function withdraw(uint256 poolId) external virtual firewallProtected override onlyNFT returns (uint256 withdrawnAmount, bool isFinal) {
+    function withdraw(uint256 poolId) external virtual firewallProtected onlyNFT override returns (uint256 withdrawnAmount, bool isFinal) {
         withdrawnAmount = getWithdrawableAmount(poolId);
         if (withdrawnAmount == 0) return (0, false);
         isFinal = true;
@@ -45,13 +45,6 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider, L
         // Reset and update the original pool
         params[0] = 0;
         provider.registerPool(poolId, params);
-    }
-
-    function _withdraw(
-        uint256 poolId,
-        uint256 amount
-    ) internal override firewallProtectedSig(0x9e2bf22c) returns (uint256 withdrawnAmount, bool isFinal) {
-        // not used
     }
 
     function getWithdrawableAmount(uint256 poolId) public view override returns (uint256) {
