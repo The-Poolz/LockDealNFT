@@ -31,7 +31,7 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider, L
         withdrawnAmount = amount;
         uint256[] memory params = provider.getParams(poolId);
         uint256 remainingAmount = params[0] - amount;
-        if (remainingAmount > 0) {
+        if (remainingAmount > 0 && lastPoolOwner[poolId] != address(0)) {
             // create immutable NFT
             uint256 newPoolId = lockDealNFT.mintForProvider(
                 lastPoolOwner[poolId],

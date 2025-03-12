@@ -304,6 +304,13 @@ describe('Timed Deal Provider', function () {
       expect(poolData).to.deep.equal([timedDealProvider.address, name, poolId, vaultId, receiver.address, token, params]);
     });
 
+    it('should withdraw half tokens with higher mock provider', async () => {
+      await mockProvider.withdraw(poolId, amount / 2);
+      const poolData = await lockDealNFT.getData(poolId);
+      const params = [0, startTime, finishTime, amount];
+      expect(poolData).to.deep.equal([timedDealProvider.address, name, poolId, vaultId, receiver.address, token, params]);
+    });
+
     it('should withdraw all tokens with higher mock provider', async () => {
       await mockProvider.withdraw(poolId, amount);
       const poolData = await lockDealNFT.getData(poolId);
