@@ -15,11 +15,12 @@ const config: HardhatUserConfig = {
       {
         version: '0.8.25',
         settings: {
-          evmVersion: 'istanbul',
+          evmVersion: 'cancun',
           optimizer: {
             enabled: true,
             runs: 200,
           },
+          viaIR: true,
         },
       },
     ],

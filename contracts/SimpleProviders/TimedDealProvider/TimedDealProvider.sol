@@ -5,8 +5,9 @@ import "../LockProvider/LockDealState.sol";
 import "../DealProvider/DealProviderState.sol";
 import "../Provider/BasicProvider.sol";
 import "@poolzfinance/poolz-helper-v2/contracts/CalcUtils.sol";
+import "@poolzfinance/poolz-helper-v2/contracts/LastPoolOwnerState.sol";
 
-contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider {
+contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider, LastPoolOwnerState {
     using CalcUtils for uint256;
 
     /**
@@ -20,12 +21,34 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider {
         lockDealNFT = _lockDealNFT;
         name = "TimedDealProvider";
     }
-    
+
     function _withdraw(
         uint256 poolId,
         uint256 amount
     ) internal override firewallProtectedSig(0x9e2bf22c) returns (uint256 withdrawnAmount, bool isFinal) {
-        (withdrawnAmount, isFinal) = provider.withdraw(poolId, amount);
+        if (amount == 0) return (0, false);
+        isFinal = true;
+        withdrawnAmount = amount;
+        uint256[] memory params = provider.getParams(poolId);
+        uint256 remainingAmount = params[0] - amount;
+        if (remainingAmount > 0 && lastPoolOwner[poolId] != address(0)) {
+            // create immutable NFT
+            uint256 newPoolId = lockDealNFT.mintForProvider(
+                lastPoolOwner[poolId],
+                lockDealNFT.poolIdToProvider(poolId)
+            );
+            // clone vault id
+            lockDealNFT.cloneVaultId(newPoolId, poolId);
+            // register new pool
+            params[0] = remainingAmount;
+            provider.registerPool(newPoolId, params);
+            poolIdToTime[newPoolId] = poolIdToTime[poolId];
+            poolIdToAmount[newPoolId] = poolIdToAmount[poolId];
+            delete lastPoolOwner[poolId];
+        }
+        // Reset and update the original pool
+        params[0] = 0;
+        provider.registerPool(poolId, params);
     }
 
     function getWithdrawableAmount(uint256 poolId) public view override returns (uint256) {
@@ -44,12 +67,14 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider {
         return debitableAmount - (startAmount - leftAmount);
     }
 
-    function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) external firewallProtected onlyProvider {
-        provider.split(oldPoolId, newPoolId, ratio);
-        uint256 newPoolStartAmount = poolIdToAmount[oldPoolId].calcAmount(ratio);
-        poolIdToAmount[oldPoolId] -= newPoolStartAmount;
+    function split(uint256 lockDealNFTPoolId, uint256 newPoolId, uint256 ratio) external firewallProtected onlyProvider {
+        provider.split(lockDealNFTPoolId, newPoolId, ratio);
+        uint256 newPoolStartAmount = poolIdToAmount[lockDealNFTPoolId].calcAmount(ratio);
         poolIdToAmount[newPoolId] = newPoolStartAmount;
-        poolIdToTime[newPoolId] = poolIdToTime[oldPoolId];
+        poolIdToTime[newPoolId] = poolIdToTime[lockDealNFTPoolId];
+        // save startAmount and FinishTime to the newly created pool from the old pool
+        poolIdToAmount[newPoolId + 1] = poolIdToAmount[lockDealNFTPoolId] - newPoolStartAmount;
+        poolIdToTime[newPoolId + 1] = poolIdToTime[lockDealNFTPoolId];
     }
 
     ///@param params[0] = leftAmount = startAmount (leftAmount & startAmount must be same while creating pool)
@@ -75,5 +100,26 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider {
 
     function currentParamsTargetLength() public view override(IProvider, ProviderState) returns (uint256) {
         return 1 + provider.currentParamsTargetLength();
+    }
+
+    /**
+     * @dev Executes before a transfer, updating state based on the transfer details.
+     * @param from Sender address.
+     * @param to Receiver address.
+     * @param poolId Pool identifier.
+     */
+    function beforeTransfer(
+        address from,
+        address to,
+        uint256 poolId
+    ) external virtual override firewallProtected onlyNFT {
+        if (to == address(lockDealNFT)) {
+            // this means it will be withdraw or split
+            lastPoolOwner[poolId] = from; //this is the only way to know the owner of the pool
+        }
+    }
+
+    function supportsInterface(bytes4 interfaceId) public view virtual override(BasicProvider, LastPoolOwnerState) returns (bool) {
+        return BasicProvider.supportsInterface(interfaceId) || LastPoolOwnerState.supportsInterface(interfaceId);
     }
 }

@@ -25,9 +25,11 @@ contract LockDealProvider is BasicProvider, LockDealState {
         (withdrawnAmount, isFinal) = provider.withdraw(poolId, amount > withdrawnAmount ? withdrawnAmount : amount);
     }
 
-    function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) external override firewallProtected onlyProvider {
-        provider.split(oldPoolId, newPoolId, ratio);
-        poolIdToTime[newPoolId] = poolIdToTime[oldPoolId];
+    function split(uint256 lockDealNFTPoolId, uint256 newPoolId, uint256 ratio) external override firewallProtected onlyProvider {
+        provider.split(lockDealNFTPoolId, newPoolId, ratio);
+        poolIdToTime[newPoolId] = poolIdToTime[lockDealNFTPoolId];
+        // save startTime to the newly created pool from the old pool
+        poolIdToTime[newPoolId + 1] = poolIdToTime[lockDealNFTPoolId];
     }
 
     function currentParamsTargetLength() public view override(IProvider, ProviderState) returns (uint256) {

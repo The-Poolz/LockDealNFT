@@ -26,11 +26,15 @@ contract DealProvider is DealProviderState, BasicProvider {
     }
 
     /// @dev Splits a pool into two pools. Used by the LockedDealNFT contract or Provider
-    function split(uint256 oldPoolId, uint256 newPoolId, uint256 ratio) external override firewallProtected onlyProvider {
-        uint256 splitAmount = poolIdToAmount[oldPoolId].calcAmount(ratio);
-        require(poolIdToAmount[oldPoolId] >= splitAmount, "Split amount exceeds the available amount");
-        poolIdToAmount[oldPoolId] -= splitAmount;
+    function split(uint256 lockDealNFTPoolId, uint256 newPoolId, uint256 ratio) external override firewallProtected onlyProvider {
+        uint256 splitAmount = poolIdToAmount[lockDealNFTPoolId].calcAmount(ratio);
+        require(poolIdToAmount[lockDealNFTPoolId] >= splitAmount, "Split amount exceeds the available amount");
         poolIdToAmount[newPoolId] = splitAmount;
+        // save leftAmount to the newly created pool from the old pool
+        uint256 copyOldPoolId = _mintNewNFT(lockDealNFTPoolId, lockDealNFT.ownerOf(newPoolId));
+        poolIdToAmount[copyOldPoolId] = poolIdToAmount[lockDealNFTPoolId] - splitAmount;
+        // set to 0 to finalize the pool
+        poolIdToAmount[lockDealNFTPoolId] = 0;
     }
 
     /**@dev Providers overrides this function to add additional parameters when creating a pool.
@@ -50,5 +54,20 @@ contract DealProvider is DealProviderState, BasicProvider {
 
     function getWithdrawableAmount(uint256 poolId) public view override returns (uint256) {
         return poolIdToAmount[poolId];
+    }
+
+    /// @dev creates a new NFT and clones the vault id from the source pool id.
+    /// @param sourcePoolId The ID of the source pool.
+    /// @param to The address of the NFT owner.
+    /// @return newPoolId The ID of the newly created pool.
+    /// 0x21de57c4 - represents bytes4(keccak256("_mintNewNFT(uint256,address)"))
+    function _mintNewNFT(
+        uint256 sourcePoolId,
+        address to
+    ) internal firewallProtectedSig(0x21de57c4) returns (uint256 newPoolId) {
+        IProvider sourceProvider = lockDealNFT.poolIdToProvider(sourcePoolId);
+        newPoolId = lockDealNFT.mintForProvider(to, sourceProvider);
+        // clone vault id
+        lockDealNFT.cloneVaultId(newPoolId, sourcePoolId);
     }
 }

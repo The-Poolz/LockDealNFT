@@ -9,9 +9,9 @@
   "license": "MIT",
   "main": "index.js",
   "dependencies": {
-    "@ironblocks/firewall-consumer": "^1.0.13",
+    "@ironblocks/firewall-consumer": "^1.0.17",
     "@openzeppelin/contracts": "^5.0.2",
-    "@poolzfinance/poolz-helper-v2": "^3.0.0"
+    "@poolzfinance/poolz-helper-v2": "^3.0.4"
   },
   "devDependencies": {
     "@ethersproject/bignumber": "^5.7.0",
