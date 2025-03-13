@@ -55,4 +55,19 @@ contract DealProvider is DealProviderState, BasicProvider {
     function getWithdrawableAmount(uint256 poolId) public view override returns (uint256) {
         return poolIdToAmount[poolId];
     }
+
+    /// @dev creates a new NFT and clones the vault id from the source pool id.
+    /// @param sourcePoolId The ID of the source pool.
+    /// @param to The address of the NFT owner.
+    /// @return newPoolId The ID of the newly created pool.
+    /// 0x21de57c4 - represents bytes4(keccak256("_mintNewNFT(uint256,address)"))
+    function _mintNewNFT(
+        uint256 sourcePoolId,
+        address to
+    ) internal firewallProtectedSig(0x21de57c4) returns (uint256 newPoolId) {
+        IProvider sourceProvider = lockDealNFT.poolIdToProvider(sourcePoolId);
+        newPoolId = lockDealNFT.mintForProvider(to, sourceProvider);
+        // clone vault id
+        lockDealNFT.cloneVaultId(newPoolId, sourcePoolId);
+    }
 }
