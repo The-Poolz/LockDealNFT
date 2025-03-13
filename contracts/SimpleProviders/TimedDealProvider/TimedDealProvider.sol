@@ -26,18 +26,29 @@ contract TimedDealProvider is LockDealState, DealProviderState, BasicProvider, L
         uint256 poolId,
         uint256 amount
     ) internal override firewallProtectedSig(0x9e2bf22c) returns (uint256 withdrawnAmount, bool isFinal) {
-        (withdrawnAmount, isFinal) = provider.withdraw(poolId, amount);
-        // if not called from higher level provider and is not yet finalized
-        if (lastPoolOwner[poolId] != address(0) && !isFinal) {
+        if (amount == 0) return (0, false);
+        isFinal = true;
+        withdrawnAmount = amount;
+        uint256[] memory params = provider.getParams(poolId);
+        uint256 remainingAmount = params[0] - amount;
+        if (remainingAmount > 0 && lastPoolOwner[poolId] != address(0)) {
             // create immutable NFT
-            isFinal = true;
-            uint256 newPoolId = _mintNewNFT(poolId, lastPoolOwner[poolId]);
+            uint256 newPoolId = lockDealNFT.mintForProvider(
+                lastPoolOwner[poolId],
+                lockDealNFT.poolIdToProvider(poolId)
+            );
+            // clone vault id
+            lockDealNFT.cloneVaultId(newPoolId, poolId);
             // register new pool
-            uint256[] memory params = getParams(poolId);
+            params[0] = remainingAmount;
             provider.registerPool(newPoolId, params);
-            poolIdToTime[newPoolId] = params[2];
-            poolIdToAmount[newPoolId] = params[3];
+            poolIdToTime[newPoolId] = poolIdToTime[poolId];
+            poolIdToAmount[newPoolId] = poolIdToAmount[poolId];
+            delete lastPoolOwner[poolId];
         }
+        // Reset and update the original pool
+        params[0] = 0;
+        provider.registerPool(poolId, params);
     }
 
     function getWithdrawableAmount(uint256 poolId) public view override returns (uint256) {
